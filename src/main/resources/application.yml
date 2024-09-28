@@ -1,0 +1,6 @@
+spring:
+    datasource:
+        url: ${DESARROLLO_DATASOURCE_URL}
+        username: ${DESARROLLO_DATASOURCE_USER}
+        password: ${DESARROLLO_DATASOURCE_PASSWORD}
+        driver-class-name: ${SIMCA_DRIVER:oracle.jdbc.OracleDriver}
