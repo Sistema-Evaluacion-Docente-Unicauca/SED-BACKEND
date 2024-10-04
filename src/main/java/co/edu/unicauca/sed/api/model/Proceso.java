@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "PROCESO", schema = "ACADEMICO")
+@Table(name = "PROCESO", schema = "SEDOCENTE")
 @Data
 public class Proceso {
     @Id
@@ -46,4 +46,16 @@ public class Proceso {
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<Comentario> comentarios;
+
+    @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Resolucion> resolucion;
+
+    @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Oficio> oficio;
+
+    @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Consolidado> consolidado;
 }
