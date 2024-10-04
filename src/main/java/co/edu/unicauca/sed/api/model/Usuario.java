@@ -20,13 +20,13 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "USUARIO", schema = "ACADEMICO")
+@Table(name = "USUARIO", schema = "SEDOCENTE")
 @Data
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "userSeq")
-    @SequenceGenerator(name = "userSeq", sequenceName = "SEQ_OIDUSER", allocationSize = 1)
+    @SequenceGenerator(name = "userSeq", sequenceName = "SEQ_OIDUSUARIO", allocationSize = 1)
     @Column(name = "OIDUSUARIO")
     private Integer oidUsuario;
 
