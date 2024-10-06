@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.TipoActividad;
-import co.edu.unicauca.sed.api.service.TipoActividadService;
+import co.edu.unicauca.sed.api.model.Encuesta;
+import co.edu.unicauca.sed.api.service.EncuestaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("tipoactividad")
-public class TipoActividadController {
+@RequestMapping("encuesta")
+public class EncuestaController {
 
     @Autowired
-    private TipoActividadService service;
+    private EncuestaService encuestaService;
 
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
         try {
-            List<TipoActividad> list = service.findAll();
+            List<Encuesta> list = (List<Encuesta>) encuestaService.findAll();
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list);
             }
@@ -32,17 +32,17 @@ public class TipoActividadController {
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        TipoActividad tipoActividad = service.findByOid(oid);
-        if (tipoActividad != null) {
-            return ResponseEntity.ok().body(tipoActividad);
+        Encuesta encuesta = encuestaService.findById(oid).orElse(null);
+        if (encuesta != null) {
+            return ResponseEntity.ok().body(encuesta);
         }
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody TipoActividad tipoActividad) {
+    public ResponseEntity<?> save(@RequestBody Encuesta encuesta) {
         try {
-            TipoActividad resultado = service.save(tipoActividad);
+            Encuesta resultado = encuestaService.save(encuesta);
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
@@ -53,19 +53,19 @@ public class TipoActividadController {
     }
 
     @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        TipoActividad tipoActividad = null;
+    public ResponseEntity<?> deleteById(@PathVariable Integer oid) {
+        Encuesta encuesta = null;
         try {
-            tipoActividad = service.findByOid(oid);
-            if (tipoActividad == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TipoActividad no encontrado");
+            encuesta = encuestaService.findById(oid).orElse(null);
+            if (encuesta == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encuesta no encontrada");
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TipoActividad no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encuesta no encontrada");
         }
 
         try {
-            service.delete(oid);
+            encuestaService.deleteById(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
