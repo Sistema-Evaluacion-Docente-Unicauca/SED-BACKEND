@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.TipoActividad;
-import co.edu.unicauca.sed.api.service.TipoActividadService;
+import co.edu.unicauca.sed.api.model.Autoevaluacion;
+import co.edu.unicauca.sed.api.service.AutoevaluacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("tipoactividad")
-public class TipoActividadController {
+@RequestMapping("autoevaluacion")
+public class AutoevaluacionController {
 
     @Autowired
-    private TipoActividadService service;
+    private AutoevaluacionService service;
 
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
         try {
-            List<TipoActividad> list = service.findAll();
+            List<Autoevaluacion> list = service.findAll();
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list);
             }
@@ -32,17 +32,17 @@ public class TipoActividadController {
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        TipoActividad tipoActividad = service.findByOid(oid);
-        if (tipoActividad != null) {
-            return ResponseEntity.ok().body(tipoActividad);
+        Autoevaluacion autoevaluacion = service.findByOid(oid);
+        if (autoevaluacion != null) {
+            return ResponseEntity.ok().body(autoevaluacion);
         }
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody TipoActividad tipoActividad) {
+    public ResponseEntity<?> save(@RequestBody Autoevaluacion autoevaluacion) {
         try {
-            TipoActividad resultado = service.save(tipoActividad);
+            Autoevaluacion resultado = service.save(autoevaluacion);
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
@@ -54,14 +54,14 @@ public class TipoActividadController {
 
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        TipoActividad tipoActividad = null;
+        Autoevaluacion autoevaluacion = null;
         try {
-            tipoActividad = service.findByOid(oid);
-            if (tipoActividad == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TipoActividad no encontrado");
+            autoevaluacion = service.findByOid(oid);
+            if (autoevaluacion == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Autoevaluación no encontrada");
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TipoActividad no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Autoevaluación no encontrada");
         }
 
         try {
