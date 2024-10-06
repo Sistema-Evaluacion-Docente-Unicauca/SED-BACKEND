@@ -1,6 +1,5 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.dto.EncuestaEstudianteDTO;
 import co.edu.unicauca.sed.api.model.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.service.EvaluacionEstudianteService;
 import org.springframework.beans.factory.annotation.Autowired;

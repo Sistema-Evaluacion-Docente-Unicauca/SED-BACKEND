@@ -1,7 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.model.Encuesta;
-import co.edu.unicauca.sed.api.dto.EncuestaEstudianteDTO;
 import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
 import co.edu.unicauca.sed.api.model.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.repository.EncuestaEstudianteRepository;
@@ -52,7 +51,6 @@ public class EvaluacionEstudianteService {
         EncuestaEstudiante encuestaEstudiante = new EncuestaEstudiante();
         encuestaEstudiante.setEncuesta(encuesta);
         encuestaEstudiante.setEvaluacionEstudiante(savedEvaluacion);
-        // La fecha será establecida automáticamente por el método @PrePersist
 
         encuestaEstudianteRepository.save(encuestaEstudiante);
 
