@@ -1,7 +1,9 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.ActividadService;
+import co.edu.unicauca.sed.api.service.FuenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +17,15 @@ import java.util.List;
 public class ActividadController {
 
     @Autowired
-    private ActividadService service;
+    private ActividadService actividadService;
+
+    @Autowired
+    private FuenteService fuenteService;
 
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
         try {
-            List<Actividad> list = service.findAll();
+            List<Actividad> list = actividadService.findAll();
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list);
             }
@@ -32,17 +37,26 @@ public class ActividadController {
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        Actividad actividad = service.findByOid(oid);
+        Actividad actividad = actividadService.findByOid(oid);
         if (actividad != null) {
             return ResponseEntity.ok().body(actividad);
         }
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("find/{oid}/fuentes")
+    public ResponseEntity<?> findFuentesByActividad(@PathVariable Integer oid) {
+        List<Fuente> fuentes = fuenteService.findByActividadOid(oid);
+        if (fuentes != null && !fuentes.isEmpty()) {
+            return ResponseEntity.ok().body(fuentes);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontraron fuentes para esta actividad");
+    }
+
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Actividad actividad) {
         try {
-            Actividad resultado = service.save(actividad);
+            Actividad resultado = actividadService.save(actividad);
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
@@ -56,7 +70,7 @@ public class ActividadController {
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Actividad actividad = null;
         try {
-            actividad = service.findByOid(oid);
+            actividad = actividadService.findByOid(oid);
             if (actividad == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Actividad no encontrada");
             }
@@ -65,7 +79,7 @@ public class ActividadController {
         }
 
         try {
-            service.delete(oid);
+            actividadService.delete(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");

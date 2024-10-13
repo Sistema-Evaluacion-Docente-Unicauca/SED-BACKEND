@@ -16,14 +16,12 @@ public class ActividadService {
     @Autowired
     private ActividadRepository actividadRepository;
 
-    // Método para encontrar todas las actividades
     public List<Actividad> findAll() {
         List<Actividad> list = new ArrayList<>();
         this.actividadRepository.findAll().forEach(list::add);
         return list;
     }
 
-    // Método para encontrar una actividad por su OID
     public Actividad findByOid(Integer oid) {
         Optional<Actividad> resultado = this.actividadRepository.findById(oid);
 
@@ -34,7 +32,6 @@ public class ActividadService {
         return null;
     }
 
-    // Método para guardar una actividad
     public Actividad save(Actividad actividad) {
         Actividad result = null;
         try {
@@ -46,7 +43,6 @@ public class ActividadService {
         return result;
     }
 
-    // Método para eliminar una actividad por su ID
     public void delete(Integer oid) {
         this.actividadRepository.deleteById(oid);
     }

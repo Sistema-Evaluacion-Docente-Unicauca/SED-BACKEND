@@ -9,8 +9,9 @@ import co.edu.unicauca.sed.api.repository.EvaluacionEstudianteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 @Service
 public class EvaluacionEstudianteService {
@@ -18,42 +19,63 @@ public class EvaluacionEstudianteService {
     @Autowired
     private EvaluacionEstudianteRepository evaluacionEstudianteRepository;
 
-     @Autowired
+    @Autowired
     private EncuestaRepository encuestaRepository;
 
     @Autowired
     private EncuestaEstudianteRepository encuestaEstudianteRepository;
 
-    public Iterable<EvaluacionEstudiante> findAll() {
-        return evaluacionEstudianteRepository.findAll();
+    public List<EvaluacionEstudiante> findAll() {
+        List<EvaluacionEstudiante> list = new ArrayList<>();
+        this.evaluacionEstudianteRepository.findAll().forEach(list::add);
+        return list;
     }
 
-    public Optional<EvaluacionEstudiante> findById(Integer id) {
-        return evaluacionEstudianteRepository.findById(id);
+    public EvaluacionEstudiante findByOid(Integer oid) {
+        Optional<EvaluacionEstudiante> resultado = this.evaluacionEstudianteRepository.findById(oid);
+
+        if (resultado.isPresent()) {
+            return resultado.get();
+        }
+
+        return null;
     }
 
     public EvaluacionEstudiante save(EvaluacionEstudiante evaluacionEstudiante) {
-        return evaluacionEstudianteRepository.save(evaluacionEstudiante);
+        EvaluacionEstudiante result = null;
+        try {
+            result = this.evaluacionEstudianteRepository.save(evaluacionEstudiante);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return result;
     }
 
-    public void deleteById(Integer id) {
-        evaluacionEstudianteRepository.deleteById(id);
+    public void delete(Integer oid) {
+        this.evaluacionEstudianteRepository.deleteById(oid);
     }
 
     public EvaluacionEstudiante saveEvaluacionConEncuesta(EvaluacionEstudiante evaluacionEstudiante, Integer oidEncuesta) {
-        // Guardar EvaluacionEstudiante
-        EvaluacionEstudiante savedEvaluacion = evaluacionEstudianteRepository.save(evaluacionEstudiante);
+        EvaluacionEstudiante savedEvaluacion = null;
+        try {
+            // Guardar EvaluacionEstudiante
+            savedEvaluacion = evaluacionEstudianteRepository.save(evaluacionEstudiante);
 
-        // Guardar EncuestaEstudiante
-        Encuesta encuesta = encuestaRepository.findById(oidEncuesta)
-                .orElseThrow(() -> new RuntimeException("Encuesta no encontrada"));
+            // Guardar EncuestaEstudiante
+            Encuesta encuesta = encuestaRepository.findById(oidEncuesta)
+                    .orElseThrow(() -> new RuntimeException("Encuesta no encontrada"));
 
-        EncuestaEstudiante encuestaEstudiante = new EncuestaEstudiante();
-        encuestaEstudiante.setEncuesta(encuesta);
-        encuestaEstudiante.setEvaluacionEstudiante(savedEvaluacion);
+            EncuestaEstudiante encuestaEstudiante = new EncuestaEstudiante();
+            encuestaEstudiante.setEncuesta(encuesta);
+            encuestaEstudiante.setEvaluacionEstudiante(savedEvaluacion);
 
-        encuestaEstudianteRepository.save(encuestaEstudiante);
+            encuestaEstudianteRepository.save(encuestaEstudiante);
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
         return savedEvaluacion;
     }
 }

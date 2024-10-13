@@ -5,6 +5,8 @@ import co.edu.unicauca.sed.api.repository.EncuestaEstudianteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,19 +15,34 @@ public class EncuestaEstudianteService {
     @Autowired
     private EncuestaEstudianteRepository encuestaEstudianteRepository;
 
-    public Iterable<EncuestaEstudiante> findAll() {
-        return encuestaEstudianteRepository.findAll();
+    public List<EncuestaEstudiante> findAll() {
+        List<EncuestaEstudiante> list = new ArrayList<>();
+        this.encuestaEstudianteRepository.findAll().forEach(list::add);
+        return list;
     }
 
-    public Optional<EncuestaEstudiante> findById(Integer id) {
-        return encuestaEstudianteRepository.findById(id);
+    public EncuestaEstudiante findByOid(Integer oid) {
+        Optional<EncuestaEstudiante> resultado = this.encuestaEstudianteRepository.findById(oid);
+
+        if (resultado.isPresent()) {
+            return resultado.get();
+        }
+
+        return null;
     }
 
     public EncuestaEstudiante save(EncuestaEstudiante encuestaEstudiante) {
-        return encuestaEstudianteRepository.save(encuestaEstudiante);
+        EncuestaEstudiante result = null;
+        try {
+            result = this.encuestaEstudianteRepository.save(encuestaEstudiante);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return result;
     }
 
-    public void deleteById(Integer id) {
-        encuestaEstudianteRepository.deleteById(id);
+    public void delete(Integer oid) {
+        this.encuestaEstudianteRepository.deleteById(oid);
     }
 }

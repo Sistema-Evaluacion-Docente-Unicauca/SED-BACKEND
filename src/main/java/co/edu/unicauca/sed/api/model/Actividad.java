@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -36,4 +38,7 @@ public class Actividad {
 
     @Column(name = "ESTUDIANTE")
     private String estudiante;
+
+    @OneToMany(mappedBy = "actividad", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Fuente> fuentes;
 }

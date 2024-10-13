@@ -4,9 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 @Entity
 @Table(name = "ENCUESTA", schema = "SEDOCENTE")
 @Data
@@ -21,9 +18,8 @@ public class Encuesta {
     private String nombre;
 
     @Column(name = "ESTADO", nullable = false)
-    private Short estado;
+    private Integer estado;
 
-    @ManyToMany(mappedBy = "encuestas")
-    @JsonIgnore
-    private List<EvaluacionEstudiante> encuestas;
+    @OneToMany(mappedBy = "encuesta", cascade = CascadeType.ALL)
+    private List<EncuestaPregunta> encuestaPreguntas;
 }

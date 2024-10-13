@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import co.edu.unicauca.sed.api.model.Resolucion;
 import co.edu.unicauca.sed.api.repository.ResolucionRepository;
 
@@ -21,16 +22,23 @@ public class ResolucionService {
 
     public Resolucion findByOid(Integer oid) {
         Optional<Resolucion> resultado = this.resolucionRepository.findById(oid);
-        return resultado.orElse(null);
+
+        if (resultado.isPresent()) {
+            return resultado.get();
+        }
+
+        return null;
     }
 
     public Resolucion save(Resolucion resolucion) {
+        Resolucion result = null;
         try {
-            return this.resolucionRepository.save(resolucion);
+            result = this.resolucionRepository.save(resolucion);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+        return result;
     }
 
     public void delete(Integer oid) {

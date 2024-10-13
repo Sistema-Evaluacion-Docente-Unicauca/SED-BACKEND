@@ -27,20 +27,18 @@ public class FuenteController {
     public ResponseEntity<?> findAll() {
         try {
             List<Fuente> list = (List<Fuente>) fuenteService.findAll();
-            if (list != null) {
-                if (!list.isEmpty()) {
-                    return ResponseEntity.ok().body(list);
-                }
+            if (list != null && !list.isEmpty()) {
+                return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
         }
         return ResponseEntity.notFound().build();
     }
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Fuente resultado = fuenteService.findById(oid).orElse(null);
+        Fuente resultado = fuenteService.findByOid(oid);
         if (resultado != null) {
             return ResponseEntity.ok().body(resultado);
         }
@@ -51,12 +49,11 @@ public class FuenteController {
     public ResponseEntity<?> save(@RequestBody Fuente fuente) {
         try {
             Fuente resultado = fuenteService.save(fuente);
-
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
         }
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
@@ -65,7 +62,7 @@ public class FuenteController {
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Fuente fuente = null;
         try {
-            fuente = fuenteService.findById(oid).orElse(null);
+            fuente = fuenteService.findByOid(oid);
             if (fuente == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fuente no encontrada");
             }
@@ -74,7 +71,7 @@ public class FuenteController {
         }
 
         try {
-            fuenteService.deleteById(oid);
+            fuenteService.delete(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");

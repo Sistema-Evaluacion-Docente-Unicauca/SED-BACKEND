@@ -5,6 +5,8 @@ import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,19 +15,34 @@ public class EncuestaService {
     @Autowired
     private EncuestaRepository encuestaRepository;
 
-    public Iterable<Encuesta> findAll() {
-        return encuestaRepository.findAll();
+    public List<Encuesta> findAll() {
+        List<Encuesta> list = new ArrayList<>();
+        this.encuestaRepository.findAll().forEach(list::add);
+        return list;
     }
 
-    public Optional<Encuesta> findById(Integer id) {
-        return encuestaRepository.findById(id);
+    public Encuesta findByOid(Integer oid) {
+        Optional<Encuesta> resultado = this.encuestaRepository.findById(oid);
+
+        if (resultado.isPresent()) {
+            return resultado.get();
+        }
+
+        return null;
     }
 
     public Encuesta save(Encuesta encuesta) {
-        return encuestaRepository.save(encuesta);
+        Encuesta result = null;
+        try {
+            result = this.encuestaRepository.save(encuesta);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return result;
     }
 
-    public void deleteById(Integer id) {
-        encuestaRepository.deleteById(id);
+    public void delete(Integer oid) {
+        this.encuestaRepository.deleteById(oid);
     }
 }
