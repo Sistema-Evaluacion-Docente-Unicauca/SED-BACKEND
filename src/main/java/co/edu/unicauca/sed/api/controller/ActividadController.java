@@ -45,12 +45,12 @@ public class ActividadController {
     }
 
     @GetMapping("find/{oid}/fuentes")
-    public ResponseEntity<?> findFuentesByActividad(@PathVariable Integer oid) {
-        List<Fuente> fuentes = fuenteService.findByActividadOid(oid);
-        if (fuentes != null && !fuentes.isEmpty()) {
-            return ResponseEntity.ok().body(fuentes);
+    public ResponseEntity<?> findActividadWithFuentes(@PathVariable Integer oid) {
+        Actividad actividad = actividadService.findByOid(oid);
+        if (actividad != null) {
+            return ResponseEntity.ok().body(actividad);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontraron fuentes para esta actividad");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Actividad no encontrada");
     }
 
     @PostMapping("save")

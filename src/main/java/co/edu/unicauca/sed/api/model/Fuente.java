@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,19 +16,14 @@ public class Fuente {
     @Column(name = "OIDFUENTE")
     private Integer oidFuente;
 
-    @ManyToOne
-    @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
-    private Actividad actividad;
+    @Column(name = "TIPOFUENTE")
+    private String tipoFuente;
 
     @Column(name = "CALIFICACION")
     private Float calificacion;
 
-    @Column(name = "TIPOFUENTE", nullable = false)
-    private String tipoFuente;
-
-    @Column(name = "DOCUMENTOSOPORTE")
-    private String documentoSoporte;
-
-    @Column(name = "INFORMEEJECUTIVO")
-    private String informeEjecutivo;
+    @ManyToOne
+    @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
+    @JsonIgnore
+    private Actividad actividad;
 }
