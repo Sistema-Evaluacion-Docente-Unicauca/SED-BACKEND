@@ -1,14 +1,20 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.Encuesta;
-import co.edu.unicauca.sed.api.service.EncuestaService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
+import co.edu.unicauca.sed.api.model.Encuesta;
+import co.edu.unicauca.sed.api.service.EncuestaService;
 
 @Controller
 @RequestMapping("encuesta")
@@ -31,8 +37,8 @@ public class EncuestaController {
     }
 
     @GetMapping("find/{oid}")
-    public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        Encuesta encuesta = encuestaService.findById(oid).orElse(null);
+    public ResponseEntity<?> find(@PathVariable Integer oid) {
+        Encuesta encuesta = encuestaService.findByOid(oid);
         if (encuesta != null) {
             return ResponseEntity.ok().body(encuesta);
         }
@@ -53,10 +59,10 @@ public class EncuestaController {
     }
 
     @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> deleteById(@PathVariable Integer oid) {
+    public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Encuesta encuesta = null;
         try {
-            encuesta = encuestaService.findById(oid).orElse(null);
+            encuesta = encuestaService.findByOid(oid);
             if (encuesta == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encuesta no encontrada");
             }
@@ -65,7 +71,7 @@ public class EncuestaController {
         }
 
         try {
-            encuestaService.deleteById(oid);
+            encuestaService.delete(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");

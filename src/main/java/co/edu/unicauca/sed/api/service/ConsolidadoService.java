@@ -3,8 +3,10 @@ package co.edu.unicauca.sed.api.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 
@@ -21,8 +23,14 @@ public class ConsolidadoService {
 
     public Consolidado findByOid(Integer oid) {
         Optional<Consolidado> resultado = this.consolidadoRepository.findById(oid);
-        return resultado.orElse(null);
+    
+        if (resultado.isPresent()) {
+            return resultado.get();
+        }
+    
+        return null;
     }
+    
 
     public Consolidado save(Consolidado consolidado) {
         try {

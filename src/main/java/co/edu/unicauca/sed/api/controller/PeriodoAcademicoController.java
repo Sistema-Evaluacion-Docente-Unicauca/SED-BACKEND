@@ -26,10 +26,8 @@ public class PeriodoAcademicoController {
     public ResponseEntity<?> findAll() {
         try {
             List<PeriodoAcademico> list = periodoAcademicoService.findAll();
-            if (list != null) {
-                if (list.size() != 0) {
-                    return ResponseEntity.ok().body(list);
-                }
+            if (list != null && !list.isEmpty()) {
+                return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());

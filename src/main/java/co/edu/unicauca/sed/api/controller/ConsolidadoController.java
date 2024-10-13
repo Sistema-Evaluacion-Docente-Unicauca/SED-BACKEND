@@ -13,6 +13,7 @@ import co.edu.unicauca.sed.api.service.ConsolidadoService;
 @Controller
 @RequestMapping("consolidado")
 public class ConsolidadoController {
+    
     @Autowired
     private ConsolidadoService consolidadoService;
 
@@ -20,39 +21,55 @@ public class ConsolidadoController {
     public ResponseEntity<?> findAll() {
         try {
             List<Consolidado> list = consolidadoService.findAll();
-            return list.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok().body(list);
+            if (list != null && !list.isEmpty()) {
+                return ResponseEntity.ok().body(list);
+            }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
         }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Consolidado resultado = this.consolidadoService.findByOid(oid);
-        return resultado != null ? ResponseEntity.ok().body(resultado) : ResponseEntity.notFound().build();
+        if (resultado != null) {
+            return ResponseEntity.ok().body(resultado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Consolidado consolidado) {
         try {
             Consolidado resultado = consolidadoService.save(consolidado);
-            return resultado != null ? ResponseEntity.ok().body(resultado) : ResponseEntity.internalServerError().body("Error: Resultado nulo");
+            if (resultado != null) {
+                return ResponseEntity.ok().body(resultado);
+            }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
         }
+        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        Consolidado consolidado = consolidadoService.findByOid(oid);
-        if (consolidado == null) {
+        Consolidado consolidado = null;
+        try {
+            consolidado = consolidadoService.findByOid(oid);
+            if (consolidado == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
+            }
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
         }
+
         try {
             this.consolidadoService.delete(oid);
-            return ResponseEntity.ok().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
+        return ResponseEntity.ok().build();
     }
 }

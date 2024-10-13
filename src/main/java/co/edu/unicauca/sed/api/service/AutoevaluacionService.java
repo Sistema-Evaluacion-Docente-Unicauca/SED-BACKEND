@@ -15,14 +15,12 @@ public class AutoevaluacionService {
     @Autowired
     private AutoevaluacionRepository autoevaluacionRepository;
 
-    // Método para obtener todas las autoevaluaciones
     public List<Autoevaluacion> findAll() {
         List<Autoevaluacion> list = new ArrayList<>();
         this.autoevaluacionRepository.findAll().forEach(list::add);
         return list;
     }
 
-    // Método para encontrar una autoevaluación por ID
     public Autoevaluacion findByOid(Integer id) {
         Optional<Autoevaluacion> resultado = this.autoevaluacionRepository.findById(id);
 
@@ -33,7 +31,6 @@ public class AutoevaluacionService {
         return null;
     }
 
-    // Método para guardar una autoevaluación
     public Autoevaluacion save(Autoevaluacion autoevaluacion) {
         Autoevaluacion result = null;
         try {
@@ -45,7 +42,6 @@ public class AutoevaluacionService {
         return result;
     }
 
-    // Método para eliminar una autoevaluación por ID
     public void delete(Integer id) {
         this.autoevaluacionRepository.deleteById(id);
     }

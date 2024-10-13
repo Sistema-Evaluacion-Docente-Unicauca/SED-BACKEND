@@ -1,14 +1,18 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.repository.ActividadRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.Autoevaluacion;
+import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.FuenteRepository;
 
 @Service
 public class ActividadService {
@@ -16,16 +20,23 @@ public class ActividadService {
     @Autowired
     private ActividadRepository actividadRepository;
 
-    // Método para encontrar todas las actividades
+    @Autowired
+    private FuenteRepository fuenteRepository;
+
+    /**
+     * Encuentra todas las actividades junto con sus fuentes asociadas.
+     */
     public List<Actividad> findAll() {
         List<Actividad> list = new ArrayList<>();
-        this.actividadRepository.findAll().forEach(list::add);
+        actividadRepository.findAllWithFuentes().forEach(list::add);
         return list;
     }
 
-    // Método para encontrar una actividad por su OID
+    /**
+     * Encuentra una actividad por su OID y carga sus fuentes asociadas.
+     */
     public Actividad findByOid(Integer oid) {
-        Optional<Actividad> resultado = this.actividadRepository.findById(oid);
+        Optional<Actividad> resultado = actividadRepository.findByOidWithFuentes(oid);
 
         if (resultado.isPresent()) {
             return resultado.get();
@@ -34,7 +45,7 @@ public class ActividadService {
         return null;
     }
 
-    // Método para guardar una actividad
+    @Transactional
     public Actividad save(Actividad actividad) {
         Actividad result = null;
         try {
@@ -46,8 +57,10 @@ public class ActividadService {
         return result;
     }
 
-    // Método para eliminar una actividad por su ID
+    /**
+     * Elimina una actividad por su OID.
+     */
     public void delete(Integer oid) {
-        this.actividadRepository.deleteById(oid);
+        actividadRepository.deleteById(oid);
     }
 }

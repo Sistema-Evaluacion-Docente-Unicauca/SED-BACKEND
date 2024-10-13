@@ -12,6 +12,7 @@ import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 
 @Service
 public class ProcesoService {
+
     @Autowired
     private ProcesoRepository procesoRepository;
 

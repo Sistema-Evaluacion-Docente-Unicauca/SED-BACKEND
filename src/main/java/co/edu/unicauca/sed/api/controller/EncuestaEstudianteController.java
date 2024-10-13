@@ -1,14 +1,20 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
-import co.edu.unicauca.sed.api.service.EncuestaEstudianteService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
+import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
+import co.edu.unicauca.sed.api.service.EncuestaEstudianteService;
 
 @Controller
 @RequestMapping("encuestaEstudiante")
@@ -31,8 +37,8 @@ public class EncuestaEstudianteController {
     }
 
     @GetMapping("find/{oid}")
-    public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        EncuestaEstudiante encuestaEstudiante = encuestaEstudianteService.findById(oid).orElse(null);
+    public ResponseEntity<?> find(@PathVariable Integer oid) {
+        EncuestaEstudiante encuestaEstudiante = encuestaEstudianteService.findByOid(oid);
         if (encuestaEstudiante != null) {
             return ResponseEntity.ok().body(encuestaEstudiante);
         }
@@ -53,10 +59,10 @@ public class EncuestaEstudianteController {
     }
 
     @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> deleteById(@PathVariable Integer oid) {
+    public ResponseEntity<?> delete(@PathVariable Integer oid) {
         EncuestaEstudiante encuestaEstudiante = null;
         try {
-            encuestaEstudiante = encuestaEstudianteService.findById(oid).orElse(null);
+            encuestaEstudiante = encuestaEstudianteService.findByOid(oid);
             if (encuestaEstudiante == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("EncuestaEstudiante no encontrada");
             }
@@ -65,11 +71,13 @@ public class EncuestaEstudianteController {
         }
 
         try {
-            encuestaEstudianteService.deleteById(oid);
+            encuestaEstudianteService.delete(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
+        
         return ResponseEntity.ok().build();
     }
+
 }

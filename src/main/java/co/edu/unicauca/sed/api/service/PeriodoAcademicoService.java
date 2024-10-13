@@ -12,6 +12,7 @@ import co.edu.unicauca.sed.api.repository.PeriodoAcademicoRepository;
 
 @Service
 public class PeriodoAcademicoService {
+
     @Autowired
     private PeriodoAcademicoRepository periodoAcademicoRepository;
 

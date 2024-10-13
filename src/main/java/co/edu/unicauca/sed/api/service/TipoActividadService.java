@@ -16,14 +16,12 @@ public class TipoActividadService {
     @Autowired
     private TipoActividadRepository tipoActividadRepository;
 
-    // Método para obtener todas las instancias de TipoActividad
     public List<TipoActividad> findAll() {
         List<TipoActividad> list = new ArrayList<>();
         this.tipoActividadRepository.findAll().forEach(list::add);
         return list;
     }
 
-    // Método para encontrar una instancia de TipoActividad por OID
     public TipoActividad findByOid(Integer oid) {
         Optional<TipoActividad> resultado = this.tipoActividadRepository.findById(oid);
 
@@ -34,7 +32,6 @@ public class TipoActividadService {
         return null;
     }
 
-    // Método para guardar una instancia de TipoActividad
     public TipoActividad save(TipoActividad tipoActividad) {
         TipoActividad result = null;
         try {
@@ -46,7 +43,6 @@ public class TipoActividadService {
         return result;
     }
 
-    // Método para eliminar una instancia de TipoActividad por OID
     public void delete(Integer oid) {
         this.tipoActividadRepository.deleteById(oid);
     }

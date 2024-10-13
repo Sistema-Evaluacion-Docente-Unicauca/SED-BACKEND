@@ -15,14 +15,12 @@ public class EstadoActividadService {
     @Autowired
     private EstadoActividadRepository estadoActividadRepository;
 
-    // Método para obtener todas las instancias de EstadoActividad
     public List<EstadoActividad> findAll() {
         List<EstadoActividad> list = new ArrayList<>();
         this.estadoActividadRepository.findAll().forEach(list::add);
         return list;
     }
 
-    // Método para encontrar una instancia de EstadoActividad por OID
     public EstadoActividad findByOid(Integer oid) {
         Optional<EstadoActividad> resultado = this.estadoActividadRepository.findById(oid);
 
@@ -33,7 +31,6 @@ public class EstadoActividadService {
         return null;
     }
 
-    // Método para guardar una instancia de EstadoActividad
     public EstadoActividad save(EstadoActividad estadoActividad) {
         EstadoActividad result = null;
         try {
@@ -45,7 +42,6 @@ public class EstadoActividadService {
         return result;
     }
 
-    // Método para eliminar una instancia de EstadoActividad por OID
     public void delete(Integer oid) {
         this.estadoActividadRepository.deleteById(oid);
     }

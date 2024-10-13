@@ -26,10 +26,8 @@ public class ProcesoController {
     public ResponseEntity<?> findAll() {
         try {
             List<Proceso> list = procesoService.findAll();
-            if (list != null) {
-                if (list.size() != 0) {
-                    return ResponseEntity.ok().body(list);
-                }
+            if (list != null && !list.isEmpty()) {
+                return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
