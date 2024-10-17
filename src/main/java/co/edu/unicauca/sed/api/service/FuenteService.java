@@ -4,15 +4,19 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 
 @Service
 public class FuenteService {
-    
+
     @Autowired
     private FuenteRepository fuenteRepository;
+
+    @Autowired
+    private DocumentoService documentoService;
 
     /**
      * Encuentra todas las fuentes.
@@ -38,8 +42,12 @@ public class FuenteService {
     /**
      * Guarda una fuente.
      */
-    public Fuente save(Fuente fuente) {
-        return fuenteRepository.save(fuente);
+    public Fuente save(Fuente fuente, MultipartFile archivo) {
+        Fuente response = fuenteRepository.save(fuente);
+        if (response != null) {
+            documentoService.upload(response.getNombreDocumento(), archivo);
+        }
+        return response;
     }
 
     /**

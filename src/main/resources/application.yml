@@ -4,3 +4,11 @@ spring:
         username: ${DESARROLLO_DATASOURCE_USER}
         password: ${DESARROLLO_DATASOURCE_PASSWORD}
         driver-class-name: oracle.jdbc.OracleDriver
+    servlet:
+        multipart:
+            enabled: true
+            max-file-size: 10MB
+            max-request-size: 10MB
+
+files:
+    basePath: ${APP_FILE_BASEPATH}
