@@ -32,6 +32,17 @@ public class ProcesoService {
         return null;
     }
 
+    // Método para obtener los procesos de un evaluado
+    public List<Proceso> getProcessesByEvaluated(Integer oidUsuario) {
+        return this.procesoRepository.findByEvaluado_OidUsuario(oidUsuario);
+    }
+
+    // Método para obtener los procesos de un evaluado que están en un periodo activo
+    public List<Proceso> getProcessesByEvaluatedAndActivePeriod(Integer oidUsuario) {
+        // Estado 1 = Activo
+        return procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_Estado(oidUsuario, 1);
+    }
+
     public Proceso save(Proceso proceso) {
         Proceso result = null;
         try {

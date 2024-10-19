@@ -1,6 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -30,38 +34,37 @@ public class Usuario {
     @Column(name = "OIDUSUARIO")
     private Integer oidUsuario;
 
-    @Column
+    @Column(name = "IDENTIFICACION", nullable = false)
     private String identificacion;
 
-    @Column
-    private String nombres;
-
-    @Column
-    private String apellidos;
-
-    @Column
-    private String correo;
-
-    @Column
+    @Column (name = "FACULTAD", nullable = false)
     private String facultad;
 
-    @Column
+    @Column (name = "DEPARTAMENTO", nullable = false)
     private String departamento;
 
-    @Column
+    @Column (name = "CATEGORIA", nullable = false)
     private String categoria;
 
-    @Column
+    @Column (name = "CONTRATACION")
     private String contratacion;
 
-    @Column
+    @Column (name = "DEDICACION")
     private String dedicacion;
 
-    @Column
+    @Column (name = "ESTUDIOS")
     private String estudios;
 
-    @Column
+    @Column (name = "estado", nullable = false)
     private Integer estado;
+
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION")
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "ROLUSUARIO", joinColumns = @JoinColumn(name = "OIDUSUARIO"), inverseJoinColumns = @JoinColumn(name = "OIDROL"))

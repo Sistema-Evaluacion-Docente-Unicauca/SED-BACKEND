@@ -1,6 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -40,8 +44,16 @@ public class Proceso {
     @JoinColumn(name = "OIDPERIODOACADEMICO")
     private PeriodoAcademico oidPeriodoAcademico;
 
-    @Column(name = "NOMBREPROCESO")
+    @Column(name = "NOMBREPROCESO", nullable = false)
     private String nombreProceso;
+
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference

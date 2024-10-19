@@ -2,7 +2,12 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "ACTIVIDAD", schema = "SEDOCENTE")
@@ -18,27 +23,28 @@ public class Actividad {
     @Column(name = "CODIGOACTIVIDAD")
     private String codigoActividad;
 
-    @Column(name = "NOMBRE")
+    @Column(name = "NOMBRE", nullable = false)
     private String nombre;
 
-    @Column(name = "HORAS")
+    @Column(name = "HORAS", nullable = false)
     private String horas;
 
-    @Column(name = "ESTUDIANTE")
-    private String estudiante;
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION")
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @ManyToOne
     @JoinColumn(name = "OIDTIPOACTIVIDAD", nullable = false)
     private TipoActividad tipoActividad;
 
     @ManyToOne
-    @JoinColumn(name = "OIDESTADOACTIVIDAD", nullable = false)
-    private EstadoActividad estadoActividad;
-
-    @ManyToOne
     @JoinColumn(name = "OIDPROCESO", nullable = false)
     private Proceso proceso;
 
-    @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Fuente> fuentes;
+    @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+private List<Fuente> fuentes;
 }

@@ -1,5 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -10,7 +15,7 @@ public class Autoevaluacion {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "autoevaluacionSeq")
     @SequenceGenerator(name = "autoevaluacionSeq", sequenceName = "SEQ_OIDAUTOEVALUACION", allocationSize = 1)
-    @Column(name = "OIDAUTOEVALUACION")
+    @Column(name = "OIDAUTOEVALUACION", nullable = false)
     private Integer oidAutoevaluacion;
 
     @ManyToOne
@@ -20,7 +25,14 @@ public class Autoevaluacion {
     @Column(name = "FIRMA", nullable = false)
     private String firma;
 
-    @Lob
     @Column(name = "SCREENSHOTSIMCA")
-    private byte[] screenshotSimca;
+    private String screenshotSimca;
+
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION")
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 }
