@@ -1,5 +1,9 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
@@ -21,7 +25,7 @@ public class Comentario {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comentarioSeq")
     @SequenceGenerator(name = "comentarioSeq", sequenceName = "SEQ_OIDCOMENTARIO", allocationSize = 1)
-    @Column(name = "OIDCOMENTARIO")
+    @Column(name = "OIDCOMENTARIO", nullable = false)
     private Integer oidComentario;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,7 +33,10 @@ public class Comentario {
     @JsonBackReference
     private Proceso proceso;
 
-    @Column(name = "COMENTARIO")
+    @Column(name = "COMENTARIO", nullable = false)
     private String comentario;
 
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
 }

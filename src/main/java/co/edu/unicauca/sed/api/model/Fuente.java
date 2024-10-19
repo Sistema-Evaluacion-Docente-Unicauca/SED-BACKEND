@@ -13,17 +13,31 @@ public class Fuente {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fuenteSeq")
     @SequenceGenerator(name = "fuenteSeq", sequenceName = "SEQ_OIDFUENTE", allocationSize = 1)
-    @Column(name = "OIDFUENTE")
+    @Column(name = "OIDFUENTE", nullable = false)
     private Integer oidFuente;
 
-    @Column(name = "TIPOFUENTE")
+    @Column(name = "TIPOFUENTE", nullable = false)
     private String tipoFuente;
 
-    @Column(name = "CALIFICACION")
+    @Column(name = "CALIFICACION", nullable = false)
     private Float calificacion;
+
+    @Column(name = "NOMBREDOCUMENTO")
+    private String nombreDocumento;
+
+    @Column(name = "FECHACREACION")
+    private String fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION")
+    private String fechaActualizacion;
 
     @ManyToOne
     @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
     @JsonIgnore
     private Actividad actividad;
+
+    @ManyToOne
+    @JoinColumn(name = "OIDESTADOFUENTE", nullable = false)
+    @JsonIgnore
+    private EstadoFuente oidestadofuente;
 }
