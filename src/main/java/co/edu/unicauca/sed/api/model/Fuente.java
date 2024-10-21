@@ -22,8 +22,11 @@ public class Fuente {
     @Column(name = "CALIFICACION", nullable = false)
     private Float calificacion;
 
-    @Column(name = "NOMBREDOCUMENTO")
+    @Column(name = "NOMBREDOCUMENTO", nullable = false)
     private String nombreDocumento;
+
+    @Column(name = "OBSERVACION")
+    private String observacion;
 
     @Column(name = "FECHACREACION")
     private String fechaCreacion;

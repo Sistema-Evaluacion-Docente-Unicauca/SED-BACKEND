@@ -36,6 +36,21 @@ public class ActividadController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/actividades")
+    public ResponseEntity<List<ActividadDTO>> getFilteredActivities(
+            @RequestParam(required = false) String tipoActividad,
+            @RequestParam(required = false) String nombreEvaluador,
+            @RequestParam(required = false) List<String> roles,
+            @RequestParam(required = false) String tipoFuente,
+            @RequestParam(required = false) String estadoFuente) {
+
+        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(
+                tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente
+        );
+
+        return ResponseEntity.ok(actividades);
+    }
+
     /**
      * Retrieves all activities associated with active academic periods.
      * Returns the activities as DTOs.
