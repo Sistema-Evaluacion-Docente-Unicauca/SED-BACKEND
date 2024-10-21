@@ -1,0 +1,49 @@
+package co.edu.unicauca.sed.api.model;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.sql.Timestamp;
+
+@Entity
+@Table(name = "USUARIODETALLE", schema = "SEDOCENTE")
+@Data
+public class UsuarioDetalle {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuarioDetalleSeq")
+    @SequenceGenerator(name = "usuarioDetalleSeq", sequenceName = "SEQ_OIDUSUARIODETALLE", allocationSize = 1)
+    @Column(name = "OIDUSUARIODETALLE", nullable = false)
+    private Integer oidUsuarioDetalle;
+
+    @Column(name = "IDENTIFICACION", nullable = false)
+    private String identificacion;
+
+    @Column(name = "FACULTAD", nullable = false)
+    private String facultad;
+
+    @Column(name = "DEPARTAMENTO", nullable = false)
+    private String departamento;
+
+    @Column(name = "CATEGORIA")
+    private String categoria;
+
+    @Column(name = "CONTRATACION")
+    private String contratacion;
+
+    @Column(name = "DEDICACION")
+    private String dedicacion;
+
+    @Column(name = "ESTUDIOS")
+    private String estudios;
+
+    @CreationTimestamp
+    @Column(name = "FECHACREACION")
+    private Timestamp fechaCreacion;
+
+    @UpdateTimestamp
+    @Column(name = "FECHAACTUALIZACION")
+    private Timestamp fechaActualizacion;
+}

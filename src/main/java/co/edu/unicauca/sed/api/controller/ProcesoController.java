@@ -44,6 +44,24 @@ public class ProcesoController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("findByEvaluado/{oidUsuario}")
+    public ResponseEntity<List<Proceso>> findByEvaluado(@PathVariable Integer oidUsuario) {
+        List<Proceso> procesos = procesoService.getProcessesByEvaluated(oidUsuario);
+        if (procesos.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Si no hay procesos, devuelve un 204 No Content
+        }
+        return ResponseEntity.ok(procesos); // Si hay procesos, devuelve 200 OK con la lista
+    }
+
+    @GetMapping("findByEvaluadoInActivePeriod/{oidUsuario}")
+    public ResponseEntity<List<Proceso>> findByEvaluadoInActivePeriod(@PathVariable Integer oidUsuario) {
+        List<Proceso> procesos = procesoService.getProcessesByEvaluatedAndActivePeriod(oidUsuario);
+        if (procesos.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Si no hay procesos, devuelve un 204 No Content
+        }
+        return ResponseEntity.ok(procesos); // Si hay procesos, devuelve 200 OK con la lista
+    }
+
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Proceso proceso) {
         try {

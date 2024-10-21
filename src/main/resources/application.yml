@@ -11,4 +11,4 @@ spring:
             max-request-size: 10MB
 
 files:
-    basePath: ${APP_FILE_BASEPATH}
+  basePath: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos

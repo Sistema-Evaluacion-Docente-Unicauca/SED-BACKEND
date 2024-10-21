@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
@@ -26,11 +28,7 @@ public class EncuestaEstudiante {
     @JoinColumn(name = "OIDEVALUACIONESTUDIANTE", nullable = false)
     private EvaluacionEstudiante evaluacionEstudiante;
 
-    @Column(name = "FECHAEVALUACION", nullable = false)
+    @Column(name = "FECHAEVALUACION", updatable = false)
+    @CreationTimestamp
     private LocalDateTime fechaEvaluacion;
-
-    @PrePersist
-    public void prePersist() {
-        this.fechaEvaluacion = LocalDateTime.now();
-    }
 }

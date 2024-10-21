@@ -56,7 +56,7 @@ public class UsuarioController {
             }
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }

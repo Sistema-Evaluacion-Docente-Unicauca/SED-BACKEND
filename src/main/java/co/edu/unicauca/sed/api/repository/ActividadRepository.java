@@ -1,20 +1,22 @@
 package co.edu.unicauca.sed.api.repository;
 
 import co.edu.unicauca.sed.api.model.Actividad;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface ActividadRepository extends CrudRepository<Actividad, Integer> {
+public interface ActividadRepository extends JpaRepository<Actividad, Integer>, JpaSpecificationExecutor<Actividad> {
 
-    @Query("SELECT a FROM Actividad a JOIN FETCH a.fuentes WHERE a.oidActividad = :oid")
-    Optional<Actividad> findByOidWithFuentes(@Param("oid") Integer oid);
+    // Method to get activities by evaluator
+    List<Actividad> findByProceso_Evaluado_OidUsuario(Integer oidUsuario);
 
-    @Query("SELECT a FROM Actividad a LEFT JOIN FETCH a.fuentes")
-    List<Actividad> findAllWithFuentes();
+    // Method to get activities by evaluator where the academic period is active
+    List<Actividad> findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(Integer oidUsuario, Integer estado);
+
+    // Method to get activities where the academic period of the process is active (state = 1)
+    List<Actividad> findByProceso_OidPeriodoAcademico_Estado(Integer estado);
 }
