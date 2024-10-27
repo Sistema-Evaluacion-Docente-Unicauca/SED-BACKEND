@@ -23,9 +23,9 @@ public class ActividadController {
      * Returns a list of activities as DTOs.
      */
     @GetMapping("all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<?> findAll(@RequestParam(defaultValue = "true") boolean ascendingOrder) {
         try {
-            List<ActividadDTO> list = actividadService.findAll();
+            List<ActividadDTO> list = actividadService.findAll(ascendingOrder);
 
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list); // Returns the list of activities (DTOs)
@@ -36,16 +36,21 @@ public class ActividadController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Retrieves filtered activities with optional parameters for filtering.
+     * Returns a list of filtered activities as DTOs.
+     */
     @GetMapping("/actividades")
     public ResponseEntity<List<ActividadDTO>> getFilteredActivities(
             @RequestParam(required = false) String tipoActividad,
             @RequestParam(required = false) String nombreEvaluador,
             @RequestParam(required = false) List<String> roles,
             @RequestParam(required = false) String tipoFuente,
-            @RequestParam(required = false) String estadoFuente) {
+            @RequestParam(required = false) String estadoFuente,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
 
         List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(
-                tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente
+                tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder
         );
 
         return ResponseEntity.ok(actividades);
@@ -56,10 +61,9 @@ public class ActividadController {
      * Returns the activities as DTOs.
      */
     @GetMapping("findAllInActivePeriods")
-    public ResponseEntity<?> findAllInActivePeriods() {
+    public ResponseEntity<?> findAllInActivePeriods(@RequestParam(defaultValue = "true") boolean ascendingOrder) {
         try {
-            // Call the service to get all activities in active periods
-            List<ActividadDTO> list = actividadService.findAllInActivePeriods();
+            List<ActividadDTO> list = actividadService.findAllInActivePeriods(ascendingOrder);
 
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list); // Return the list of activities in active periods
@@ -78,7 +82,6 @@ public class ActividadController {
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         Actividad actividad = actividadService.findByOid(oid);
         if (actividad != null) {
-            // Convertir la actividad a DTO antes de devolverla
             ActividadDTO actividadDTO = actividadService.convertToDTO(actividad);
             return ResponseEntity.ok().body(actividadDTO); // Returns the activity as a DTO
         }
@@ -90,8 +93,11 @@ public class ActividadController {
      * Filters activities by the evaluator's user ID and returns them as DTOs.
      */
     @GetMapping("/findActivitiesByEvaluado/{oidUsuario}")
-    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluado(@PathVariable Integer oidUsuario) {
-        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(oidUsuario);
+    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluado(
+            @PathVariable Integer oidUsuario,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+        
+        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(oidUsuario, ascendingOrder);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
@@ -105,8 +111,11 @@ public class ActividadController {
      * returning them as DTOs.
      */
     @GetMapping("/findActivitiesByEvaluadoInActivePeriod/{oidUsuario}")
-    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluadoInActivePeriod(@PathVariable Integer oidUsuario) {
-        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluadoInActivePeriod(oidUsuario);
+    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluadoInActivePeriod(
+            @PathVariable Integer oidUsuario,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+        
+        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluadoInActivePeriod(oidUsuario, ascendingOrder);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
@@ -132,8 +141,7 @@ public class ActividadController {
 
     /**
      * Deletes an activity by its ID.
-     * Returns 404 if the activity is not found, or 409 if there is a conflict while
-     * deleting.
+     * Returns 404 if the activity is not found, or 409 if there is a conflict while deleting.
      */
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
