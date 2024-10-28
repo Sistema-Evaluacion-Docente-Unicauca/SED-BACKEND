@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.dto;
 
+import java.time.LocalDateTime;
+
 public class FuenteDTO {
 
     private Integer oidFuente;
@@ -7,13 +9,13 @@ public class FuenteDTO {
     private Float calificacion;
     private String nombreDocumento;
     private String observacion;
-    private String fechaCreacion;
-    private String fechaActualizacion;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
     private String estadoFuente;
 
     // Constructor
     public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumento, String observacion,
-                     String fechaCreacion, String fechaActualizacion, String estadoFuente) {
+                    LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
         this.oidFuente = oidFuente;
         this.tipoFuente = tipoFuente;
         this.calificacion = calificacion;
@@ -65,19 +67,19 @@ public class FuenteDTO {
         this.observacion = observacion;
     }
 
-    public String getFechaCreacion() {
+    public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }
 
-    public void setFechaCreacion(String fechaCreacion) {
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
     }
 
-    public String getFechaActualizacion() {
+    public LocalDateTime getFechaActualizacion() {
         return fechaActualizacion;
     }
 
-    public void setFechaActualizacion(String fechaActualizacion) {
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
     }
 

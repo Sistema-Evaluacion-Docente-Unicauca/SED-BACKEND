@@ -7,7 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -37,13 +37,13 @@ public class Usuario {
     @Column(name = "ESTADO", nullable = false)
     private Short estado;
 
+    @Column(name = "FECHACREACION")
     @CreationTimestamp
-    @Column(name = "FECHACREACION", nullable = false)
-    private Timestamp fechaCreacion;
+    private LocalDateTime fechaCreacion;
 
-    @UpdateTimestamp
     @Column(name = "ULTIMOINGRESO")
-    private Timestamp ultimoIngreso;
+    @UpdateTimestamp
+    private LocalDateTime ultimoIngreso;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "ROLUSUARIO", joinColumns = @JoinColumn(name = "OIDUSUARIO"), inverseJoinColumns = @JoinColumn(name = "OIDROL"))

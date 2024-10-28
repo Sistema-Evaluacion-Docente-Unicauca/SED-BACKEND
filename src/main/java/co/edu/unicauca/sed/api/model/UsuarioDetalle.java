@@ -5,7 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "USUARIODETALLE", schema = "SEDOCENTE")
@@ -39,11 +39,11 @@ public class UsuarioDetalle {
     @Column(name = "ESTUDIOS")
     private String estudios;
 
-    @CreationTimestamp
     @Column(name = "FECHACREACION")
-    private Timestamp fechaCreacion;
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
 
-    @UpdateTimestamp
     @Column(name = "FECHAACTUALIZACION")
-    private Timestamp fechaActualizacion;
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 }

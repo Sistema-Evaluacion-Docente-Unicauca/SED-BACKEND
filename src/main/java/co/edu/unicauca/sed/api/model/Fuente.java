@@ -1,5 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -28,11 +33,13 @@ public class Fuente {
     @Column(name = "OBSERVACION")
     private String observacion;
 
-    @Column(name = "FECHACREACION")
-    private String fechaCreacion;
+    @CreationTimestamp
+    @Column(name = "FECHACREACION", nullable = false)
+    private LocalDateTime fechaCreacion;
 
     @Column(name = "FECHAACTUALIZACION")
-    private String fechaActualizacion;
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @ManyToOne
     @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
@@ -42,5 +49,5 @@ public class Fuente {
     @ManyToOne
     @JoinColumn(name = "OIDESTADOFUENTE", nullable = false)
     @JsonIgnore
-    private EstadoFuente oidestadofuente;
+    private EstadoFuente estadoFuente;
 }

@@ -188,6 +188,6 @@ public class ActividadService {
                 fuente.getObservacion(),
                 fuente.getFechaCreacion(),
                 fuente.getFechaActualizacion(),
-                fuente.getOidestadofuente().getNombreEstado());
+                fuente.getEstadoFuente().getNombreEstado());
     }
 }

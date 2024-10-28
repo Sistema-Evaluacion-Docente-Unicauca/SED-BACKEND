@@ -66,7 +66,7 @@ public class FuenteController {
      * @param archivo The file to associate with the source
      * @return The saved source, or an error if something went wrong
      */
-    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> save(@ModelAttribute Fuente fuente,
             @RequestParam("archivo") MultipartFile archivo) {
         try {
