@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "AUTOEVALUACION", schema = "SEDOCENTE")
+@Table(name = "AUTOEVALUACION")
 @Data
 public class Autoevaluacion {
     @Id

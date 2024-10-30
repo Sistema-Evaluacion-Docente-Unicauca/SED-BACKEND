@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "CONSOLIDADO", schema = "SEDOCENTE")
+@Table(name = "CONSOLIDADO")
 @Data
 public class Consolidado {
     @Id

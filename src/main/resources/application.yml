@@ -12,3 +12,6 @@ spring:
 
 files:
   basePath: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos
+
+sed:
+  schema: ${SED_SCHEMA:SEDOCENTE}

@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "PERIODOACADEMICO", schema = "SEDOCENTE")
+@Table(name = "PERIODOACADEMICO")
 @Data
 public class PeriodoAcademico {
     @Id

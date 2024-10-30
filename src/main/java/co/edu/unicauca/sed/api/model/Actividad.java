@@ -2,15 +2,13 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "ACTIVIDAD", schema = "SEDOCENTE")
+@Table(name = "ACTIVIDAD")
 @Data
 public class Actividad {
 
@@ -46,5 +44,5 @@ public class Actividad {
     private Proceso proceso;
 
     @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-private List<Fuente> fuentes;
+    private List<Fuente> fuentes;
 }
