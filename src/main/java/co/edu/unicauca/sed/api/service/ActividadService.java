@@ -10,7 +10,6 @@ import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import co.edu.unicauca.sed.api.specification.ActividadSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 import java.util.Comparator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class ActividadService {
