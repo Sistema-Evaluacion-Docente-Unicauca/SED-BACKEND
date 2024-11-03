@@ -59,12 +59,9 @@ public class EvaluacionEstudianteService {
     public EvaluacionEstudiante saveEvaluacionConEncuesta(EvaluacionEstudiante evaluacionEstudiante, Integer oidEncuesta) {
         EvaluacionEstudiante savedEvaluacion = null;
         try {
-            // Guardar EvaluacionEstudiante
             savedEvaluacion = evaluacionEstudianteRepository.save(evaluacionEstudiante);
 
-            // Guardar EncuestaEstudiante
-            Encuesta encuesta = encuestaRepository.findById(oidEncuesta)
-                    .orElseThrow(() -> new RuntimeException("Encuesta no encontrada"));
+            Encuesta encuesta = encuestaRepository.findById(oidEncuesta).orElseThrow(() -> new RuntimeException("Encuesta no encontrada"));
 
             EncuestaEstudiante encuestaEstudiante = new EncuestaEstudiante();
             encuestaEstudiante.setEncuesta(encuesta);

@@ -18,30 +18,18 @@ public class FuenteService {
     @Autowired
     private DocumentoService documentoService;
 
-    /**
-     * Encuentra todas las fuentes.
-     */
     public List<Fuente> findAll() {
         return (List<Fuente>) fuenteRepository.findAll();
     }
 
-    /**
-     * Encuentra una fuente por su OID.
-     */
     public Fuente findByOid(Integer oid) {
         return fuenteRepository.findById(oid).orElse(null);
     }
 
-    /**
-     * Encuentra todas las fuentes por el OID de la actividad.
-     */
     public List<Fuente> findByActividadOid(Integer oidActividad) {
         return fuenteRepository.findByActividadOid(oidActividad);
     }
 
-    /**
-     * Guarda una fuente.
-     */
     public Fuente save(Fuente fuente, MultipartFile archivo) {
         Fuente response = fuenteRepository.save(fuente);
         if (response != null) {
@@ -50,9 +38,6 @@ public class FuenteService {
         return response;
     }
 
-    /**
-     * Elimina una fuente por su OID.
-     */
     public void delete(Integer oid) {
         fuenteRepository.deleteById(oid);
     }

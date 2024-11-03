@@ -1,63 +1,55 @@
 package co.edu.unicauca.sed.api.specification;
 
-import co.edu.unicauca.sed.api.model.Actividad;
 import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.criteria.JoinType;
 
+import co.edu.unicauca.sed.api.model.Actividad;
+
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActividadSpecification {
+    public static Specification<Actividad> hasFilters(String tipoActividad, String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente) {
+        return (root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-    public static Specification<Actividad> hasTipoActividad(String nombreTipoActividad) {
-        return (root, query, criteriaBuilder) ->
-                nombreTipoActividad == null ? null :
-                criteriaBuilder.equal(root.join("tipoActividad").get("nombre"), nombreTipoActividad);
-    }
-
-    public static Specification<Actividad> hasNombreEvaluador(String nombreEvaluador) {
-        return (root, query, criteriaBuilder) -> {
-            if (nombreEvaluador == null) {
-                return null;
+            // Filtro por tipoActividad
+            if (tipoActividad != null) {
+                predicates.add(builder.equal(root.get("tipoActividad").get("nombre"), tipoActividad));
             }
-            // Join to Proceso and then to Usuario (Evaluador)
-            return criteriaBuilder.like(criteriaBuilder.concat(
-                root.join("proceso").join("evaluador").get("nombres"),
-                root.join("proceso").join("evaluador").get("apellidos")
-            ), "%" + nombreEvaluador + "%");
-        };
-    }
 
-    public static Specification<Actividad> hasRoles(List<String> roles) {
-        return (root, query, criteriaBuilder) -> {
-            if (roles == null || roles.isEmpty()) {
-                return null;
+            // Filtro por nombreEvaluador
+            if (nombreEvaluador != null) {
+                predicates.add(builder.like(
+                        builder.concat(root.join("proceso").join("evaluador").get("nombres"),
+                                root.join("proceso").join("evaluador").get("apellidos")),
+                        "%" + nombreEvaluador + "%"));
             }
-            // Join to Proceso -> Evaluador -> Roles
-            return root.join("proceso").join("evaluador").join("roles", JoinType.INNER).get("nombre").in(roles);
-        };
-    }
 
-    public static Specification<Actividad> hasTipoFuente(String tipoFuente) {
-        return (root, query, criteriaBuilder) -> {
-            if (tipoFuente == null) {
-                return null;
+            // Filtro por roles
+            if (roles != null && !roles.isEmpty()) {
+                predicates.add(root.join("proceso").join("evaluador").join("roles").get("nombre").in(roles));
             }
-            return criteriaBuilder.equal(
-                root.join("fuentes", JoinType.INNER).get("tipoFuente"),
-                tipoFuente
-            );
-        };
-    }
 
-    public static Specification<Actividad> hasEstadoFuente(String estadoFuente) {
-        return (root, query, criteriaBuilder) -> {
-            if (estadoFuente == null) {
-                return null;
+            // Filtro combinado para tipoFuente y estadoFuente en las fuentes
+            if (tipoFuente != null || estadoFuente != null) {
+                var fuenteJoin = root.join("fuentes", JoinType.INNER);
+
+                if (tipoFuente != null) {
+                    predicates.add(builder.equal(fuenteJoin.get("tipoFuente"), tipoFuente));
+                }
+                if (estadoFuente != null) {
+                    predicates.add(builder.equal(fuenteJoin.get("estadoFuente").get("nombreEstado"), estadoFuente));
+                }
             }
-            return criteriaBuilder.equal(
-                root.join("fuentes", JoinType.INNER).join("oidestadofuente").get("nombreEstado"),
-                estadoFuente
-            );
+
+            // Combina todos los predicados con "and"
+            return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

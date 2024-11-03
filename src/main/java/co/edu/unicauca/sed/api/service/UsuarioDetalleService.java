@@ -35,7 +35,6 @@ public class UsuarioDetalleService {
 
     @Transactional
     public UsuarioDetalle save(UsuarioDetalle usuarioDetalle) {
-        // Ensure any necessary validation or transformation for UsuarioDetalle
         return usuarioDetalleRepository.save(usuarioDetalle);
     }
 

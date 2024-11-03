@@ -38,8 +38,27 @@ public class ActividadController {
     }
 
     /**
-     * Retrieves filtered activities with optional parameters for filtering.
-     * Returns a list of filtered activities as DTOs.
+     * Endpoint to retrieve activities with optional filters.
+     *
+     * This endpoint provides a filtered list of activities based on optional
+     * parameters.
+     * It returns a list of activities in DTO format, including fields for
+     * associated sources (fuentes) and evaluator details.
+     * 
+     * @param tipoActividad   Optional filter for the activity type.
+     * @param nombreEvaluador Optional filter for the evaluator's name; allows
+     *                        partial matching.
+     * @param roles           Optional filter for evaluator roles; allows filtering
+     *                        by specific roles.
+     * @param tipoFuente      Optional filter for the type of source in associated
+     *                        sources.
+     * @param estadoFuente    Optional filter for the state of the source in
+     *                        associated sources.
+     * @param ascendingOrder  Optional parameter to specify sorting order: true for
+     *                        ascending, false for descending. Default is true.
+     * 
+     * @return ResponseEntity containing a list of filtered activities in DTO
+     *         format.
      */
     @GetMapping("/actividades")
     public ResponseEntity<List<ActividadDTO>> getFilteredActivities(
@@ -48,11 +67,9 @@ public class ActividadController {
             @RequestParam(required = false) List<String> roles,
             @RequestParam(required = false) String tipoFuente,
             @RequestParam(required = false) String estadoFuente,
-            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+            @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
 
-        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(
-                tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder
-        );
+        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder);
 
         return ResponseEntity.ok(actividades);
     }

@@ -43,8 +43,7 @@ public class UsuarioService {
 
         for (Rol rol : usuario.getRoles()) {
             if (rol.getOid() != null) {
-                Rol rolExistente = rolRepository.findById(rol.getOid())
-                        .orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
+                Rol rolExistente = rolRepository.findById(rol.getOid()).orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
                 rolesPersistidos.add(rolExistente);
             } else {
                 Rol nuevoRol = rolRepository.save(rol);
