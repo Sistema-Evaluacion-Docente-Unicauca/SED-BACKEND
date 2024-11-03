@@ -3,6 +3,7 @@ package co.edu.unicauca.sed.api.service;
 import org.springframework.stereotype.Service;
 
 import co.edu.unicauca.sed.api.dto.ActividadDTO;
+import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.RolDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
@@ -38,8 +39,8 @@ public class ActividadService {
 
         // Convert the list of activities to DTO
         List<ActividadDTO> actividadDTOs = actividades.stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
 
         return sortActivities(actividadDTOs, ascendingOrder);
     }
@@ -57,8 +58,8 @@ public class ActividadService {
 
         // Convert the list of activities to DTO
         List<ActividadDTO> actividadDTOs = actividades.stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
 
         return sortActivities(actividadDTOs, ascendingOrder);
     }
@@ -68,14 +69,32 @@ public class ActividadService {
      */
     public List<ActividadDTO> findActivitiesByEvaluadoInActivePeriod(Integer oidUsuario, boolean ascendingOrder) {
         // Fetch activities for the evaluator where the academic period is active
-        List<Actividad> actividades = actividadRepository.findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(oidUsuario, 1);
+        List<Actividad> actividades = actividadRepository
+                .findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(oidUsuario, 1);
 
         // Convert the list of activities to DTO
         List<ActividadDTO> actividadDTOs = actividades.stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
 
         return sortActivities(actividadDTOs, ascendingOrder);
+    }
+
+    /**
+     * Retrieves activities for an evaluator in active academic periods.
+     */
+    public List<ActividadDTOEvaluador> findActivitiesByEvaluadorInActivePeriod(Integer oidUsuario,
+            boolean ascendingOrder) {
+        // Fetch activities for the evaluator where the academic period is active
+        List<Actividad> actividades = actividadRepository
+                .findByProceso_Evaluador_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(oidUsuario, 1);
+
+        // Convert the list of activities to ActividadDTOEvaluador
+        List<ActividadDTOEvaluador> actividadDTOs = actividades.stream()
+                .map(this::convertToDTOWithEvaluado)
+                .collect(Collectors.toList());
+
+        return sortActivitiesEvaluador(actividadDTOs, ascendingOrder);
     }
 
     /**
@@ -87,25 +106,26 @@ public class ActividadService {
 
         // Convert the list of activities to DTO
         List<ActividadDTO> actividadDTOs = actividades.stream()
-        .map(this::convertToDTO)
-        .collect(Collectors.toList());
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
 
         return sortActivities(actividadDTOs, ascendingOrder);
     }
 
-    public List<ActividadDTO> findActivitiesWithFilters(String tipoActividad, String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente, boolean ascendingOrder) {
+    public List<ActividadDTO> findActivitiesWithFilters(String tipoActividad, String nombreEvaluador,
+            List<String> roles, String tipoFuente, String estadoFuente, boolean ascendingOrder) {
         Specification<Actividad> spec = Specification.where(ActividadSpecification.hasTipoActividad(tipoActividad))
                 .and(ActividadSpecification.hasNombreEvaluador(nombreEvaluador))
                 .and(ActividadSpecification.hasRoles(roles))
                 .and(ActividadSpecification.hasTipoFuente(tipoFuente))
                 .and(ActividadSpecification.hasEstadoFuente(estadoFuente));
-    
+
         List<Actividad> actividades = actividadRepository.findAll(spec);
 
         List<ActividadDTO> actividadDTOs = actividades.stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
-            
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
         return sortActivities(actividadDTOs, ascendingOrder);
     }
 
@@ -140,6 +160,16 @@ public class ActividadService {
                 .collect(Collectors.toList());
     }
 
+    private List<ActividadDTOEvaluador> sortActivitiesEvaluador(List<ActividadDTOEvaluador> actividades, boolean ascendingOrder) {
+        return actividades.stream()
+                .sorted(ascendingOrder
+                        ? Comparator.comparing(actividadDTOEvaluador -> actividadDTOEvaluador.getTipoActividad().getNombre())
+                        : Comparator
+                                .comparing((ActividadDTOEvaluador actividadDTOEvaluador) -> actividadDTOEvaluador.getTipoActividad().getNombre())
+                                .reversed())
+                .collect(Collectors.toList());
+    }
+
     /**
      * Converts an Actividad entity to ActividadDTO.
      */
@@ -155,6 +185,23 @@ public class ActividadService {
                 actividad.getTipoActividad(),
                 actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
                 evaluadorDTO);
+    }
+
+    /**
+     * Converts an Actividad entity to ActividadDTOEvaluador.
+     */
+    public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad) {
+        UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
+
+        return new ActividadDTOEvaluador(
+                actividad.getCodigoActividad(),
+                actividad.getNombre(),
+                actividad.getHoras(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                actividad.getTipoActividad(),
+                actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
+                evaluadoDTO);
     }
 
     /**

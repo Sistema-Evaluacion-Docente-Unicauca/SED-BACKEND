@@ -1,6 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.dto.ActividadDTO;
+import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.service.ActividadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +117,24 @@ public class ActividadController {
             @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         
         List<ActividadDTO> activities = actividadService.findActivitiesByEvaluadoInActivePeriod(oidUsuario, ascendingOrder);
+        if (activities.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
+        }
+        return ResponseEntity.ok(activities); // Returns the list of activities as DTOs
+    }
+
+        /**
+     * Retrieves activities assigned to a specific evaluator in active academic
+     * periods.
+     * Filters activities by evaluator's user ID and active academic period,
+     * returning them as DTOs.
+     */
+    @GetMapping("/findActivitiesByEvaluadorInActivePeriod/{oidUsuario}")
+    public ResponseEntity<List<ActividadDTOEvaluador>> listActivitiesByEvaluadorInActivePeriod(
+            @PathVariable Integer oidUsuario,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+        
+        List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluadorInActivePeriod(oidUsuario, ascendingOrder);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }

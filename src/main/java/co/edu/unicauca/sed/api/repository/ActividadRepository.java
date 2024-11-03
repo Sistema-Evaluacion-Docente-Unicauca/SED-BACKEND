@@ -17,6 +17,9 @@ public interface ActividadRepository extends JpaRepository<Actividad, Integer>, 
     // Method to get activities by evaluator where the academic period is active
     List<Actividad> findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(Integer oidUsuario, Integer estado);
 
+    // Method to get activities by evaluator where the academic period is active
+    List<Actividad> findByProceso_Evaluador_OidUsuarioAndProceso_OidPeriodoAcademico_Estado(Integer oidUsuario, Integer estado);
+
     // Method to get activities where the academic period of the process is active (state = 1)
     List<Actividad> findByProceso_OidPeriodoAcademico_Estado(Integer estado);
 }
