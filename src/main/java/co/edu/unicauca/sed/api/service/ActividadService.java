@@ -130,14 +130,14 @@ public class ActividadService {
 
         // Filter by userId in evaluated
         if (userEvaluatorId != null) {
-            Join<Object, Object> evaluatorJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED);
+            Join<Object, Object> evaluatorJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR);
             Predicate evaluatorPredicate = cb.equal(evaluatorJoin.get(ATTRIBUTE_USER_ID), userEvaluatorId);
             predicates.add(cb.or(evaluatorPredicate));
         }
 
         // Filter by userId in evaluator
         if (userEvaluatedId != null) {
-            Join<Object, Object> evaluatedJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR);
+            Join<Object, Object> evaluatedJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED);
             Predicate evaluatedPredicate = cb.equal(evaluatedJoin.get(ATTRIBUTE_USER_ID), userEvaluatedId);
             predicates.add(cb.or(evaluatedPredicate));
         }

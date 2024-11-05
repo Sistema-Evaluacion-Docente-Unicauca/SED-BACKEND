@@ -1,4 +1,11 @@
 spring:
+    jpa:
+        hibernate:
+            naming:
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        properties:
+            hibernate:
+                default_schema: SEDOCENTE
     datasource:
         url: ${DESARROLLO_DATASOURCE_URL}
         username: ${DESARROLLO_DATASOURCE_USER}
@@ -12,6 +19,3 @@ spring:
 
 files:
   basePath: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos
-
-sed:
-  schema: ${SED_SCHEMA:SEDOCENTE}
