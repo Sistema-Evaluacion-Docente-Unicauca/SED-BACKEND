@@ -38,44 +38,6 @@ public class ActividadController {
     }
 
     /**
-     * Endpoint to retrieve activities with optional filters.
-     *
-     * This endpoint provides a filtered list of activities based on optional
-     * parameters.
-     * It returns a list of activities in DTO format, including fields for
-     * associated sources (fuentes) and evaluator details.
-     * 
-     * @param tipoActividad   Optional filter for the activity type.
-     * @param nombreEvaluador Optional filter for the evaluator's name; allows
-     *                        partial matching.
-     * @param roles           Optional filter for evaluator roles; allows filtering
-     *                        by specific roles.
-     * @param tipoFuente      Optional filter for the type of source in associated
-     *                        sources.
-     * @param estadoFuente    Optional filter for the state of the source in
-     *                        associated sources.
-     * @param ascendingOrder  Optional parameter to specify sorting order: true for
-     *                        ascending, false for descending. Default is true.
-     * 
-     * @return ResponseEntity containing a list of filtered activities in DTO
-     *         format.
-     */
-    @GetMapping("/actividades")
-    public ResponseEntity<List<ActividadDTO>> getFilteredActivities(
-            @RequestParam(required = false) Integer idUsuario,
-            @RequestParam(required = false) String tipoActividad,
-            @RequestParam(required = false) String nombreEvaluador,
-            @RequestParam(required = false) List<String> roles,
-            @RequestParam(required = false) String tipoFuente,
-            @RequestParam(required = false) String estadoFuente,
-            @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
-
-        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(idUsuario, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder);
-
-        return ResponseEntity.ok(actividades);
-    }
-
-    /**
      * Retrieves all activities associated with active academic periods.
      * Returns the activities as DTOs.
      */
@@ -108,33 +70,24 @@ public class ActividadController {
     }
 
     /**
-     * Retrieves activities assigned to a specific evaluator.
-     * Filters activities by the evaluator's user ID and returns them as DTOs.
-     */
-    @GetMapping("/findActivitiesByEvaluado/{oidUsuario}")
-    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluado(
-            @PathVariable Integer oidUsuario,
-            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
-        
-        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(oidUsuario, ascendingOrder);
-        if (activities.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
-        }
-        return ResponseEntity.ok(activities); // Returns the list of activities as DTOs
-    }
-
-    /**
      * Retrieves activities assigned to a specific evaluator in active academic
      * periods.
      * Filters activities by evaluator's user ID and active academic period,
      * returning them as DTOs.
      */
-    @GetMapping("/findActivitiesByEvaluadoInActivePeriod/{oidUsuario}")
+    @GetMapping("/findActivitiesByEvaluado")
     public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluadoInActivePeriod(
-            @PathVariable Integer oidUsuario,
-            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+        @RequestParam(required = false) Integer userEvaluatorId,
+        @RequestParam(required = false) Integer userEvaluatedId,
+        @RequestParam(required = false) String activityType,
+        @RequestParam(required = false) String evaluatorName,
+        @RequestParam(required = false) List<String> roles,
+        @RequestParam(required = false) String sourceType,
+        @RequestParam(required = false) String sourceStatus,
+        @RequestParam(required = false) Boolean ascendingOrder,
+        @RequestParam(required = false) Boolean periodStatus) {
         
-        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluadoInActivePeriod(oidUsuario, ascendingOrder);
+        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(userEvaluatorId, userEvaluatedId, activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, periodStatus);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
@@ -147,12 +100,19 @@ public class ActividadController {
      * Filters activities by evaluator's user ID and active academic period,
      * returning them as DTOs.
      */
-    @GetMapping("/findActivitiesByEvaluadorInActivePeriod/{oidUsuario}")
+    @GetMapping("/findActivitiesByEvaluador/")
     public ResponseEntity<List<ActividadDTOEvaluador>> listActivitiesByEvaluadorInActivePeriod(
-            @PathVariable Integer oidUsuario,
-            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
+        @RequestParam(required = false) Integer userEvaluatorId,
+        @RequestParam(required = false) Integer userEvaluatedId,
+        @RequestParam(required = false) String activityType,
+        @RequestParam(required = false) String evaluatorName,
+        @RequestParam(required = false) List<String> roles,
+        @RequestParam(required = false) String sourceType,
+        @RequestParam(required = false) String sourceStatus,
+        @RequestParam(required = false) Boolean ascendingOrder,
+        @RequestParam(required = false) Boolean periodStatus) {
         
-        List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluadorInActivePeriod(oidUsuario, ascendingOrder);
+        List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluador(userEvaluatorId, userEvaluatedId, activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, periodStatus);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
