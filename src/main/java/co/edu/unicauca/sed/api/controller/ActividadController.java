@@ -62,6 +62,7 @@ public class ActividadController {
      */
     @GetMapping("/actividades")
     public ResponseEntity<List<ActividadDTO>> getFilteredActivities(
+            @RequestParam(required = false) Integer idUsuario,
             @RequestParam(required = false) String tipoActividad,
             @RequestParam(required = false) String nombreEvaluador,
             @RequestParam(required = false) List<String> roles,
@@ -69,7 +70,7 @@ public class ActividadController {
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
 
-        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder);
+        List<ActividadDTO> actividades = actividadService.findActivitiesWithFilters(idUsuario, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, ascendingOrder);
 
         return ResponseEntity.ok(actividades);
     }

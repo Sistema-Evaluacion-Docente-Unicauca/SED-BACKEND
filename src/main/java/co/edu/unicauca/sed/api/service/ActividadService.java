@@ -86,66 +86,95 @@ public class ActividadService {
         return sortActivities(actividadDTOs, order);
     }
 
-    public List<ActividadDTO> findActivitiesWithFilters(String tipoActividad, String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente, Boolean ascendingOrder) {
+    public List<ActividadDTO> findActivitiesWithFilters(Integer idUsuario, String tipoActividad, String nombreEvaluador,
+            List<String> roles, String tipoFuente, String estadoFuente, Boolean ascendingOrder) {
+
+        final String ATTRIBUTE_PROCESO = "proceso";
+        final String ATTRIBUTE_EVALUADOR = "evaluador";
+        final String ATTRIBUTE_EVALUADO = "evaluado";
+        final String ATTRIBUTE_ROLES = "roles";
+        final String ATTRIBUTE_ID_USUARIO = "oidUsuario";
+        final String ATTRIBUTE_TIPO_ACTIVIDAD = "tipoActividad";
+        final String ATTRIBUTE_NOMBRE = "nombre";
+        final String ATTRIBUTE_NOMBRES = "nombres";
+        final String ATTRIBUTE_APELLIDOS = "apellidos";
+        final String ATTRIBUTE_FUENTES = "fuentes";
+        final String ATTRIBUTE_TIPO_FUENTE = "tipoFuente";
+        final String ATTRIBUTE_ESTADO_FUENTE = "estadoFuente";
+        final String ATTRIBUTE_NOMBRE_ESTADO = "nombreEstado";
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Actividad> query = cb.createQuery(Actividad.class);
         Root<Actividad> root = query.from(Actividad.class);
 
         List<Predicate> predicates = new ArrayList<>();
 
-        // Filtro por tipoActividad
+        // Filter by idUsuario in evaluador or evaluado
+        if (idUsuario != null) {
+            Join<Object, Object> evaluadorJoin = root.join(ATTRIBUTE_PROCESO).join(ATTRIBUTE_EVALUADOR);
+            Join<Object, Object> evaluadoJoin = root.join(ATTRIBUTE_PROCESO).join(ATTRIBUTE_EVALUADO);
+
+            Predicate evaluadorPredicate = cb.equal(evaluadorJoin.get(ATTRIBUTE_ID_USUARIO), idUsuario);
+            Predicate evaluadoPredicate = cb.equal(evaluadoJoin.get(ATTRIBUTE_ID_USUARIO), idUsuario);
+
+            predicates.add(cb.or(evaluadorPredicate, evaluadoPredicate));
+        }
+
+        // Filter by tipoActividad
         if (tipoActividad != null && !tipoActividad.isEmpty()) {
-            predicates.add(cb.equal(root.get("tipoActividad").get("nombre"), tipoActividad));
+            predicates.add(cb.equal(root.get(ATTRIBUTE_TIPO_ACTIVIDAD).get(ATTRIBUTE_NOMBRE), tipoActividad));
         }
 
-        // Filtro por nombreEvaluador
+        // Filter by nombreEvaluador
         if (nombreEvaluador != null && !nombreEvaluador.isEmpty()) {
-            Join<?, ?> procesoJoin = root.join("proceso"); // Join con Proceso
-            predicates.add(cb.like(
-                cb.concat(procesoJoin.get("evaluador").get("nombres"), 
-                          procesoJoin.get("evaluador").get("apellidos")),
-                "%" + nombreEvaluador + "%"
-            ));
+            Join<?, ?> procesoJoin = root.join(ATTRIBUTE_PROCESO);
+            predicates.add(
+                cb.like(
+                    cb.concat(
+                        procesoJoin.get(ATTRIBUTE_EVALUADOR).get(ATTRIBUTE_NOMBRES),
+                        procesoJoin.get(ATTRIBUTE_EVALUADOR).get(ATTRIBUTE_APELLIDOS)
+                    ),"%" + nombreEvaluador + "%"
+                )
+            );
         }
 
-        // Filtro por roles en el evaluador dentro de Proceso
+        // Filter by roles in the evaluator within Proceso
         if (roles != null && !roles.isEmpty()) {
-            Join<?, ?> evaluadorJoin = root.join("proceso").join("evaluador");
-            predicates.add(evaluadorJoin.join("roles").get("nombre").in(roles));
+            Join<?, ?> evaluadorJoin = root.join(ATTRIBUTE_PROCESO).join(ATTRIBUTE_EVALUADOR);
+            predicates.add(evaluadorJoin.join(ATTRIBUTE_ROLES).get(ATTRIBUTE_NOMBRE).in(roles));
         }
 
-        // Filtro combinado para tipoFuente y estadoFuente en las fuentes
+        // Combined filter for tipoFuente and estadoFuente in sources
         if (tipoFuente != null || estadoFuente != null) {
-            Join<?, ?> fuenteJoin = root.join("fuentes", JoinType.INNER);
+            Join<?, ?> fuenteJoin = root.join(ATTRIBUTE_FUENTES, JoinType.INNER);
 
             if (tipoFuente != null) {
-                predicates.add(cb.equal(fuenteJoin.get("tipoFuente"), tipoFuente));
+                predicates.add(cb.equal(fuenteJoin.get(ATTRIBUTE_TIPO_FUENTE), tipoFuente));
             }
             if (estadoFuente != null) {
-                predicates.add(cb.equal(fuenteJoin.get("estadoFuente").get("nombreEstado"), estadoFuente));
+                predicates.add(
+                        cb.equal(fuenteJoin.get(ATTRIBUTE_ESTADO_FUENTE).get(ATTRIBUTE_NOMBRE_ESTADO), estadoFuente));
             }
         }
 
-        // Aplica los predicados a la consulta
+        // Apply predicates to the query
         query.where(predicates.toArray(new Predicate[0]));
 
-        // Ordena de acuerdo al parámetro ascendingOrder
+        // Sort based on ascendingOrder parameter
         boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        query.orderBy(order ? cb.asc(root.get("nombre")) : cb.desc(root.get("nombre")));
+        query.orderBy(order ? cb.asc(root.get(ATTRIBUTE_NOMBRE)) : cb.desc(root.get(ATTRIBUTE_NOMBRE)));
 
-        // Ejecuta la consulta
+        // Execute query
         List<Actividad> actividades = entityManager.createQuery(query).getResultList();
 
-        // Convierte las actividades a DTOs
-        List<ActividadDTO> actividadDTOs = actividades.stream()
-                .map(actividad -> {
-                    if (tipoFuente != null || estadoFuente != null) {
-                        return convertToDTO(actividad, tipoFuente, estadoFuente); // Filtra fuentes en el DTO
-                    } else {
-                        return convertToDTO(actividad); // Devuelve todas las fuentes en el DTO
-                    }
-                })
-                .collect(Collectors.toList());
+        // Convert activities to DTOs
+        List<ActividadDTO> actividadDTOs = actividades.stream().map(actividad -> {
+            if (tipoFuente != null || estadoFuente != null) {
+                return convertToDTO(actividad, tipoFuente, estadoFuente);
+            } else {
+                return convertToDTO(actividad);
+            }
+        }).collect(Collectors.toList());
 
         return actividadDTOs;
     }
