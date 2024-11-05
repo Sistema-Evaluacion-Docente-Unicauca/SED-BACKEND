@@ -84,7 +84,6 @@ public class ActividadService {
     public List<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer userEvaluatorId, Integer userEvaluatedId, String tipoActividad,
             String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente, Boolean ascendingOrder,
             Boolean activePeriod) {
-        boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
         boolean isActivePeriod = (activePeriod != null) ? activePeriod : DEFAULT_ASCENDING_ORDER;
 
         List<Actividad> actividades = findActivitiesWithFilters(userEvaluatorId, userEvaluatedId, tipoActividad, nombreEvaluador, roles,
@@ -228,29 +227,6 @@ public class ActividadService {
         // Determine the comparator based on the ascendingOrder flag
         Comparator<ActividadDTO> comparator = Comparator
                 .comparing(actividadDTO -> actividadDTO.getTipoActividad().getNombre());
-
-        if (!ascendingOrder) {
-            comparator = comparator.reversed();
-        }
-
-        // Sort and return the list
-        return actividades.stream().sorted(comparator).collect(Collectors.toList());
-    }
-
-    /**
-     * Sorts a list of ActividadDTOEvaluador by the name of their activity type.
-     * If ascendingOrder is true, sorts in ascending order; otherwise, in descending
-     * order.
-     * 
-     * @param actividades    List of ActividadDTOEvaluador to be sorted
-     * @param ascendingOrder Boolean indicating the sort order
-     * @return Sorted list of ActividadDTOEvaluador
-     */
-    private List<ActividadDTOEvaluador> sortActivitiesEvaluador(List<ActividadDTOEvaluador> actividades,
-            boolean ascendingOrder) {
-        // Determine the comparator based on the ascendingOrder flag
-        Comparator<ActividadDTOEvaluador> comparator = Comparator.comparing(
-                actividadDTOEvaluador -> actividadDTOEvaluador.getTipoActividad().getNombre());
 
         if (!ascendingOrder) {
             comparator = comparator.reversed();
