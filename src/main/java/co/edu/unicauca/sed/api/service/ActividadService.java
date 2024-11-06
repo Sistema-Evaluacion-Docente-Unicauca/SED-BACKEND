@@ -143,7 +143,7 @@ public class ActividadService {
 
         // Filter by activityType
         if (activityType != null && !activityType.isEmpty()) {
-            predicates.add(cb.equal(root.get(ATTRIBUTE_ACTIVITY_TYPE).get(ATTRIBUTE_NAME), activityType));
+            predicates.add(cb.like(root.get(ATTRIBUTE_ACTIVITY_TYPE).get(ATTRIBUTE_NAME), activityType));
         }
 
         // Filter by evaluatorName
