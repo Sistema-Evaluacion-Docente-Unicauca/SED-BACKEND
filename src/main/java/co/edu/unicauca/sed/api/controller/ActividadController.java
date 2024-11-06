@@ -80,6 +80,7 @@ public class ActividadController {
         @RequestParam(required = false) Integer idEvaluador,
         @RequestParam(required = false) Integer idEvaluado,
         @RequestParam(required = false) String tipoActividad,
+        @RequestParam(required = false) String codigoActividad,
         @RequestParam(required = false) String nombreEvaluador,
         @RequestParam(required = false) List<String> roles,
         @RequestParam(required = false) String tipoFuente,
@@ -87,7 +88,7 @@ public class ActividadController {
         @RequestParam(required = false) Boolean orden,
         @RequestParam(required = false) Boolean estadoPeriodo) {
         
-        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(idEvaluador, idEvaluado, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden, estadoPeriodo);
+        List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden, estadoPeriodo);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
@@ -100,11 +101,12 @@ public class ActividadController {
      * Filters activities by evaluator's user ID and active academic period,
      * returning them as DTOs.
      */
-    @GetMapping("/findActivitiesByEvaluador/")
+    @GetMapping("/findActivitiesByEvaluador")
     public ResponseEntity<List<ActividadDTOEvaluador>> listActivitiesByEvaluadorInActivePeriod(
         @RequestParam(required = false) Integer idEvaluador,
         @RequestParam(required = false) Integer idEvaluado,
         @RequestParam(required = false) String tipoActividad,
+        @RequestParam(required = false) String codigoActividad,
         @RequestParam(required = false) String nombreEvaluador,
         @RequestParam(required = false) List<String> roles,
         @RequestParam(required = false) String tipoFuente,
@@ -112,7 +114,7 @@ public class ActividadController {
         @RequestParam(required = false) Boolean orden,
         @RequestParam(required = false) Boolean estadoPeriodo) {
         
-        List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluador(idEvaluador, idEvaluado, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden, estadoPeriodo);
+        List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluador(idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden, estadoPeriodo);
         if (activities.isEmpty()) {
             return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
         }
