@@ -71,14 +71,14 @@ public class FuenteController {
      * @return The saved source, or an error if something went wrong
      */
     @PostMapping(value = "save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> saveMultipleFuentes(
-            @RequestParam("archivo") MultipartFile archivo,
-            @RequestParam("observacion") String observacion,
-            @RequestParam("fuentes") String fuentesJson) {
+    public ResponseEntity<?> saveMultipleSources(
+            @RequestParam("archivo") MultipartFile file,
+            @RequestParam("observacion") String observation,
+            @RequestParam("fuentes") String sourcesJson) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            List<FuenteCreateDTO> fuentes = objectMapper.readValue(fuentesJson, new TypeReference<List<FuenteCreateDTO>>() {});
-            fuenteService.saveMultipleFuentes(fuentes, archivo, observacion);
+            List<FuenteCreateDTO> sources = objectMapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {});
+            fuenteService.saveMultipleSources(sources, file, observation);
             return ResponseEntity.ok("Document uploaded and sources saved successfully for all activities!");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
