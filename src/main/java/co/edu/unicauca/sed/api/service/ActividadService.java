@@ -115,7 +115,6 @@ public class ActividadService {
         final String ATTRIBUTE_SOURCES = "fuentes";
         final String ATTRIBUTE_SOURCE_TYPE = "tipoFuente";
         final String ATTRIBUTE_SOURCE_STATUS = "estadoFuente";
-        final String ATTRIBUTE_STATUS_NAME = "nombreEstado";
         final String ATTRIBUTE_PERIOD_STATUS = "estado";
         final Boolean DEFAULT_ACTIVE_PERIOD = true;
 
@@ -168,14 +167,16 @@ public class ActividadService {
 
         // Combined filter for sourceType and sourceStatus in sources
         if (sourceType != null || sourceStatus != null) {
-            Join<?, ?> sourceJoin = root.join(ATTRIBUTE_SOURCES, JoinType.INNER);
-
+            Join<Object, Object> sourceJoin = root.join(ATTRIBUTE_SOURCES, JoinType.INNER);
+        
+            // Apply filter for tipoFuente (sourceType)
             if (sourceType != null) {
                 predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_TYPE), sourceType));
             }
+        
+            // Apply filter for estadoFuente (sourceStatus) assuming it has an attribute 'nombre' for comparison
             if (sourceStatus != null) {
-                predicates.add(
-                        cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get(ATTRIBUTE_STATUS_NAME), sourceStatus));
+                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("nombreEstado"), sourceStatus));
             }
         }
 

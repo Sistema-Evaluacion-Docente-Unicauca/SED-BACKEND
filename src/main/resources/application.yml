@@ -19,3 +19,6 @@ spring:
 
 files:
   basePath: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos
+
+document:
+  upload-dir: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos

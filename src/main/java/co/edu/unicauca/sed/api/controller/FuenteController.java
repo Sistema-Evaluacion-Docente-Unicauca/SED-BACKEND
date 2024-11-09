@@ -9,13 +9,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
+import com.fasterxml.jackson.core.type.TypeReference;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FuenteService;
 
@@ -67,17 +71,18 @@ public class FuenteController {
      * @return The saved source, or an error if something went wrong
      */
     @PostMapping(value = "save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> save(@ModelAttribute Fuente fuente,
-            @RequestParam("archivo") MultipartFile archivo) {
+    public ResponseEntity<?> saveMultipleFuentes(
+            @RequestParam("archivo") MultipartFile archivo,
+            @RequestParam("observacion") String observacion,
+            @RequestParam("fuentes") String fuentesJson) {
         try {
-            Fuente resultado = fuenteService.save(fuente, archivo);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<FuenteCreateDTO> fuentes = objectMapper.readValue(fuentesJson, new TypeReference<List<FuenteCreateDTO>>() {});
+            fuenteService.saveMultipleFuentes(fuentes, archivo, observacion);
+            return ResponseEntity.ok("Document uploaded and sources saved successfully for all activities!");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
     /**

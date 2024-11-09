@@ -38,6 +38,9 @@ public class Fuente {
     @Column(name = "NOMBREDOCUMENTO", nullable = false)
     private String nombreDocumento;
 
+    @Column(name = "RUTADOCUMENTO", nullable = false)
+    private String rutaDocumento;
+
     @Column(name = "OBSERVACION")
     private String observacion;
 
