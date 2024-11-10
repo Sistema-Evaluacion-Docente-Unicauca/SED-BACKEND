@@ -14,8 +14,7 @@ public class FuenteDTO {
     private String estadoFuente;
 
     // Constructor
-    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumento, String observacion,
-                    LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
+    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumento, String observacion, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
         this.oidFuente = oidFuente;
         this.tipoFuente = tipoFuente;
         this.calificacion = calificacion;
@@ -83,11 +82,11 @@ public class FuenteDTO {
         this.fechaActualizacion = fechaActualizacion;
     }
 
-    public String getestadoFuente() {
+    public String getEstadoFuente() {
         return estadoFuente;
     }
 
-    public void setestadoFuente(String estadoFuente) {
+    public void setEstadoFuente(String estadoFuente) {
         this.estadoFuente = estadoFuente;
     }
 }

@@ -72,11 +72,15 @@ public class ActividadService {
 
         // Convert activities to DTOs
         List<ActividadDTO> activityDTOs = activities.stream().map(activity -> {
+            ActividadDTO dto;
             if (sourceType != null || sourceStatus != null) {
-                return convertToDTO(activity, sourceType, sourceStatus);
+                dto = convertToDTO(activity, sourceType, sourceStatus);
             } else {
-                return convertToDTO(activity);
+                dto = convertToDTO(activity);
             }
+
+            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getEstadoFuente));
+            return dto;
         }).collect(Collectors.toList());
 
         return activityDTOs;
@@ -93,11 +97,15 @@ public class ActividadService {
 
         // Convert activities to DTOs
         List<ActividadDTOEvaluador> activityEvaluatorDTOs = activities.stream().map(activity -> {
+            ActividadDTOEvaluador dto;
             if (sourceType != null || sourceStatus != null) {
-                return convertToDTOWithEvaluado(activity, sourceType, sourceStatus);
+                dto = convertToDTOWithEvaluado(activity, sourceType, sourceStatus);
             } else {
-                return convertToDTOWithEvaluado(activity);
+                dto = convertToDTOWithEvaluado(activity);
             }
+
+            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getEstadoFuente));
+            return dto;
         }).collect(Collectors.toList());
 
         return activityEvaluatorDTOs;
@@ -152,11 +160,13 @@ public class ActividadService {
         if (evaluatorName != null && !evaluatorName.isEmpty()) {
             Join<?, ?> processJoin = root.join(ATTRIBUTE_PROCESS);
             predicates.add(
-                    cb.like(
-                            cb.concat(
-                                    processJoin.get(ATTRIBUTE_EVALUATOR).get("nombres"),
-                                    processJoin.get(ATTRIBUTE_EVALUATOR).get("apellidos")),
-                            "%" + evaluatorName + "%"));
+                cb.like(
+                    cb.concat(
+                        processJoin.get(ATTRIBUTE_EVALUATOR).get("nombres"),
+                        processJoin.get(ATTRIBUTE_EVALUATOR).get("apellidos")
+                    ),"%" + evaluatorName + "%"
+                )
+            );
         }
 
         // Filter by roles in the evaluator within Process
@@ -196,6 +206,7 @@ public class ActividadService {
         // Execute query
         return entityManager.createQuery(query).getResultList();
     }
+
     /**
      * Finds an activity by its ID.
      */
@@ -258,14 +269,16 @@ public class ActividadService {
                 .map(this::convertFuenteToDTO).collect(Collectors.toList());
 
         ActividadDTO actividadDTO = new ActividadDTO(
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHoras(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                filteredFuentes,
-                evaluadorDTO);
+            actividad.getOidActividad(),
+            actividad.getCodigoActividad(),
+            actividad.getNombre(),
+            actividad.getHoras(),
+            actividad.getFechaCreacion(),
+            actividad.getFechaActualizacion(),
+            actividad.getTipoActividad(),
+            filteredFuentes,
+            evaluadorDTO
+        );
 
         return actividadDTO;
     }
@@ -273,18 +286,19 @@ public class ActividadService {
     public ActividadDTO convertToDTO(Actividad actividad) {
         UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
 
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO)
-                .collect(Collectors.toList());
+        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList());
 
         ActividadDTO actividadDTO = new ActividadDTO(
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHoras(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                fuenteDTOs,
-                evaluadorDTO);
+            actividad.getOidActividad(),
+            actividad.getCodigoActividad(),
+            actividad.getNombre(),
+            actividad.getHoras(),
+            actividad.getFechaCreacion(),
+            actividad.getFechaActualizacion(),
+            actividad.getTipoActividad(),
+            fuenteDTOs,
+            evaluadorDTO
+        );
         return actividadDTO;
     }
 
@@ -295,14 +309,16 @@ public class ActividadService {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
 
         ActividadDTOEvaluador actividadDTOEvaluador = new ActividadDTOEvaluador(
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHoras(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
-                evaluadoDTO);
+            actividad.getOidActividad(),
+            actividad.getCodigoActividad(),
+            actividad.getNombre(),
+            actividad.getHoras(),
+            actividad.getFechaCreacion(),
+            actividad.getFechaActualizacion(),
+            actividad.getTipoActividad(),
+            actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
+            evaluadoDTO
+        );
 
         return actividadDTOEvaluador;
     }
@@ -313,18 +329,19 @@ public class ActividadService {
     public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad, String tipoFuente, String estadoFuente) {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
 
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO)
-                .collect(Collectors.toList());
+        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList());
 
         ActividadDTOEvaluador actividadDTOEvaluador = new ActividadDTOEvaluador(
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHoras(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                fuenteDTOs,
-                evaluadoDTO);
+            actividad.getOidActividad(),
+            actividad.getCodigoActividad(),
+            actividad.getNombre(),
+            actividad.getHoras(),
+            actividad.getFechaCreacion(),
+            actividad.getFechaActualizacion(),
+            actividad.getTipoActividad(),
+            fuenteDTOs,
+            evaluadoDTO
+        );
 
         return actividadDTOEvaluador;
     }
@@ -334,17 +351,17 @@ public class ActividadService {
      */
     private UsuarioDTO convertToUsuarioDTO(Usuario evaluador) {
 
-        List<RolDTO> rolDTOList = evaluador.getRoles().stream().map(rol -> new RolDTO(rol.getNombre(), rol.getEstado()))
-                .collect(Collectors.toList());
+        List<RolDTO> rolDTOList = evaluador.getRoles().stream().map(rol -> new RolDTO(rol.getNombre(), rol.getEstado())).collect(Collectors.toList());
         String nombres = evaluador.getNombres() != null ? evaluador.getNombres() : DEFAULT_NAME;
         String apellidos = evaluador.getApellidos() != null ? evaluador.getApellidos() : DEFAULT_NAME;
 
         UsuarioDTO usuarioDTO = new UsuarioDTO(
-                evaluador.getOidUsuario(),
-                evaluador.getUsuarioDetalle().getIdentificacion(),
-                nombres,
-                apellidos,
-                rolDTOList);
+            evaluador.getOidUsuario(),
+            evaluador.getUsuarioDetalle().getIdentificacion(),
+            nombres,
+            apellidos,
+            rolDTOList
+        );
 
         return usuarioDTO;
     }
@@ -355,14 +372,15 @@ public class ActividadService {
     public FuenteDTO convertFuenteToDTO(Fuente fuente) {
 
         FuenteDTO fuenteDTO = new FuenteDTO(
-                fuente.getOidFuente(),
-                fuente.getTipoFuente(),
-                fuente.getCalificacion(),
-                fuente.getNombreDocumento(),
-                fuente.getObservacion(),
-                fuente.getFechaCreacion(),
-                fuente.getFechaActualizacion(),
-                fuente.getEstadoFuente().getNombreEstado());
+            fuente.getOidFuente(),
+            fuente.getTipoFuente(),
+            fuente.getCalificacion(),
+            fuente.getNombreDocumento(),
+            fuente.getObservacion(),
+            fuente.getFechaCreacion(),
+            fuente.getFechaActualizacion(),
+            fuente.getEstadoFuente().getNombreEstado()
+        );
 
         return fuenteDTO;
     }

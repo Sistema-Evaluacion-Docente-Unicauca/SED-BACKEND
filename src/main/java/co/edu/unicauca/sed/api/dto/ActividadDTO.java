@@ -7,19 +7,20 @@ import co.edu.unicauca.sed.api.model.TipoActividad;
 // DTO for activity details
 public class ActividadDTO {
 
-    private String codigoActividad; // Activity code
-    private String nombre; // Activity name
-    private String horas; // Hours assigned to the activity
-    private LocalDateTime fechaCreacion; // Creation date of the activity
-    private LocalDateTime fechaActualizacion; // Last update date of the activity
-    private TipoActividad tipoActividad; // Type of activity
-    private List<FuenteDTO> fuentes; // List of associated sources
-    private UsuarioDTO evaluador; // Evaluator information (restricted)
+    private Integer oidActividad;
+    private String codigoActividad;
+    private String nombre;
+    private String horas;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
+    private TipoActividad tipoActividad;
+    private List<FuenteDTO> fuentes;
+    private UsuarioDTO evaluador;
 
     // Constructor with all necessary fields
-    public ActividadDTO(String codigoActividad, String nombre, String horas,
-                        LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
+    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, String horas, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
                         TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
+        this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
         this.nombre = nombre;
         this.horas = horas;
@@ -31,6 +32,14 @@ public class ActividadDTO {
     }
 
     // Getters and setters
+    public Integer getOidActividad() {
+        return oidActividad;
+    }
+
+    public void setOidActividad(Integer oidActividad) {
+        this.oidActividad = oidActividad;
+    }
+
     public String getCodigoActividad() {
         return codigoActividad;
     }
