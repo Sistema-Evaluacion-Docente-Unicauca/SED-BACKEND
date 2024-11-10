@@ -148,7 +148,7 @@ public class ActividadService {
 
         // Filter by activityCode
         if (activityCode != null && !activityCode.isEmpty()) {
-            predicates.add(cb.like(root.get("codigoActividad"), "%" + activityCode + "%"));
+            predicates.add(cb.like(root.get("nombre"), "%" + activityCode + "%"));
         }
 
         // Filter by activityType (tipoActividad.nombre)

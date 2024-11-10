@@ -72,15 +72,12 @@ public class FuenteService {
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
 
             // Check if a source already exists for the activity and source type
-            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity,
-                    sourceDTO.getTipoFuente());
+            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity,sourceDTO.getTipoFuente());
 
             Fuente source;
             if (existingSource.isPresent()) {
-                // If it exists, use the function to update its properties
                 source = existingSource.get();
             } else {
-                // If it does not exist, create a new instance of Source
                 source = new Fuente();
             }
 
