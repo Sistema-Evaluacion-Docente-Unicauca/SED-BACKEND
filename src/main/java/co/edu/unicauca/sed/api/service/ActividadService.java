@@ -79,7 +79,7 @@ public class ActividadService {
                 dto = convertToDTO(activity);
             }
 
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getEstadoFuente));
+            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
             return dto;
         }).collect(Collectors.toList());
 
@@ -104,7 +104,7 @@ public class ActividadService {
                 dto = convertToDTOWithEvaluado(activity);
             }
 
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getEstadoFuente));
+            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
             return dto;
         }).collect(Collectors.toList());
 
