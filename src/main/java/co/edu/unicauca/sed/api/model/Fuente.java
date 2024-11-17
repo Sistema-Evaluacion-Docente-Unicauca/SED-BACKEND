@@ -35,11 +35,17 @@ public class Fuente {
     @Column(name = "CALIFICACION", nullable = false)
     private Float calificacion;
 
-    @Column(name = "NOMBREDOCUMENTO", nullable = false)
-    private String nombreDocumento;
+    @Column(name = "NOMBREDOCUMENTOFUENTE")
+    private String nombreDocumentoFuente;
 
-    @Column(name = "RUTADOCUMENTO", nullable = false)
-    private String rutaDocumento;
+    @Column(name = "NOMBREDOCUMENTOINFORME")
+    private String nombreDocumentoInforme;
+
+    @Column(name = "RUTADOCUMENTOFUENTE")
+    private String rutaDocumentoFuente;
+
+    @Column(name = "RUTADOCUMENTOINFORME")
+    private String rutaDocumentoInforme;
 
     @Column(name = "OBSERVACION")
     private String observacion;

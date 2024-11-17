@@ -25,7 +25,10 @@ public class Actividad {
     private String nombre;
 
     @Column(name = "HORAS", nullable = false)
-    private String horas;
+    private Float horas;
+
+    @Column(name = "INFORMEEJECUTIVO", nullable = false)
+    private Boolean informeEjecutivo;
 
     @Column(name = "FECHACREACION", updatable = false)
     @CreationTimestamp

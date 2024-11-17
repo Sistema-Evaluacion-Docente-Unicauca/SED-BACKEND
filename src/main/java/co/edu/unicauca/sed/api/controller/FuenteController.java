@@ -15,12 +15,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.nio.file.Path;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
-import com.fasterxml.jackson.core.type.TypeReference;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FuenteService;
 
@@ -71,20 +73,22 @@ public class FuenteController {
      * @param archivo The file to associate with the source
      * @return The saved source, or an error if something went wrong
      */
-    @PostMapping(value = "save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> saveMultipleSources(
-            @RequestParam("archivo") MultipartFile file,
-            @RequestParam("observacion") String observation,
-            @RequestParam("fuentes") String sourcesJson) {
+    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> saveMultipleSources(
+            @RequestParam("informeFuente") MultipartFile informeFuente,
+            @RequestParam("sources") String sourcesJson,
+            @RequestParam(value = "observation", required = false) String observation) 
+    {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<FuenteCreateDTO> sources = objectMapper.readValue(sourcesJson,
-                    new TypeReference<List<FuenteCreateDTO>>() {
-                    });
-            fuenteService.saveMultipleSources(sources, file, observation);
-            return ResponseEntity.ok("Document uploaded and sources saved successfully for all activities!");
+            // Convertir JSON de fuentes a lista de DTOs
+            ObjectMapper mapper = new ObjectMapper();
+            List<FuenteCreateDTO> sources = mapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {});
+
+            fuenteService.saveMultipleSources(sources, informeFuente, observation);
+
+            return ResponseEntity.ok("Fuentes guardadas exitosamente");
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar las fuentes: " + e.getMessage());
         }
     }
 
@@ -125,7 +129,7 @@ public class FuenteController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            Path filePath = Paths.get(fuente.getRutaDocumento());
+            Path filePath = Paths.get(fuente.getRutaDocumentoFuente());
             Resource resource = new UrlResource(filePath.toUri());
 
             if (!resource.exists()) {
@@ -134,7 +138,7 @@ public class FuenteController {
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + fuente.getNombreDocumento() + "\"")
+                            "attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"")
                     .body(resource);
 
         } catch (Exception e) {

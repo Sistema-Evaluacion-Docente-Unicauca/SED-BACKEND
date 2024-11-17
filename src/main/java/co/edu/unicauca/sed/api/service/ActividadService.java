@@ -375,7 +375,7 @@ public class ActividadService {
             fuente.getOidFuente(),
             fuente.getTipoFuente(),
             fuente.getCalificacion(),
-            fuente.getNombreDocumento(),
+            fuente.getNombreDocumentoFuente(),
             fuente.getObservacion(),
             fuente.getFechaCreacion(),
             fuente.getFechaActualizacion(),

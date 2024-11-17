@@ -10,7 +10,7 @@ public class ActividadDTO {
     private Integer oidActividad;
     private String codigoActividad;
     private String nombre;
-    private String horas;
+    private Float horas;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private TipoActividad tipoActividad;
@@ -18,7 +18,7 @@ public class ActividadDTO {
     private UsuarioDTO evaluador;
 
     // Constructor with all necessary fields
-    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, String horas, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
+    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horas, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
                         TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
         this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
@@ -56,11 +56,11 @@ public class ActividadDTO {
         this.nombre = nombre;
     }
 
-    public String getHoras() {
+    public Float getHoras() {
         return horas;
     }
 
-    public void setHoras(String horas) {
+    public void setHoras(Float horas) {
         this.horas = horas;
     }
 
