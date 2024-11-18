@@ -11,6 +11,7 @@ public class ActividadDTO {
     private String codigoActividad;
     private String nombre;
     private Float horas;
+    private Boolean informeEjecutivo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private TipoActividad tipoActividad;
@@ -18,12 +19,13 @@ public class ActividadDTO {
     private UsuarioDTO evaluador;
 
     // Constructor with all necessary fields
-    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horas, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
+    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horas, Boolean informeEjecutivo, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
                         TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
         this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
         this.nombre = nombre;
         this.horas = horas;
+        this.informeEjecutivo = informeEjecutivo;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
         this.tipoActividad = tipoActividad;
@@ -64,6 +66,14 @@ public class ActividadDTO {
         this.horas = horas;
     }
 
+    public Boolean getInformeEjecutivo() {
+        return informeEjecutivo;
+    }
+
+    public void setInformeEjecutivo(Boolean informeEjecutivo) {
+        this.informeEjecutivo = informeEjecutivo;
+    }
+    
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }

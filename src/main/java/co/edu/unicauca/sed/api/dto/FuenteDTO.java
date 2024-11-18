@@ -7,18 +7,20 @@ public class FuenteDTO {
     private Integer oidFuente;
     private String tipoFuente;
     private Float calificacion;
-    private String nombreDocumento;
+    private String nombreDocumentoFuente;
+    private String nombreDocumentoInforme;
     private String observacion;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private String estadoFuente;
 
     // Constructor
-    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumento, String observacion, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
+    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumentoFuente, String nombreDocumentoInforme, String observacion, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
         this.oidFuente = oidFuente;
         this.tipoFuente = tipoFuente;
         this.calificacion = calificacion;
-        this.nombreDocumento = nombreDocumento;
+        this.nombreDocumentoFuente = nombreDocumentoFuente;
+        this.nombreDocumentoInforme = nombreDocumentoInforme;
         this.observacion = observacion;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
@@ -50,12 +52,20 @@ public class FuenteDTO {
         this.calificacion = calificacion;
     }
 
-    public String getNombreDocumento() {
-        return nombreDocumento;
+    public String getNombreDocumentoFuente() {
+        return nombreDocumentoFuente;
     }
 
-    public void setNombreDocumento(String nombreDocumento) {
-        this.nombreDocumento = nombreDocumento;
+    public void setNombreDocumentoFuente(String nombreDocumentoFuente) {
+        this.nombreDocumentoFuente = nombreDocumentoFuente;
+    }
+
+    public String getNombreDocumentoInforme() {
+        return nombreDocumentoInforme;
+    }
+
+    public void setNombreDocumento(String nombreDocumentoInforme) {
+        this.nombreDocumentoInforme = nombreDocumentoInforme;
     }
 
     public String getObservacion() {
