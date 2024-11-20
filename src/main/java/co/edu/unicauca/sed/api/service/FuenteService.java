@@ -62,10 +62,7 @@ public class FuenteService {
 
     public void saveMultipleSources(List<FuenteCreateDTO> sources, MultipartFile informeFuente,
             String observation) throws IOException {
-        // Guardar el archivo común (informeFuente)
         String commonFileName = informeFuente.getOriginalFilename();
-        Path commonFilePath = saveFile(informeFuente, "general", "general");
-
         EstadoFuente stateSource = new EstadoFuente();
         stateSource.setOidEstadoFuente(2);
 
@@ -82,7 +79,8 @@ public class FuenteService {
                 activity.getProceso().getEvaluado().getApellidos()
             );
 
-            // Procesar informe ejecutivo (si está presente en la fuente)
+            Path specificFilePath = saveFile(informeFuente, periodoAcademico, evaluadoNombre);
+
             String informeEjecutivoName = null;
             Path informeEjecutivoPath = null;
             if (sourceDTO.getInformeEjecutivo() != null) {
@@ -94,7 +92,7 @@ public class FuenteService {
             // Guardar o actualizar la fuente
             Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente());
             Fuente source = existingSource.orElse(new Fuente());
-            assignSourceValues(source, sourceDTO, commonFileName, commonFilePath, observation, stateSource, activity, informeEjecutivoName, informeEjecutivoPath);
+            assignSourceValues(source, sourceDTO, commonFileName, specificFilePath, observation, stateSource, activity, informeEjecutivoName, informeEjecutivoPath);
             fuenteRepository.save(source);
         }
     }

@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -136,10 +135,7 @@ public class FuenteController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"")
-                    .body(resource);
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"").body(resource);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
