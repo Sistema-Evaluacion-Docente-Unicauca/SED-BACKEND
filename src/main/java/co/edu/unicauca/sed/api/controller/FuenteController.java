@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import java.nio.file.Paths;
 import java.util.List;
-
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import java.util.Optional;
@@ -12,16 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FuenteService;
 
@@ -73,21 +68,17 @@ public class FuenteController {
      * @return The saved source, or an error if something went wrong
      */
     @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> saveMultipleSources(
+    public ResponseEntity<?> saveFuente(
             @RequestParam("informeFuente") MultipartFile informeFuente,
+            @RequestParam("observation") String observation,
             @RequestParam("sources") String sourcesJson,
-            @RequestParam(value = "observation", required = false) String observation) 
-    {
+            @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
-            // Convertir JSON de fuentes a lista de DTOs
-            ObjectMapper mapper = new ObjectMapper();
-            List<FuenteCreateDTO> sources = mapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {});
-
-            fuenteService.saveMultipleSources(sources, informeFuente, observation);
-
-            return ResponseEntity.ok("Fuentes guardadas exitosamente");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar las fuentes: " + e.getMessage());
+            fuenteService.saveMultipleSources(sourcesJson, informeFuente, observation, allFiles);
+            return ResponseEntity.ok("Archivos procesados correctamente");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
         }
     }
 
@@ -135,7 +126,8 @@ public class FuenteController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"").body(resource);
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"").body(resource);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

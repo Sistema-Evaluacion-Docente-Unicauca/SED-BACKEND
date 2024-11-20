@@ -3,7 +3,6 @@ package co.edu.unicauca.sed.api.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -17,8 +16,12 @@ import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.util.StringUtils;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @Service
 public class FuenteService {
@@ -60,66 +63,76 @@ public class FuenteService {
         return response;
     }
 
-    public void saveMultipleSources(List<FuenteCreateDTO> sources, MultipartFile informeFuente,
-            String observation) throws IOException {
-        String commonFileName = informeFuente.getOriginalFilename();
-        EstadoFuente stateSource = new EstadoFuente();
-        stateSource.setOidEstadoFuente(2);
+    public void saveMultipleSources(String sourcesJson, MultipartFile informeFuente, String observation,
+            Map<String, MultipartFile> allFiles) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<FuenteCreateDTO> sources = objectMapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {});
+        
+        Map<String, MultipartFile> informeEjecutivoFiles = allFiles != null
+                ? allFiles.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals("informeFuente"))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                : Map.of();
 
-        for (FuenteCreateDTO sourceDTO : sources) {
+        Path commonFilePath = null;
+
+        for (int i = 0; i < sources.size(); i++) {
+            FuenteCreateDTO sourceDTO = sources.get(i);
+
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
-
             if (activity.getProceso() == null) {
                 throw new IllegalStateException("No se pudo obtener el proceso asociado a la actividad.");
             }
 
             String periodoAcademico = activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
             String evaluadoNombre = StringUtils.trimAllWhitespace(
-                activity.getProceso().getEvaluado().getNombres() + "_" +
-                activity.getProceso().getEvaluado().getApellidos()
-            );
+                    activity.getProceso().getEvaluado().getNombres() + "_" +
+                            activity.getProceso().getEvaluado().getApellidos());
 
-            Path specificFilePath = saveFile(informeFuente, periodoAcademico, evaluadoNombre);
-
-            String informeEjecutivoName = null;
-            Path informeEjecutivoPath = null;
-            if (sourceDTO.getInformeEjecutivo() != null) {
-                Path filePath = Paths.get(sourceDTO.getInformeEjecutivo());
-                informeEjecutivoName = filePath.getFileName().toString();
-                informeEjecutivoPath = saveFile(filePath, periodoAcademico, evaluadoNombre);
+            if (i == 0 && informeFuente != null) {
+                commonFilePath = saveFile(informeFuente, periodoAcademico, evaluadoNombre);
             }
 
-            // Guardar o actualizar la fuente
-            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente());
+            String informeEjecutivoName = sourceDTO.getInformeEjecutivo();
+            Path informeEjecutivoPath = null;
+
+            if (informeEjecutivoName != null && informeEjecutivoFiles.containsKey("informeEjecutivo" + (i + 1))) {
+                MultipartFile informeEjecutivoFile = informeEjecutivoFiles.get("informeEjecutivo" + (i + 1));
+                informeEjecutivoPath = saveFile(informeEjecutivoFile, periodoAcademico, evaluadoNombre);
+            }
+
+            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity,
+                    sourceDTO.getTipoFuente());
             Fuente source = existingSource.orElse(new Fuente());
-            assignSourceValues(source, sourceDTO, commonFileName, specificFilePath, observation, stateSource, activity, informeEjecutivoName, informeEjecutivoPath);
+
+            String commonFileName = informeFuente != null ? informeFuente.getOriginalFilename() : null;
+            EstadoFuente stateSource = createEstadoFuente(2);
+
+            assignSourceValues(source, sourceDTO,
+                    commonFileName,
+                    commonFilePath,
+                    observation,
+                    stateSource,
+                    activity,
+                    informeEjecutivoName,
+                    informeEjecutivoPath);
+
             fuenteRepository.save(source);
         }
     }
 
-    private Path saveFile(Object fileInput, String periodoAcademico, String evaluadoNombre) throws IOException {
-        // Valores por defecto
-        periodoAcademico = (periodoAcademico != null) ? periodoAcademico : "default_period";
-        evaluadoNombre = (evaluadoNombre != null) ? evaluadoNombre : "default_user";
+    private EstadoFuente createEstadoFuente(int oidEstado) {
+        EstadoFuente stateSource = new EstadoFuente();
+        stateSource.setOidEstadoFuente(oidEstado);
+        return stateSource;
+    }
 
-        // Crear directorio destino
+    private Path saveFile(MultipartFile file, String periodoAcademico, String evaluadoNombre) throws IOException {
         Path directoryPath = Paths.get(uploadDir, periodoAcademico, evaluadoNombre);
-        Files.createDirectories(directoryPath);
+        Files.createDirectories(directoryPath); // Crear carpeta si no existe
+        Path targetPath = directoryPath.resolve(file.getOriginalFilename());
 
-        Path targetPath;
-
-        if (fileInput instanceof MultipartFile) {
-            MultipartFile file = (MultipartFile) fileInput;
-            targetPath = directoryPath.resolve(file.getOriginalFilename());
-            Files.write(targetPath, file.getBytes());
-        } else if (fileInput instanceof Path) {
-            Path filePath = (Path) fileInput;
-            targetPath = directoryPath.resolve(filePath.getFileName().toString());
-            Files.copy(filePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        } else {
-            throw new IllegalArgumentException(
-                    "El tipo de archivo no es compatible: " + fileInput.getClass().getName());
-        }
+        Files.write(targetPath, file.getBytes());
 
         return targetPath;
     }
@@ -135,9 +148,12 @@ public class FuenteService {
         source.setActividad(activity);
         source.setEstadoFuente(stateSource);
 
-        // Asignar informe ejecutivo si existe
-        source.setNombreDocumentoInforme(informeEjecutivoName);
-        source.setRutaDocumentoInforme(informeEjecutivoPath != null ? informeEjecutivoPath.toString() : null);
+        if (informeEjecutivoName != null) {
+            source.setNombreDocumentoInforme(informeEjecutivoName);
+        }
+        if (informeEjecutivoPath != null) {
+            source.setRutaDocumentoInforme(informeEjecutivoPath.toString());
+        }
     }
 
     public void delete(Integer oid) {
