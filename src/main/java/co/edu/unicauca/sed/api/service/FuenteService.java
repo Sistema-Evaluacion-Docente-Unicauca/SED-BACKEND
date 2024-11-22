@@ -63,22 +63,16 @@ public class FuenteService {
         return response;
     }
 
-    public void saveMultipleSources(String sourcesJson, MultipartFile informeFuente, String observation,
-            Map<String, MultipartFile> allFiles) throws IOException {
+    public void saveMultipleSources(String sourcesJson, MultipartFile informeFuente, String observation, Map<String, MultipartFile> allFiles) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         List<FuenteCreateDTO> sources = objectMapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {});
-        
+
         Map<String, MultipartFile> informeEjecutivoFiles = allFiles != null
-                ? allFiles.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals("informeFuente"))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                : Map.of();
+            ? allFiles.entrySet().stream().filter(entry -> !entry.getKey().equals("informeFuente")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)): Map.of();
 
         Path commonFilePath = null;
 
-        for (int i = 0; i < sources.size(); i++) {
-            FuenteCreateDTO sourceDTO = sources.get(i);
-
+        for (FuenteCreateDTO sourceDTO : sources) {
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
             if (activity.getProceso() == null) {
                 throw new IllegalStateException("No se pudo obtener el proceso asociado a la actividad.");
@@ -86,36 +80,34 @@ public class FuenteService {
 
             String periodoAcademico = activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
             String evaluadoNombre = StringUtils.trimAllWhitespace(
-                    activity.getProceso().getEvaluado().getNombres() + "_" +
-                            activity.getProceso().getEvaluado().getApellidos());
+                activity.getProceso().getEvaluado().getNombres() + "_" +
+                activity.getProceso().getEvaluado().getApellidos()
+            );
 
-            if (i == 0 && informeFuente != null) {
+            // Guardar el archivo común si no se ha guardado aún
+            if (commonFilePath == null && informeFuente != null) {
                 commonFilePath = saveFile(informeFuente, periodoAcademico, evaluadoNombre);
             }
 
             String informeEjecutivoName = sourceDTO.getInformeEjecutivo();
             Path informeEjecutivoPath = null;
 
-            if (informeEjecutivoName != null && informeEjecutivoFiles.containsKey("informeEjecutivo" + (i + 1))) {
-                MultipartFile informeEjecutivoFile = informeEjecutivoFiles.get("informeEjecutivo" + (i + 1));
-                informeEjecutivoPath = saveFile(informeEjecutivoFile, periodoAcademico, evaluadoNombre);
+            // Match del archivo por nombre de informeEjecutivo
+            if (informeEjecutivoName != null) {
+                Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream().filter(file -> file.getOriginalFilename().equalsIgnoreCase(informeEjecutivoName)).findFirst();
+
+                if (matchedFile.isPresent()) {
+                    informeEjecutivoPath = saveFile(matchedFile.get(), periodoAcademico, evaluadoNombre);
+                }
             }
 
-            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity,
-                    sourceDTO.getTipoFuente());
+            Optional<Fuente> existingSource = fuenteRepository.findByActividadAndTipoFuente(activity,sourceDTO.getTipoFuente());
             Fuente source = existingSource.orElse(new Fuente());
 
             String commonFileName = informeFuente != null ? informeFuente.getOriginalFilename() : null;
             EstadoFuente stateSource = createEstadoFuente(2);
 
-            assignSourceValues(source, sourceDTO,
-                    commonFileName,
-                    commonFilePath,
-                    observation,
-                    stateSource,
-                    activity,
-                    informeEjecutivoName,
-                    informeEjecutivoPath);
+            assignSourceValues(source, sourceDTO, commonFileName, commonFilePath, observation, stateSource, activity, informeEjecutivoName, informeEjecutivoPath);
 
             fuenteRepository.save(source);
         }
@@ -129,7 +121,7 @@ public class FuenteService {
 
     private Path saveFile(MultipartFile file, String periodoAcademico, String evaluadoNombre) throws IOException {
         Path directoryPath = Paths.get(uploadDir, periodoAcademico, evaluadoNombre);
-        Files.createDirectories(directoryPath); // Crear carpeta si no existe
+        Files.createDirectories(directoryPath);
         Path targetPath = directoryPath.resolve(file.getOriginalFilename());
 
         Files.write(targetPath, file.getBytes());
