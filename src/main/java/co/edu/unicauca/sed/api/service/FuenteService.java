@@ -168,28 +168,46 @@ public class FuenteService {
         try {
             Fuente fuente = findByOid(id);
             Optional<Fuente> fuenteOptional = Optional.ofNullable(fuente);
-
+    
             if (fuenteOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La fuente con el ID especificado no fue encontrada.");
             }
-
+    
             // Determine which path and name to use
-            String filePathString = isReport ? fuente.getRutaDocumentoInforme() : fuente.getRutaDocumentoFuente();
-            String fileName = isReport ? fuente.getNombreDocumentoInforme() : fuente.getNombreDocumentoFuente();
-
+            String filePathString;
+            String fileName;
+    
+            if (isReport) {
+                // Validate if report exists
+                if (fuente.getRutaDocumentoInforme() == null || fuente.getRutaDocumentoInforme().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("El reporte solicitado no está disponible para esta fuente.");
+                }
+                filePathString = fuente.getRutaDocumentoInforme();
+                fileName = fuente.getNombreDocumentoInforme();
+            } else {
+                // Default to fuente
+                filePathString = fuente.getRutaDocumentoFuente();
+                fileName = fuente.getNombreDocumentoFuente();
+            }
+    
             // Ensure the file exists
             Path filePath = Paths.get(filePathString);
             Resource resource = new UrlResource(filePath.toUri());
-
+    
             if (!resource.exists()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El archivo solicitado no existe: " + fileName);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("El archivo solicitado no existe: " + fileName);
             }
-
+    
             // Return the file as a downloadable resource
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"").body(resource);
-
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+    
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
         }
     }
 }
