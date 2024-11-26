@@ -31,12 +31,12 @@ public class FuenteController {
         try {
             List<Fuente> list = (List<Fuente>) fuenteService.findAll();
             if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list); // Return the list of sources
+                return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        return ResponseEntity.notFound().build(); // Return 404 if no sources found
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -49,9 +49,9 @@ public class FuenteController {
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Fuente resultado = fuenteService.findByOid(oid);
         if (resultado != null) {
-            return ResponseEntity.ok().body(resultado); // Return the source if found
+            return ResponseEntity.ok().body(resultado);
         }
-        return ResponseEntity.notFound().build(); // Return 404 if source not found
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -68,7 +68,7 @@ public class FuenteController {
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
-            fuenteService.saveMultipleSources(sourcesJson, informeFuente, observation, allFiles);
+            fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (IOException e) {
             e.printStackTrace();
@@ -100,7 +100,7 @@ public class FuenteController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
-        return ResponseEntity.ok().build(); // Return 200 if deleted successfully
+        return ResponseEntity.ok().build();
     }
 
     /**
