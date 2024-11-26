@@ -6,8 +6,13 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -150,5 +155,41 @@ public class FuenteService {
 
     public void delete(Integer oid) {
         fuenteRepository.deleteById(oid);
+    }
+
+    /**
+     * Retrieves the file resource based on the ID and the type of document (fuente or informe).
+     *
+     * @param id The ID of the Fuente entity
+     * @param informe Flag to determine if RUTADOCUMENTOINFORME should be used (true) or RUTADOCUMENTOFUENTE (false)
+     * @return ResponseEntity containing the file resource or an error message
+     */
+    public ResponseEntity<?> getFile(Integer id, boolean isReport) {
+        try {
+            Fuente fuente = findByOid(id);
+            Optional<Fuente> fuenteOptional = Optional.ofNullable(fuente);
+
+            if (fuenteOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La fuente con el ID especificado no fue encontrada.");
+            }
+
+            // Determine which path and name to use
+            String filePathString = isReport ? fuente.getRutaDocumentoInforme() : fuente.getRutaDocumentoFuente();
+            String fileName = isReport ? fuente.getNombreDocumentoInforme() : fuente.getNombreDocumentoFuente();
+
+            // Ensure the file exists
+            Path filePath = Paths.get(filePathString);
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El archivo solicitado no existe: " + fileName);
+            }
+
+            // Return the file as a downloadable resource
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"").body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
+        }
     }
 }

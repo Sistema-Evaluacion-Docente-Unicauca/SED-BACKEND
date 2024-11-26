@@ -1,22 +1,16 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import java.util.Optional;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FuenteService;
 
@@ -109,28 +103,17 @@ public class FuenteController {
         return ResponseEntity.ok().build(); // Return 200 if deleted successfully
     }
 
+    /**
+     * Endpoint to download a file (RUTADOCUMENTOFUENTE by default or RUTADOCUMENTOINFORME if requested).
+     *
+     * @param id The ID of the Fuente entity
+     * @param informe A flag to determine if RUTADOCUMENTOINFORME should be downloaded (optional, default false)
+     * @return The requested file as a downloadable resource
+     */
     @GetMapping("/download/{id}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable("id") Integer id) {
-        try {
-            Fuente fuente = fuenteService.findByOid(id);
-            Optional<Fuente> fuenteOptional = Optional.ofNullable(fuente);
-
-            if (fuenteOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-
-            Path filePath = Paths.get(fuente.getRutaDocumentoFuente());
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + fuente.getNombreDocumentoFuente() + "\"").body(resource);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<?> downloadFile(
+            @PathVariable("id") Integer id,
+            @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
+        return fuenteService.getFile(id, isReport);
     }
 }
