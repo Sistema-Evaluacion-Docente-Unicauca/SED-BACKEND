@@ -78,7 +78,7 @@ public class FuenteController {
 
     /**
      * Deletes a source by its ID.
-     * 
+     *
      * @param oid The ID of the source to delete
      * @return A confirmation message if deleted, or an error if there are conflicts
      */
