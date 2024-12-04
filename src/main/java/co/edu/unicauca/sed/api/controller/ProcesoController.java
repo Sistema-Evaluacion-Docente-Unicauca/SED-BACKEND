@@ -36,7 +36,7 @@ public class ProcesoController {
     }
 
     @GetMapping("find/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
+    public ResponseEntity<?> findById(@PathVariable Integer oid) {
         Proceso resultado = this.procesoService.findByOid(oid);
         if (resultado != null) {
             return ResponseEntity.ok().body(resultado);
@@ -48,18 +48,18 @@ public class ProcesoController {
     public ResponseEntity<List<Proceso>> findByEvaluado(@PathVariable Integer oidUsuario) {
         List<Proceso> procesos = procesoService.getProcessesByEvaluated(oidUsuario);
         if (procesos.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Si no hay procesos, devuelve un 204 No Content
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(procesos); // Si hay procesos, devuelve 200 OK con la lista
+        return ResponseEntity.ok(procesos);
     }
 
     @GetMapping("findByEvaluadoInActivePeriod/{oidUsuario}")
     public ResponseEntity<List<Proceso>> findByEvaluadoInActivePeriod(@PathVariable Integer oidUsuario) {
         List<Proceso> procesos = procesoService.getProcessesByEvaluatedAndActivePeriod(oidUsuario);
         if (procesos.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Si no hay procesos, devuelve un 204 No Content
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(procesos); // Si hay procesos, devuelve 200 OK con la lista
+        return ResponseEntity.ok(procesos);
     }
 
     @PostMapping("save")
@@ -93,7 +93,7 @@ public class ProcesoController {
             this.procesoService.delete(oid);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("no se puede borrar por conflictos con otros datos");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
         return ResponseEntity.ok().build();
     }

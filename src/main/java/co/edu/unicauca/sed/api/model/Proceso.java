@@ -70,4 +70,7 @@ public class Proceso {
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<Consolidado> consolidado;
+
+    @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Actividad> actividades;
 }

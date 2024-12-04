@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
+import java.util.Map;
 
 @Controller
 @RequestMapping("consolidado")
@@ -71,5 +73,26 @@ public class ConsolidadoController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Genera un consolidado para un evaluado en un período académico.
+     *
+     * @param evaluadoId       ID del evaluado para generar el consolidado.
+     * @param periodoAcademico ID del período académico (opcional).
+     * @return Consolidado generado o un mensaje de error.
+     */
+    @GetMapping("/generarConsolidado")
+    public ResponseEntity<Object> generarConsolidado(
+            @RequestParam Integer evaluadoId,
+            @RequestParam(required = false) Integer periodoAcademico) {
+        try {
+            ConsolidadoDTO consolidado = consolidadoService.generarConsolidado(evaluadoId, periodoAcademico);
+            return ResponseEntity.ok(consolidado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",  e.getMessage()));
+        }
     }
 }

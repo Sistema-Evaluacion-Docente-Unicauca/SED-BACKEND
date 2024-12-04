@@ -15,6 +15,7 @@ public class PeriodoAcademicoService {
 
     @Autowired
     private PeriodoAcademicoRepository periodoAcademicoRepository;
+    private static final Integer ESTADO_ACTIVO = 1;
 
     public List<PeriodoAcademico> findAll() {
         List<PeriodoAcademico> list = new ArrayList<>();
@@ -45,5 +46,14 @@ public class PeriodoAcademicoService {
 
     public void delete(Integer oid) {
         this.periodoAcademicoRepository.deleteById(oid);
+    }
+
+    /**
+     * Obtiene el período académico activo.
+     *
+     * @return Un Optional que contiene el período académico activo si existe.
+     */
+    public Optional<PeriodoAcademico> getPeriodoAcademicoActivo() {
+        return periodoAcademicoRepository.findByEstado(ESTADO_ACTIVO);
     }
 }

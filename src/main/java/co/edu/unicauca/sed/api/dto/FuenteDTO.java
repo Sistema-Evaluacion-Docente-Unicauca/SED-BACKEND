@@ -1,7 +1,9 @@
 package co.edu.unicauca.sed.api.dto;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FuenteDTO {
 
     private Integer oidFuente;
@@ -25,6 +27,12 @@ public class FuenteDTO {
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
         this.estadoFuente = estadoFuente;
+    }
+
+    public FuenteDTO ( Integer oidFuente, String estadoFuente, Float calificacion) {
+        this.oidFuente = oidFuente;
+        this.estadoFuente = estadoFuente;
+        this.calificacion = calificacion;
     }
 
     // Getters and Setters
