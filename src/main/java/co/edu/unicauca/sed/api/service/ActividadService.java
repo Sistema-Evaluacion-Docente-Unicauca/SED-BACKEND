@@ -32,6 +32,9 @@ public class ActividadService {
     @Autowired
     private ActividadRepository actividadRepository;
 
+    @Autowired
+    private PeriodoAcademicoService periodoAcademicoService;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -57,8 +60,7 @@ public class ActividadService {
      */
     public List<ActividadDTO> findAllInActivePeriods(Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        List<Actividad> actividades = actividadRepository
-                .findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
+        List<Actividad> actividades = actividadRepository.findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
         List<ActividadDTO> actividadDTOs = actividades.stream().map(this::convertToDTO).collect(Collectors.toList());
         return sortActivities(actividadDTOs, order);
     }
@@ -388,5 +390,22 @@ public class ActividadService {
         );
 
         return fuenteDTO;
+    }
+
+    /**
+     * Obtiene las actividades de un evaluador en un período académico.
+     *
+     * @param idEvaluador          ID del evaluador.
+     * @param idPeriodoAcademico   ID del período académico. Si es nulo, se utiliza el período académico activo.
+     * @return Lista de actividades del evaluador en el período académico.
+     */
+    public List<Actividad> obtenerActividadesPorEvaluadorYPeriodo(Integer idEvaluador, Integer idPeriodoAcademico) {
+        // Si el ID del período académico es nulo, obtenemos el período activo.
+        if (idPeriodoAcademico == null) {
+            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        };
+
+        // Consultamos las actividades del evaluador en el período académico.
+        return actividadRepository.findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_OidPeriodoAcademico(idEvaluador, idPeriodoAcademico);
     }
 }

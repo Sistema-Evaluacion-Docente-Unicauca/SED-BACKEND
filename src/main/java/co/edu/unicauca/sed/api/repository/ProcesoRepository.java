@@ -13,4 +13,5 @@ public interface ProcesoRepository extends JpaRepository<Proceso, Integer> {
     List<Proceso> findByEvaluado_OidUsuarioAndOidPeriodoAcademico_Estado(Integer oidUsuario, Integer estado);
     List<Proceso> findByOidPeriodoAcademico_OidPeriodoAcademico(Integer oidPeriodoAcademico);
     List<Proceso> findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(Usuario evaluado, Integer oidPeriodoAcademico);
+    List<Proceso> findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(Integer oidUsuario, Integer oidPeriodoAcademico);
 }

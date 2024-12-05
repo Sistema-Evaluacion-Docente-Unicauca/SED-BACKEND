@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.UsuarioService;
 
@@ -80,5 +82,22 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("no se puede borrar por conflictos con otros datos");
         }
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("obtenerDocentes")
+    public ResponseEntity<?> obtenerEvaluacionDocentes(
+            @RequestParam(required = false) Integer idEvaluado,
+            @RequestParam(required = false) Integer idPeriodoAcademico) {
+        try {
+            List<DocenteEvaluacionDTO> evaluaciones = usuarioService.obtenerEvaluacionDocentes(idEvaluado, idPeriodoAcademico);
+            if (evaluaciones.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(evaluaciones);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error inesperado: " + e.getMessage());
+        }
     }
 }

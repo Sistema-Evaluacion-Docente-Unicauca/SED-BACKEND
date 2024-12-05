@@ -74,7 +74,7 @@ public class ConsolidadoService {
     public ConsolidadoDTO generarConsolidado(Integer idEvaluado, Integer idPeriodoAcademico) {
         Usuario evaluado = obtenerEvaluado(idEvaluado);
         if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = obtenerPeriodoAcademicoActivo();
+            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         }
 
         List<Proceso> procesosEvaluados = obtenerProcesosEvaluados(evaluado, idPeriodoAcademico);
@@ -285,11 +285,4 @@ public class ConsolidadoService {
         consolidado.setTotalAcumulado(totalAcumulado);
         return consolidado;
     }
-
-    private Integer obtenerPeriodoAcademicoActivo() {
-        return periodoAcademicoService.getPeriodoAcademicoActivo()
-                .map(PeriodoAcademico::getOidPeriodoAcademico)
-                .orElseThrow(() -> new IllegalStateException("No se encontró un período académico activo."));
-    }
-
 }
