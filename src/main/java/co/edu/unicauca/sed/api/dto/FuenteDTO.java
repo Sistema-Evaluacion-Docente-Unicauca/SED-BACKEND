@@ -29,10 +29,11 @@ public class FuenteDTO {
         this.estadoFuente = estadoFuente;
     }
 
-    public FuenteDTO ( Integer oidFuente, String estadoFuente, Float calificacion) {
+    public FuenteDTO ( Integer oidFuente, String estadoFuente, Float calificacion, String tipoFuente) {
         this.oidFuente = oidFuente;
         this.estadoFuente = estadoFuente;
         this.calificacion = calificacion;
+        this.tipoFuente = tipoFuente;
     }
 
     // Getters and Setters
