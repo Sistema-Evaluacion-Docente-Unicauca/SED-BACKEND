@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.UsuarioService;
 
 @Controller
@@ -23,6 +24,9 @@ import co.edu.unicauca.sed.api.service.UsuarioService;
 public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private DocenteEvaluacionService docenteEvaluacionService;
 
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
@@ -84,12 +88,23 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Obtener evaluaciones de docentes con filtros opcionales.
+     *
+     * @param idEvaluado         ID del docente (opcional).
+     * @param idPeriodoAcademico ID del período académico (opcional).
+     * @param departamento       Departamento del docente (opcional).
+     * @return Lista de evaluaciones de docentes.
+     */
     @GetMapping("obtenerDocentes")
     public ResponseEntity<?> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
-            @RequestParam(required = false) Integer idPeriodoAcademico) {
+            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) String departamento) {
         try {
-            List<DocenteEvaluacionDTO> evaluaciones = usuarioService.obtenerEvaluacionDocentes(idEvaluado, idPeriodoAcademico);
+            List<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(
+                    idEvaluado, idPeriodoAcademico, departamento);
+
             if (evaluaciones.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -99,5 +114,15 @@ public class UsuarioController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error inesperado: " + e.getMessage());
         }
+    }
+
+    /**
+     * Obtener todos los usuarios.
+     *
+     * @return Lista de usuarios.
+     */
+    @GetMapping
+    public ResponseEntity<?> obtenerUsuarios() {
+        return ResponseEntity.ok(usuarioService.findAll());
     }
 }

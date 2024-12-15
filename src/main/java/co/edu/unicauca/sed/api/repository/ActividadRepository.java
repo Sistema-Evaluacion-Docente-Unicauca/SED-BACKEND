@@ -1,8 +1,6 @@
 package co.edu.unicauca.sed.api.repository;
 
 import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Proceso;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
