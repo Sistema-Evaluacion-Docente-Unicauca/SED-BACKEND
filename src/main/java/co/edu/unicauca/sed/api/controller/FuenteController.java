@@ -68,6 +68,18 @@ public class FuenteController {
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
+            // Imprimir información de debug
+            System.out.println("=== Debugging Inputs ===");
+
+            // Imprimir nombre del archivo fuente (informeFuente)
+            System.out.println(
+                    "informeFuente: " + (informeFuente != null ? informeFuente.getOriginalFilename() : "null"));
+
+            // Imprimir observación
+            System.out.println("observation: " + observation);
+
+            // Imprimir JSON de fuentes
+            System.out.println("sourcesJson: " + sourcesJson);
             fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (IOException e) {
@@ -104,10 +116,12 @@ public class FuenteController {
     }
 
     /**
-     * Endpoint to download a file (RUTADOCUMENTOFUENTE by default or RUTADOCUMENTOINFORME if requested).
+     * Endpoint to download a file (RUTADOCUMENTOFUENTE by default or
+     * RUTADOCUMENTOINFORME if requested).
      *
-     * @param id The ID of the Fuente entity
-     * @param informe A flag to determine if RUTADOCUMENTOINFORME should be downloaded (optional, default false)
+     * @param id      The ID of the Fuente entity
+     * @param informe A flag to determine if RUTADOCUMENTOINFORME should be
+     *                downloaded (optional, default false)
      * @return The requested file as a downloadable resource
      */
     @GetMapping("/download/{id}")
