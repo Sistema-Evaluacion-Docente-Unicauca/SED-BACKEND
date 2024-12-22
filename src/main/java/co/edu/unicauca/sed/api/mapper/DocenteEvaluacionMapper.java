@@ -3,13 +3,14 @@ package co.edu.unicauca.sed.api.mapper;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.utils.MathUtils;
 
 import java.util.List;
 
 public class DocenteEvaluacionMapper {
 
     /**
-     * Transforma un objeto Usuario en un DocenteEvaluacionDTO.
+     * Transforma un objeto Usuario y sus actividades asociadas en un DocenteEvaluacionDTO.
      *
      * @param usuario     Usuario a transformar.
      * @param actividades Lista de actividades asociadas al usuario.
@@ -23,14 +24,14 @@ public class DocenteEvaluacionMapper {
                 .mapToInt(fuente -> 1)
                 .sum();
 
-        float porcentajeCompletado = totalFuentes > 0 ? (fuentesCompletadas / (float) totalFuentes) * 100 : 0;
+        float porcentajeCompletado = MathUtils.calcularPorcentajeCompletado(totalFuentes, fuentesCompletadas);
         String estadoConsolidado = porcentajeCompletado == 100 ? "Completo" : "En progreso";
 
         return new DocenteEvaluacionDTO(
                 usuario.getNombres() + " " + usuario.getApellidos(),
                 usuario.getUsuarioDetalle().getIdentificacion(),
                 usuario.getUsuarioDetalle().getContratacion(),
-                Math.round(porcentajeCompletado * 100.0) / 100.0f,
+                porcentajeCompletado,
                 estadoConsolidado
         );
     }

@@ -2,15 +2,18 @@ package co.edu.unicauca.sed.api.service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.utils.MathUtils;
 
 /**
  * Servicio para la generación y manejo de consolidados.
@@ -102,13 +105,20 @@ public class ConsolidadoService {
                 .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre())) // Ordenar por tipo de actividad
                 .collect(Collectors.groupingBy(
                         actividad -> actividad.getTipoActividad().getNombre(),
-                        Collectors.mapping(actividad -> transformacionService.transformarActividad(actividad, totalHoras),
-                                Collectors.toList())
-                ));
-        float totalPorcentaje = (float) actividadesPorTipo.values().stream().flatMap(List::stream).mapToDouble(actividad -> (float) actividad.get("porcentaje")).sum();
-        double totalAcumulado = actividadesPorTipo.values().stream().flatMap(List::stream).mapToDouble(actividad -> (double) actividad.get("acumulado")).sum();
+                        Collectors.mapping(
+                                actividad -> transformacionService.transformarActividad(actividad, totalHoras),
+                                Collectors.toList())));
+        float totalPorcentaje = (float) actividadesPorTipo.values().stream()
+                .flatMap(List::stream)
+                .mapToDouble(actividad -> (float) actividad.get("porcentaje"))
+                .sum();
+        double totalAcumulado = actividadesPorTipo.values().stream()
+                .flatMap(List::stream)
+                .mapToDouble(actividad -> (double) actividad.get("acumulado"))
+                .sum();
         // Construcción del consolidado
-        return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
+        return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras,
+                totalPorcentaje, totalAcumulado);
     }
 
     /**
@@ -141,17 +151,19 @@ public class ConsolidadoService {
      * Obtiene todas las actividades de los procesos evaluados.
      */
     private List<Actividad> obtenerActividades(List<Proceso> procesosEvaluados) {
-        return procesosEvaluados.stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+        return procesosEvaluados.stream()
+                .flatMap(proceso -> proceso.getActividades().stream())
+                .collect(Collectors.toList());
     }
 
     /**
      * Construye el DTO del consolidado.
      */
-    private ConsolidadoDTO construirConsolidado(Usuario evaluado, UsuarioDetalle detalleUsuario,
-                                                PeriodoAcademico periodoAcademico,
-                                                Map<String, List<Map<String, Object>>> actividadesPorTipo,
-                                                float totalHoras, float totalPorcentaje, double totalAcumulado) {
+    public ConsolidadoDTO construirConsolidado(Usuario evaluado, UsuarioDetalle detalleUsuario,
+            PeriodoAcademico periodoAcademico, Map<String, List<Map<String, Object>>> actividadesPorTipo,
+            float totalHoras, float totalPorcentaje, double totalAcumulado) {
         ConsolidadoDTO consolidado = new ConsolidadoDTO();
+
         consolidado.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
         consolidado.setNumeroIdentificacion(detalleUsuario.getIdentificacion());
         consolidado.setPeriodoAcademico(periodoAcademico.getIdPeriodo());
@@ -161,9 +173,37 @@ public class ConsolidadoService {
         consolidado.setTipoContratacion(detalleUsuario.getContratacion());
         consolidado.setDedicacion(detalleUsuario.getDedicacion());
         consolidado.setActividades(actividadesPorTipo);
-        consolidado.setTotalHorasSemanales(totalHoras);
+        consolidado.setTotalHoras(totalHoras);
         consolidado.setTotalPorcentaje(totalPorcentaje);
         consolidado.setTotalAcumulado(totalAcumulado);
+
+        // Calcular `totalFuentes` y `fuentesCompletadas`
+        int totalFuentes = actividadesPorTipo.values().stream().flatMap(List::stream).mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
+
+        int fuentesCompletadas = actividadesPorTipo.values().stream()
+                .flatMap(List::stream) // Stream<Map<String, Object>>
+                .flatMap(map -> {
+                    Object fuentes = map.get("fuentes"); // Obtener el valor asociado a "fuentes"
+                    if (fuentes instanceof List<?>) { // Validar que sea una lista
+                        @SuppressWarnings("unchecked")
+                        List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes; // Cambiar a FuenteDTO
+                        return fuentesList.stream(); // Stream<FuenteDTO>
+                    }
+                    return Stream.empty(); // Si no es una lista, devuelve un stream vacío
+                })
+                .mapToInt(fuente -> {
+                    // Validar y contar las fuentes con estado "Diligenciado"
+                    if ("Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) {
+                        return 1;
+                    }
+                    return 0;
+                })
+                .sum();
+
+        // Calcular porcentaje completado
+        float porcentajeCompletado = MathUtils.calcularPorcentajeCompletado(totalFuentes, fuentesCompletadas);
+        consolidado.setPorcentajeEvaluacionCompletado(porcentajeCompletado);
+
         return consolidado;
     }
 }

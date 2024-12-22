@@ -30,6 +30,8 @@ public class ActividadTransformacionService {
         double promedio = calculoService.calcularPromedio(actividad.getFuentes());
         double acumulado = calculoService.calcularAcumulado(promedio, porcentaje);
 
+        int totalFuentes = actividad.getFuentes().size();
+
         return Map.of(
                 "oidActividad", actividad.getOidActividad(),
                 "codigoActividad", actividad.getCodigoActividad(),
@@ -38,7 +40,8 @@ public class ActividadTransformacionService {
                 "fuentes", transformarFuentes(actividad.getFuentes()),
                 "porcentaje", porcentaje,
                 "promedio", promedio,
-                "acumulado", acumulado
+                "acumulado", acumulado,
+                "totalFuentes", totalFuentes
         );
     }
 
@@ -55,8 +58,7 @@ public class ActividadTransformacionService {
                         fuente.getOidFuente(),
                         fuente.getEstadoFuente() != null ? fuente.getEstadoFuente().getNombreEstado() : null,
                         fuente.getCalificacion(),
-                        fuente.getTipoFuente() != null ? fuente.getTipoFuente() : "Sin tipo"
-                ))
+                        fuente.getTipoFuente() != null ? fuente.getTipoFuente() : "Sin tipo"))
                 .collect(Collectors.toList());
     }
 }

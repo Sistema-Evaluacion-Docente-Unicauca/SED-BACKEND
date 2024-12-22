@@ -1,18 +1,24 @@
 package co.edu.unicauca.sed.api.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import java.util.Map;
-
+import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.Map;
 import java.util.List;
 
 /**
- * DTO para consolidar información.
+ * DTO para consolidar información consolidada de un docente.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConsolidadoDTO {
+
     private String nombreDocente;
     private String numeroIdentificacion;
     private String periodoAcademico;
@@ -22,7 +28,8 @@ public class ConsolidadoDTO {
     private String tipoContratacion;
     private String dedicacion;
     private Map<String, List<Map<String, Object>>> actividades;
-    private Float totalHorasSemanales;
+    private Float totalHoras;
+    private Float porcentajeEvaluacionCompletado;
     private Float totalPorcentaje;
     private Double totalAcumulado;
 }
