@@ -24,8 +24,14 @@ public class Consolidado {
     @JsonBackReference
     private Proceso proceso;
 
-    @Column(name = "NOMBREDOCUMENTO", nullable = false)
+    @Column(name = "NOMBREDOCUMENTO")
     private String nombredocumento;
+
+    @Column(name = "RUTADOCUMENTO")
+    private String rutaDocumento;
+
+    @Column(name = "NOTA")
+    private String nota;
 
     @Column(name = "FECHACREACION", updatable = false)
     @CreationTimestamp

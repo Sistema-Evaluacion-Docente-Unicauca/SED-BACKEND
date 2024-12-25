@@ -1,9 +1,11 @@
 package co.edu.unicauca.sed.api.service;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,9 @@ public class ConsolidadoService {
 
     @Autowired
     private ActividadTransformacionService transformacionService;
+
+    @Autowired
+    private ExcelService excelService;
 
     // Métodos CRUD básicos
     /**
@@ -108,14 +113,16 @@ public class ConsolidadoService {
                         Collectors.mapping(
                                 actividad -> transformacionService.transformarActividad(actividad, totalHoras),
                                 Collectors.toList())));
-        float totalPorcentaje = (float) actividadesPorTipo.values().stream()
+        double totalPorcentaje = actividadesPorTipo.values().stream()
                 .flatMap(List::stream)
-                .mapToDouble(actividad -> (float) actividad.get("porcentaje"))
+                .mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
                 .sum();
+
         double totalAcumulado = actividadesPorTipo.values().stream()
                 .flatMap(List::stream)
-                .mapToDouble(actividad -> (double) actividad.get("acumulado"))
+                .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
                 .sum();
+
         // Construcción del consolidado
         return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras,
                 totalPorcentaje, totalAcumulado);
@@ -133,7 +140,8 @@ public class ConsolidadoService {
      * Obtiene los procesos evaluados de un usuario en un período académico.
      */
     private List<Proceso> obtenerProcesosEvaluados(Usuario evaluado, Integer idPeriodoAcademico) {
-        List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado, idPeriodoAcademico);
+        List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado,
+                idPeriodoAcademico);
         if (procesos.isEmpty()) {
             throw new IllegalArgumentException("No hay procesos para el evaluado en el período académico.");
         }
@@ -161,7 +169,7 @@ public class ConsolidadoService {
      */
     public ConsolidadoDTO construirConsolidado(Usuario evaluado, UsuarioDetalle detalleUsuario,
             PeriodoAcademico periodoAcademico, Map<String, List<Map<String, Object>>> actividadesPorTipo,
-            float totalHoras, float totalPorcentaje, double totalAcumulado) {
+            float totalHoras, double totalPorcentaje, double totalAcumulado) {
         ConsolidadoDTO consolidado = new ConsolidadoDTO();
 
         consolidado.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
@@ -178,7 +186,8 @@ public class ConsolidadoService {
         consolidado.setTotalAcumulado(totalAcumulado);
 
         // Calcular `totalFuentes` y `fuentesCompletadas`
-        int totalFuentes = actividadesPorTipo.values().stream().flatMap(List::stream).mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
+        int totalFuentes = actividadesPorTipo.values().stream().flatMap(List::stream)
+                .mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
 
         int fuentesCompletadas = actividadesPorTipo.values().stream()
                 .flatMap(List::stream) // Stream<Map<String, Object>>
@@ -206,4 +215,55 @@ public class ConsolidadoService {
 
         return consolidado;
     }
+
+    /**
+     * Aprueba y guarda el consolidado en la base de datos.
+     *
+     * @param idEvaluado         ID del evaluado.
+     * @param idPeriodoAcademico ID del período académico.
+     * @param nota               Nota opcional.
+     * @throws IOException Si ocurre un error en el guardado del Excel.
+     */
+    public void aprobarConsolidado(Integer idEvaluado, Integer idPeriodoAcademico, String nota) throws IOException {
+        ConsolidadoDTO consolidadoDTO = generarConsolidado(idEvaluado, idPeriodoAcademico);
+
+        if (idPeriodoAcademico == null) {
+            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        }
+
+        String nombreDocumento = "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-"
+                + consolidadoDTO.getNombreDocente().replace(" ", "_");
+
+        Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
+
+        List<Proceso> procesos = procesoRepository
+                .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(idEvaluado, idPeriodoAcademico);
+
+        if (procesos.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No se encontraron procesos para el evaluado en el período académico especificado.");
+        }
+
+        for (Proceso proceso : procesos) {
+            // Buscar si existe un consolidado asociado al proceso
+            Optional<Consolidado> consolidadoExistente = consolidadoRepository.findByProceso(proceso);
+
+            Consolidado consolidado;
+
+            if (consolidadoExistente.isPresent()) {
+                consolidado = consolidadoExistente.get();
+            } else {
+                consolidado = new Consolidado();
+                consolidado.setProceso(proceso);
+            }
+
+            consolidado.setNombredocumento(nombreDocumento + ".xlsx");
+            consolidado.setRutaDocumento(excelPath.toString());
+            consolidado.setNota(nota);
+            consolidado.setFechaActualizacion(LocalDateTime.now());
+
+            consolidadoRepository.save(consolidado);
+        }
+    }
+
 }

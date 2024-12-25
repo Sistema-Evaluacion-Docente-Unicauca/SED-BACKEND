@@ -11,10 +11,14 @@ import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("consolidado")
 public class ConsolidadoController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConsolidadoController.class);
     
     @Autowired
     private ConsolidadoService consolidadoService;
@@ -84,15 +88,39 @@ public class ConsolidadoController {
      */
     @GetMapping("/generarConsolidado")
     public ResponseEntity<Object> generarConsolidado(
-            @RequestParam Integer evaluadoId,
+            @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico) {
         try {
-            ConsolidadoDTO consolidado = consolidadoService.generarConsolidado(evaluadoId, periodoAcademico);
+            ConsolidadoDTO consolidado = consolidadoService.generarConsolidado(idEvaluado, periodoAcademico);
             return ResponseEntity.ok(consolidado);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
+            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",  e.getMessage()));
+        }
+    }
+
+    /**
+     * Aprueba el consolidado, lo guarda en la base de datos y genera un archivo Excel.
+     *
+     * @param idEvaluado         ID del evaluado.
+     * @param idPeriodoAcademico (Opcional) ID del período académico.
+     * @param nota               (Opcional) Nota asociada al consolidado.
+     * @return Mensaje de éxito o error.
+     */
+    @PostMapping("/aprobarConsolidado")
+    public ResponseEntity<?> aprobarConsolidado(
+            @RequestParam Integer idEvaluado,
+            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) String nota) {
+        try {
+            consolidadoService.aprobarConsolidado(idEvaluado, idPeriodoAcademico, nota);
+            return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
+        } catch (Exception e) {
+            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al aprobar el consolidado: " + e.getMessage());
         }
     }
 }

@@ -30,6 +30,6 @@ public class ConsolidadoDTO {
     private Map<String, List<Map<String, Object>>> actividades;
     private Float totalHoras;
     private Float porcentajeEvaluacionCompletado;
-    private Float totalPorcentaje;
+    private Double totalPorcentaje;
     private Double totalAcumulado;
 }
