@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,40 +19,74 @@ import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.UsuarioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Controlador para gestionar las operaciones relacionadas con los usuarios en el sistema.
+ * Incluye funcionalidades como la creación, actualización, eliminación y obtención de usuarios,
+ * así como la evaluación de docentes.
+ */
 @Controller
 @RequestMapping("usuario")
 public class UsuarioController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
+
     @Autowired
     private UsuarioService usuarioService;
 
     @Autowired
     private DocenteEvaluacionService docenteEvaluacionService;
 
+    /**
+     * Obtiene todos los usuarios registrados en el sistema.
+     * 
+     * @return Lista de usuarios o un mensaje de error si ocurre algún problema.
+     */
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
         try {
             List<Usuario> list = usuarioService.findAll();
-            if (list != null) {
-                if (list.size() != 0) {
-                    return ResponseEntity.ok().body(list);
-                }
+            if (list != null && !list.isEmpty()) {
+                return ResponseEntity.ok().body(list);
+            } else {
+                logger.warn("No se encontraron usuarios en el sistema.");
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            logger.error("Error al obtener todos los usuarios: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Busca un usuario específico por su ID.
+     * 
+     * @param oid ID del usuario a buscar.
+     * @return Información del usuario encontrado o un mensaje de error si no existe.
+     */
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Usuario resultado = this.usuarioService.findByOid(oid);
-        if (resultado != null) {
-            return ResponseEntity.ok().body(resultado);
+        try {
+            Usuario resultado = usuarioService.findByOid(oid);
+            if (resultado != null) {
+                return ResponseEntity.ok().body(resultado);
+            } else {
+                logger.warn("Usuario con ID {} no encontrado.", oid);
+            }
+        } catch (Exception e) {
+            logger.error("Error al buscar usuario con ID {}: {}", oid, e.getMessage(), e);
         }
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Guarda un nuevo usuario en el sistema.
+     * 
+     * @param usuario Objeto que contiene los datos del usuario a guardar.
+     * @return Usuario guardado o un mensaje de error si ocurre algún problema.
+     */
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Usuario usuario) {
         try {
@@ -60,41 +95,67 @@ public class UsuarioController {
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
-
         } catch (Exception e) {
+            logger.error("Error al guardar el usuario: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
+        logger.warn("El usuario no se pudo guardar. Resultado nulo.");
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        Usuario usuario = null;
+    /**
+     * Actualiza un usuario existente en el sistema.
+     * 
+     * @param idUsuario ID del usuario a actualizar.
+     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
+     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
+     */
+    @PutMapping("update/{idUsuario}")
+    public ResponseEntity<?> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
         try {
-            usuario = this.usuarioService.findByOid(oid);
-            if (usuario == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-            }
+            Usuario usuario = usuarioService.update(idUsuario, usuarioActualizado);
+            logger.info("Usuario con ID {} actualizado correctamente.", idUsuario);
+            return ResponseEntity.ok(usuario);
+        } catch (RuntimeException e) {
+            logger.warn("No se pudo actualizar el usuario con ID {}: {}", idUsuario, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            logger.error("Error al actualizar el usuario con ID {}: {}", idUsuario, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error al actualizar el usuario: " + e.getMessage());
         }
-
-        try {
-            this.usuarioService.delete(oid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("no se puede borrar por conflictos con otros datos");
-        }
-        return ResponseEntity.ok().build();
     }
 
     /**
-     * Obtener evaluaciones de docentes con filtros opcionales.
-     *
-     * @param idEvaluado         ID del docente (opcional).
+     * Elimina un usuario del sistema por su ID.
+     * 
+     * @param oid ID del usuario a eliminar.
+     * @return Respuesta de éxito o un mensaje de error si el usuario no existe o no puede ser eliminado.
+     */
+    @DeleteMapping("delete/{oid}")
+    public ResponseEntity<?> delete(@PathVariable Integer oid) {
+        try {
+            Usuario usuario = usuarioService.findByOid(oid);
+            if (usuario == null) {
+                logger.warn("Usuario con ID {} no encontrado para eliminación.", oid);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            }
+
+            usuarioService.delete(oid);
+            logger.info("Usuario con ID {} eliminado correctamente.", oid);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Error al eliminar el usuario con ID {}: {}", oid, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
+        }
+    }
+
+    /**
+     * Obtiene las evaluaciones de docentes según los filtros proporcionados.
+     * 
+     * @param idEvaluado         ID del docente evaluado (opcional).
      * @param idPeriodoAcademico ID del período académico (opcional).
      * @param departamento       Departamento del docente (opcional).
-     * @return Lista de evaluaciones de docentes.
+     * @return Lista de evaluaciones de docentes o un mensaje de error.
      */
     @GetMapping("obtenerDocentes")
     public ResponseEntity<?> obtenerEvaluacionDocentes(
@@ -110,15 +171,17 @@ public class UsuarioController {
             }
             return ResponseEntity.ok(evaluaciones);
         } catch (IllegalStateException e) {
+            logger.warn("Error en los parámetros proporcionados: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
+            logger.error("Error inesperado al obtener evaluaciones de docentes: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error inesperado: " + e.getMessage());
         }
     }
 
     /**
-     * Obtener todos los usuarios.
-     *
+     * Obtiene todos los usuarios registrados en el sistema.
+     * 
      * @return Lista de usuarios.
      */
     @GetMapping

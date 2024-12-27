@@ -35,7 +35,7 @@ public class Usuario {
     @Column(name = "OIDUSUARIO", nullable = false)
     private Integer oidUsuario;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "OIDUSUARIODETALLE", nullable = false)
     private UsuarioDetalle usuarioDetalle;
 
