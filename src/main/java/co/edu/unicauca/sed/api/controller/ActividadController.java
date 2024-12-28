@@ -4,6 +4,8 @@ import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.service.ActividadService;
+import co.edu.unicauca.sed.api.service.ActividadDTOService;
+import co.edu.unicauca.sed.api.service.ActividadQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,12 @@ public class ActividadController {
 
     @Autowired
     private ActividadService actividadService;
+
+    @Autowired
+    private ActividadDTOService actividadDTOService;
+
+    @Autowired
+    private ActividadQueryService actividadQueryService;
 
     /**
      * Obtiene todas las actividades del sistema.
@@ -81,7 +89,7 @@ public class ActividadController {
         try {
             Actividad actividad = actividadService.findByOid(oid);
             if (actividad != null) {
-                ActividadDTO actividadDTO = actividadService.convertToDTO(actividad);
+                ActividadDTO actividadDTO = actividadDTOService.convertToDTO(actividad);
                 return ResponseEntity.ok().body(actividadDTO);
             }
         } catch (Exception e) {
@@ -120,7 +128,7 @@ public class ActividadController {
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Boolean estadoPeriodo) {
         try {
-            List<ActividadDTO> activities = actividadService.findActivitiesByEvaluado(idEvaluador, idEvaluado,
+            List<ActividadDTO> activities = actividadQueryService.findActivitiesByEvaluado(idEvaluador, idEvaluado,
                     codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden,
                     estadoPeriodo);
             if (activities.isEmpty()) {
@@ -162,7 +170,9 @@ public class ActividadController {
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Boolean estadoPeriodo) {
         try {
-            List<ActividadDTOEvaluador> activities = actividadService.findActivitiesByEvaluador(idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden, estadoPeriodo);
+            List<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(idEvaluador,
+                    idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden,
+                    estadoPeriodo);
             if (activities.isEmpty()) {
                 return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
             }
@@ -194,6 +204,30 @@ public class ActividadController {
         }
         logger.warn("Resultado nulo al guardar actividad");
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    }
+
+    /**
+     * Actualiza una actividad existente en el sistema.
+     *
+     * @param idActividad ID de la actividad a actualizar.
+     * @param actividad   Datos actualizados de la actividad.
+     * @return Actividad actualizada o mensaje de error.
+     */
+    @PutMapping("update/{idActividad}")
+    public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody Actividad actividad) {
+        logger.info("Intentando actualizar actividad con ID: {}", idActividad);
+        try {
+            // Delegar la lógica de actualización al servicio
+            Actividad actividadActualizada = actividadService.update(idActividad, actividad);
+            logger.info("Actividad actualizada exitosamente con ID: {}", actividadActualizada.getOidActividad());
+            return ResponseEntity.ok(actividadActualizada);
+        } catch (IllegalArgumentException e) {
+            logger.warn("No se encontró la actividad con ID: {}", idActividad);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al actualizar actividad con ID {}: {}", idActividad, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la actividad.");
+        }
     }
 
     /**

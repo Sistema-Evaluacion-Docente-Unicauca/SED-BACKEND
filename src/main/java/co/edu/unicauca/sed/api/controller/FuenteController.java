@@ -11,20 +11,30 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FuenteService;
 
+/**
+ * Controlador para la gestión de las fuentes (Fuentes).
+ * Proporciona endpoints para operaciones CRUD y manejo de archivos asociados.
+ */
 @Controller
 @RequestMapping("fuente")
 public class FuenteController {
+
+    private static final Logger logger = LoggerFactory.getLogger(FuenteController.class);
 
     @Autowired
     private FuenteService fuenteService;
 
     /**
-     * Retrieves all sources (fuentes) and returns them in the response.
-     * 
-     * @return List of all sources
+     * Recupera todas las fuentes y las devuelve en la respuesta.
+     *
+     * @return Lista de todas las fuentes o un error en caso de falla.
      */
     @GetMapping("all")
     public ResponseEntity<?> findAll() {
@@ -34,32 +44,38 @@ public class FuenteController {
                 return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
+            logger.error("Error fetching sources: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
+        logger.warn("No sources found");
         return ResponseEntity.notFound().build();
     }
 
     /**
-     * Finds a specific source by its ID.
-     * 
-     * @param oid The ID of the source
-     * @return The source if found, or 404 if not
+     * Encuentra una fuente específica por su ID.
+     *
+     * @param oid El ID de la fuente.
+     * @return La fuente si es encontrada, o un error 404 si no lo es.
      */
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Fuente resultado = fuenteService.findByOid(oid);
         if (resultado != null) {
+            logger.info("Source with ID {} found", oid);
             return ResponseEntity.ok().body(resultado);
         }
+        logger.warn("Source with ID {} not found", oid);
         return ResponseEntity.notFound().build();
     }
 
     /**
-     * Saves a new source (fuente) along with an associated file.
-     * 
-     * @param fuente  The source to save
-     * @param archivo The file to associate with the source
-     * @return The saved source, or an error if something went wrong
+     * Guarda una nueva fuente junto con un archivo asociado.
+     *
+     * @param informeFuente El archivo a asociar con la fuente.
+     * @param observation   Observaciones relacionadas con la fuente.
+     * @param sourcesJson   Información de las fuentes en formato JSON.
+     * @param allFiles      Map opcional de archivos adicionales.
+     * @return Mensaje de éxito o error en caso de problemas al procesar.
      */
     @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> saveFuente(
@@ -67,67 +83,64 @@ public class FuenteController {
             @RequestParam("observation") String observation,
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
+        logger.info("Request received to save a new source");
         try {
-            // Imprimir información de debug
-            System.out.println("=== Debugging Inputs ===");
+            logger.debug("Received file: {}", informeFuente != null ? informeFuente.getOriginalFilename() : "null");
+            logger.debug("Observation: {}", observation);
+            logger.debug("Sources JSON: {}", sourcesJson);
 
-            // Imprimir nombre del archivo fuente (informeFuente)
-            System.out.println(
-                    "informeFuente: " + (informeFuente != null ? informeFuente.getOriginalFilename() : "null"));
-
-            // Imprimir observación
-            System.out.println("observation: " + observation);
-
-            // Imprimir JSON de fuentes
-            System.out.println("sourcesJson: " + sourcesJson);
             fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
+            logger.info("Source saved successfully");
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error processing files: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
         }
     }
 
     /**
-     * Deletes a source by its ID.
+     * Elimina una fuente por su ID.
      *
-     * @param oid The ID of the source to delete
-     * @return A confirmation message if deleted, or an error if there are conflicts
+     * @param oid El ID de la fuente a eliminar.
+     * @return Mensaje de confirmación si se elimina, o error en caso de conflictos.
      */
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
+        logger.info("Request received to delete source with ID: {}", oid);
         Fuente fuente = null;
         try {
             fuente = fuenteService.findByOid(oid);
             if (fuente == null) {
+                logger.warn("Source with ID {} not found", oid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fuente no encontrada");
             }
         } catch (Exception e) {
+            logger.error("Error finding source with ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fuente no encontrada");
         }
 
         try {
-            fuenteService.delete(oid); // Attempt to delete the source
+            fuenteService.delete(oid);
+            logger.info("Source with ID {} deleted successfully", oid);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error deleting source with ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Endpoint to download a file (RUTADOCUMENTOFUENTE by default or
-     * RUTADOCUMENTOINFORME if requested).
+     * Endpoint para descargar un archivo asociado a una fuente.
      *
-     * @param id      The ID of the Fuente entity
-     * @param informe A flag to determine if RUTADOCUMENTOINFORME should be
-     *                downloaded (optional, default false)
-     * @return The requested file as a downloadable resource
+     * @param id      El ID de la fuente.
+     * @param isReport Bandera para determinar si se debe descargar el informe (true) o el documento fuente (false).
+     * @return El archivo solicitado como recurso descargable.
      */
     @GetMapping("/download/{id}")
     public ResponseEntity<?> downloadFile(
             @PathVariable("id") Integer id,
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
+        logger.info("Request received to download file for source ID {} with report flag {}", id, isReport);
         return fuenteService.getFile(id, isReport);
     }
 }

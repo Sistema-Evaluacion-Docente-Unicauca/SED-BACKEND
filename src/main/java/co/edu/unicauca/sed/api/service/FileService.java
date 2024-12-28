@@ -53,7 +53,6 @@ public class FileService {
         try {
             // Guardar el archivo
             Files.write(targetPath, file.getBytes());
-            logger.info("Archivo guardado exitosamente: {}, Periodo Académico: {}, Evaluado: {}", targetPath, academicPeriod, evaluatedName);
         } catch (IOException e) {
             logger.error("Error al guardar el archivo: {}, Error: {}", targetPath, e.getMessage(), e);
             throw e;

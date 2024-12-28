@@ -150,7 +150,6 @@ public class FuenteService {
                 // Guardar el archivo fuente en una ruta dinámica
                 commonFilePath = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, PREFIJO_FUENTE);
                 commonFileName = informeFuente.getOriginalFilename();
-                System.out.println("Nombre de fuente que llega: " + commonFileName);
             }
 
             // Busca si ya existe una fuente asociada para reemplazar o actualizar
@@ -190,8 +189,18 @@ public class FuenteService {
                 }
             }
 
-            EstadoFuente stateSource = source.getEstadoFuente() != null ? source.getEstadoFuente()
-                    : estadoFuenteService.createEstadoFuente(ESTADO_DILIGENCIADO);
+            EstadoFuente stateSource;
+
+            if (source.getEstadoFuente() != null && source.getEstadoFuente().getOidEstadoFuente() == 1) {
+                // Si el estado actual es 1, lo actualizamos a 2
+                stateSource = estadoFuenteService.createEstadoFuente(ESTADO_DILIGENCIADO);
+            } else if (source.getEstadoFuente() != null) {
+                // Si el estado no es null y no es 1, mantenemos el valor actual
+                stateSource = source.getEstadoFuente();
+            } else {
+                // Si el estado es null, lo configuramos a 2 (estado diligenciado)
+                stateSource = estadoFuenteService.createEstadoFuente(ESTADO_DILIGENCIADO);
+            }
 
             // Asigna valores actualizados o nuevos a la fuente
             assignSourceValues(source, sourceDTO, commonFileName, commonFilePath, observation, stateSource, activity, executiveReportName, executiveReportPath);
@@ -207,8 +216,6 @@ public class FuenteService {
         source.setCalificacion(sourceDTO.getCalificacion());
 
         // Asignar nombre y ruta del documento fuente
-        System.out.println("Nombre de fuente que se esta guardadando: " + commonFileName);
-
         source.setNombreDocumentoFuente(commonFileName); // Asignar el nombre del archivo fuente
         source.setRutaDocumentoFuente(commonFilePath != null ? commonFilePath.toString() : null); // Asignar ruta
 

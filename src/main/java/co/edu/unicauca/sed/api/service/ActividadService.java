@@ -1,31 +1,20 @@
 package co.edu.unicauca.sed.api.service;
 
-import java.util.ArrayList;
+import co.edu.unicauca.sed.api.dto.ActividadDTO;
+import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
-import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
-import co.edu.unicauca.sed.api.dto.FuenteDTO;
-import co.edu.unicauca.sed.api.dto.RolDTO;
-import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Fuente;
-import co.edu.unicauca.sed.api.model.Usuario;
-import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-
+/**
+ * Servicio para gestionar las actividades, incluyendo operaciones de consulta, creación,
+ * actualización, y eliminación.
+ */
 @Service
 public class ActividadService {
 
@@ -33,379 +22,108 @@ public class ActividadService {
     private ActividadRepository actividadRepository;
 
     @Autowired
-    private PeriodoAcademicoService periodoAcademicoService;
+    private ActividadDTOService actividadDTOService;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    @Autowired
+    private ActividadSortService actividadSortService;
 
-    // Constants for status
+    // Constante para el estado de períodos activos
     private static final int ACTIVE_PERIOD_STATUS = 1;
-    private static final String DEFAULT_NAME = "N/A";
-    // Default sort order
+
+    // Orden de clasificación predeterminado
     private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
     /**
-     * Retrieves all activities along with their associated sources.
+     * Recupera todas las actividades junto con sus fuentes asociadas.
+     *
+     * @param ascendingOrder Indica si las actividades deben ordenarse de forma ascendente (true) o descendente (false).
+     * @return Lista de actividades en formato DTO ordenadas según el parámetro.
      */
     public List<ActividadDTO> findAll(Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
         List<Actividad> actividades = new ArrayList<>();
         actividadRepository.findAll().forEach(actividades::add);
-        List<ActividadDTO> actividadDTOs = actividades.stream().map(this::convertToDTO).collect(Collectors.toList());
-        return sortActivities(actividadDTOs, order);
+
+        // Convertir las actividades en DTOs
+        List<ActividadDTO> actividadDTOs = actividades.stream()
+                .map(actividad -> actividadDTOService.convertToDTO(actividad))
+                .collect(Collectors.toList());
+
+        // Ordenar las actividades
+        return actividadSortService.sortActivities(actividadDTOs, order);
     }
 
     /**
-     * Retrieves all activities that are part of active academic periods.
+     * Recupera todas las actividades que forman parte de períodos académicos activos.
+     *
+     * @param ascendingOrder Indica si las actividades deben ordenarse de forma ascendente (true) o descendente (false).
+     * @return Lista de actividades en formato DTO en períodos activos, ordenadas según el parámetro.
      */
     public List<ActividadDTO> findAllInActivePeriods(Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        List<Actividad> actividades = actividadRepository.findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
-        List<ActividadDTO> actividadDTOs = actividades.stream().map(this::convertToDTO).collect(Collectors.toList());
-        return sortActivities(actividadDTOs, order);
+
+        // Consultar actividades en períodos académicos activos
+        List<Actividad> actividades = actividadRepository
+                .findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
+
+        // Convertir las actividades en DTOs
+        List<ActividadDTO> actividadDTOs = actividades.stream()
+                .map(actividad -> actividadDTOService.convertToDTO(actividad))
+                .collect(Collectors.toList());
+
+        // Ordenar las actividades
+        return actividadSortService.sortActivities(actividadDTOs, order);
     }
 
     /**
-     * Retrieves activities for an evaluator in active academic periods.
-     */
-    public List<ActividadDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType, String evaluatorName, List<String> roles, String sourceType, String sourceStatus, Boolean order, Boolean isActivePeriod) {
-
-        List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode, activityType, evaluatorName, roles, sourceType, sourceStatus, order, isActivePeriod);
-
-        // Convert activities to DTOs
-        List<ActividadDTO> activityDTOs = activities.stream().map(activity -> {
-            ActividadDTO dto;
-            if (sourceType != null || sourceStatus != null) {
-                dto = convertToDTO(activity, sourceType, sourceStatus);
-            } else {
-                dto = convertToDTO(activity);
-            }
-
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
-            return dto;
-        }).collect(Collectors.toList());
-
-        return activityDTOs;
-    }
-
-    /**
-     * Retrieves activities for an evaluator.
-     */
-    public List<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType, String evaluatorName, List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder, Boolean activePeriod) {
-
-        boolean isActivePeriod = (activePeriod != null) ? activePeriod : DEFAULT_ASCENDING_ORDER;
-
-        List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode, activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, isActivePeriod);
-
-        // Convert activities to DTOs
-        List<ActividadDTOEvaluador> activityEvaluatorDTOs = activities.stream().map(activity -> {
-            ActividadDTOEvaluador dto;
-            if (sourceType != null || sourceStatus != null) {
-                dto = convertToDTOWithEvaluado(activity, sourceType, sourceStatus);
-            } else {
-                dto = convertToDTOWithEvaluado(activity);
-            }
-
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
-            return dto;
-        }).collect(Collectors.toList());
-
-        return activityEvaluatorDTOs;
-    }
-
-    public List<Actividad> findActivitiesWithFilters(Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType, String evaluatorName, List<String> roles,
-            String sourceType, String sourceStatus, Boolean ascendingOrder, Boolean isActivePeriod) {
-
-        final String ATTRIBUTE_PROCESS = "proceso";
-        final String ATTRIBUTE_EVALUATOR = "evaluador";
-        final String ATTRIBUTE_EVALUATED = "evaluado";
-        final String ATTRIBUTE_ROLES = "roles";
-        final String ATTRIBUTE_USER_ID = "oidUsuario";
-        final String ATTRIBUTE_NAME = "nombre";
-        final String ATTRIBUTE_SOURCES = "fuentes";
-        final String ATTRIBUTE_SOURCE_TYPE = "tipoFuente";
-        final String ATTRIBUTE_SOURCE_STATUS = "estadoFuente";
-        final String ATTRIBUTE_PERIOD_STATUS = "estado";
-        final Boolean DEFAULT_ACTIVE_PERIOD = true;
-
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Actividad> query = cb.createQuery(Actividad.class);
-        Root<Actividad> root = query.from(Actividad.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        // Filter by userId in evaluated
-        if (userEvaluatorId != null) {
-            Join<Object, Object> evaluatorJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR);
-            Predicate evaluatorPredicate = cb.equal(evaluatorJoin.get(ATTRIBUTE_USER_ID), userEvaluatorId);
-            predicates.add(cb.or(evaluatorPredicate));
-        }
-
-        // Filter by userId in evaluator
-        if (userEvaluatedId != null) {
-            Join<Object, Object> evaluatedJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED);
-            Predicate evaluatedPredicate = cb.equal(evaluatedJoin.get(ATTRIBUTE_USER_ID), userEvaluatedId);
-            predicates.add(cb.or(evaluatedPredicate));
-        }
-
-        // Filter by activityCode
-        if (activityCode != null && !activityCode.isEmpty()) {
-            predicates.add(cb.like(root.get("nombre"), "%" + activityCode + "%"));
-        }
-
-        // Filter by activityType (tipoActividad.nombre)
-        if (activityType != null && !activityType.isEmpty()) {
-            predicates.add(cb.like(root.join("tipoActividad").get(ATTRIBUTE_NAME), "%" + activityType + "%"));
-        }
-
-        // Filter by evaluatorName
-        if (evaluatorName != null && !evaluatorName.isEmpty()) {
-            Join<?, ?> processJoin = root.join(ATTRIBUTE_PROCESS);
-            predicates.add(
-                cb.like(
-                    cb.concat(
-                        processJoin.get(ATTRIBUTE_EVALUATOR).get("nombres"),
-                        processJoin.get(ATTRIBUTE_EVALUATOR).get("apellidos")
-                    ),"%" + evaluatorName + "%"
-                )
-            );
-        }
-
-        // Filter by roles in the evaluator within Process
-        if (roles != null && !roles.isEmpty()) {
-            Join<?, ?> evaluatorJoin = root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR);
-            predicates.add(evaluatorJoin.join(ATTRIBUTE_ROLES).get(ATTRIBUTE_NAME).in(roles));
-        }
-
-        // Combined filter for sourceType and sourceStatus in sources
-        if (sourceType != null || sourceStatus != null) {
-            Join<Object, Object> sourceJoin = root.join(ATTRIBUTE_SOURCES, JoinType.INNER);
-        
-            // Apply filter for tipoFuente (sourceType)
-            if (sourceType != null) {
-                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_TYPE), sourceType));
-            }
-        
-            // Apply filter for estadoFuente (sourceStatus) assuming it has an attribute 'nombre' for comparison
-            if (sourceStatus != null) {
-                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("nombreEstado"), sourceStatus));
-            }
-        }
-
-        // Filter by status of academic period based on isActivePeriod
-        boolean periodStatus = (isActivePeriod != null) ? isActivePeriod : DEFAULT_ACTIVE_PERIOD;
-        Join<Object, Object> periodJoin = root.join(ATTRIBUTE_PROCESS).join("oidPeriodoAcademico");
-        int status = periodStatus ? 1 : 2; // Set status to 1 if isActivePeriod is true, otherwise 2
-        predicates.add(cb.equal(periodJoin.get(ATTRIBUTE_PERIOD_STATUS), status));
-
-        // Apply predicates to the query
-        query.where(predicates.toArray(new Predicate[0]));
-
-        // Sort based on ascendingOrder parameter
-        boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        query.orderBy(order ? cb.asc(root.get(ATTRIBUTE_NAME)) : cb.desc(root.get(ATTRIBUTE_NAME)));
-
-        // Execute query
-        return entityManager.createQuery(query).getResultList();
-    }
-
-    /**
-     * Finds an activity by its ID.
+     * Encuentra una actividad por su ID.
+     *
+     * @param oid ID de la actividad.
+     * @return La actividad encontrada, o null si no existe.
      */
     public Actividad findByOid(Integer oid) {
         return actividadRepository.findById(oid).orElse(null);
     }
 
     /**
-     * Saves a new activity to the database.
+     * Guarda una nueva actividad en la base de datos.
+     *
+     * @param actividad La actividad a guardar.
+     * @return La actividad guardada.
      */
     public Actividad save(Actividad actividad) {
         return actividadRepository.save(actividad);
     }
 
     /**
-     * Deletes an activity from the database by its ID.
+     * Actualiza una actividad existente en la base de datos.
+     *
+     * @param idActividad ID de la actividad a actualizar.
+     * @param actividad   Datos actualizados de la actividad.
+     * @return La actividad actualizada.
+     * @throws IllegalArgumentException Si no se encuentra la actividad con el ID proporcionado.
+     */
+    public Actividad update(Integer idActividad, Actividad actividad) {
+        Actividad actividadExistente = actividadRepository.findById(idActividad)
+                .orElseThrow(() -> new IllegalArgumentException("Actividad con ID " + idActividad + " no encontrada."));
+
+        // Actualizar los campos de la actividad existente
+        actividadExistente.setCodigoActividad(actividad.getCodigoActividad());
+        actividadExistente.setNombre(actividad.getNombre());
+        actividadExistente.setHoras(actividad.getHoras());
+        actividadExistente.setInformeEjecutivo(actividad.getInformeEjecutivo());
+        actividadExistente.setTipoActividad(actividad.getTipoActividad());
+        actividadExistente.setProceso(actividad.getProceso());
+
+        return actividadRepository.save(actividadExistente);
+    }
+
+    /**
+     * Elimina una actividad por su ID.
+     *
+     * @param oid ID de la actividad a eliminar.
      */
     public void delete(Integer oid) {
         actividadRepository.deleteById(oid);
-    }
-
-    /**
-     * Sorts a list of ActividadDTO by the name of their activity type.
-     * If ascendingOrder is true, sorts in ascending order; otherwise, in descending
-     * order.
-     * 
-     * @param actividades    List of ActividadDTO to be sorted
-     * @param ascendingOrder Boolean indicating the sort order
-     * @return Sorted list of ActividadDTO
-     */
-    private List<ActividadDTO> sortActivities(List<ActividadDTO> actividades, boolean ascendingOrder) {
-
-        // Determine the comparator based on the ascendingOrder flag
-        Comparator<ActividadDTO> comparator = Comparator
-                .comparing(actividadDTO -> actividadDTO.getTipoActividad().getNombre());
-
-        if (!ascendingOrder) {
-            comparator = comparator.reversed();
-        }
-
-        // Sort and return the list
-        return actividades.stream().sorted(comparator).collect(Collectors.toList());
-    }
-
-    /**
-     * Converts an Actividad entity to an ActividadDTO.
-     * Includes mapping for evaluador and fuentes fields.
-     *
-     * @param actividad The Actividad entity to convert
-     * @return The converted ActividadDTO
-     */
-    public ActividadDTO convertToDTO(Actividad actividad, String tipoFuente, String estadoFuente) {
-        // Convert evaluador to DTO format
-        UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
-
-        // Create the ActividadDTO with mapped fields
-        List<FuenteDTO> filteredFuentes = actividad.getFuentes().stream().filter(
-                fuente -> (tipoFuente == null || tipoFuente.equals(fuente.getTipoFuente()))
-                        && (estadoFuente == null || estadoFuente.equals(fuente.getEstadoFuente().getNombreEstado())))
-                .map(this::convertFuenteToDTO).collect(Collectors.toList());
-
-        ActividadDTO actividadDTO = new ActividadDTO(
-            actividad.getOidActividad(),
-            actividad.getCodigoActividad(),
-            actividad.getNombre(),
-            actividad.getHoras(),
-            actividad.getInformeEjecutivo(),
-            actividad.getFechaCreacion(),
-            actividad.getFechaActualizacion(),
-            actividad.getTipoActividad(),
-            filteredFuentes,
-            evaluadorDTO
-        );
-
-        return actividadDTO;
-    }
-
-    public ActividadDTO convertToDTO(Actividad actividad) {
-        UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
-
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList());
-
-        ActividadDTO actividadDTO = new ActividadDTO(
-            actividad.getOidActividad(),
-            actividad.getCodigoActividad(),
-            actividad.getNombre(),
-            actividad.getHoras(),
-            actividad.getInformeEjecutivo(),
-            actividad.getFechaCreacion(),
-            actividad.getFechaActualizacion(),
-            actividad.getTipoActividad(),
-            fuenteDTOs,
-            evaluadorDTO
-        );
-        return actividadDTO;
-    }
-
-    /**
-     * Converts an Actividad entity to ActividadDTOEvaluador.
-     */
-    public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad) {
-        UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
-
-        ActividadDTOEvaluador actividadDTOEvaluador = new ActividadDTOEvaluador(
-            actividad.getOidActividad(),
-            actividad.getCodigoActividad(),
-            actividad.getNombre(),
-            actividad.getHoras(),
-            actividad.getInformeEjecutivo(),
-            actividad.getFechaCreacion(),
-            actividad.getFechaActualizacion(),
-            actividad.getTipoActividad(),
-            actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
-            evaluadoDTO
-        );
-
-        return actividadDTOEvaluador;
-    }
-
-    /**
-     * Converts an Actividad entity to ActividadDTOEvaluador.
-     */
-    public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad, String tipoFuente, String estadoFuente) {
-        UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
-
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList());
-
-        ActividadDTOEvaluador actividadDTOEvaluador = new ActividadDTOEvaluador(
-            actividad.getOidActividad(),
-            actividad.getCodigoActividad(),
-            actividad.getNombre(),
-            actividad.getHoras(),
-            actividad.getInformeEjecutivo(),
-            actividad.getFechaCreacion(),
-            actividad.getFechaActualizacion(),
-            actividad.getTipoActividad(),
-            fuenteDTOs,
-            evaluadoDTO
-        );
-
-        return actividadDTOEvaluador;
-    }
-
-    /**
-     * Converts a Usuario entity to UsuarioDTO.
-     */
-    private UsuarioDTO convertToUsuarioDTO(Usuario evaluador) {
-
-        List<RolDTO> rolDTOList = evaluador.getRoles().stream().map(rol -> new RolDTO(rol.getNombre(), rol.getEstado())).collect(Collectors.toList());
-        String nombres = evaluador.getNombres() != null ? evaluador.getNombres() : DEFAULT_NAME;
-        String apellidos = evaluador.getApellidos() != null ? evaluador.getApellidos() : DEFAULT_NAME;
-
-        UsuarioDTO usuarioDTO = new UsuarioDTO(
-            evaluador.getOidUsuario(),
-            evaluador.getUsuarioDetalle().getIdentificacion(),
-            nombres,
-            apellidos,
-            rolDTOList
-        );
-
-        return usuarioDTO;
-    }
-
-    /**
-     * Converts a Fuente entity to FuenteDTO.
-     */
-    public FuenteDTO convertFuenteToDTO(Fuente fuente) {
-
-        FuenteDTO fuenteDTO = new FuenteDTO(
-            fuente.getOidFuente(),
-            fuente.getTipoFuente(),
-            fuente.getCalificacion(),
-            fuente.getNombreDocumentoFuente(),
-            fuente.getNombreDocumentoInforme(),
-            fuente.getObservacion(),
-            fuente.getFechaCreacion(),
-            fuente.getFechaActualizacion(),
-            fuente.getEstadoFuente().getNombreEstado()
-        );
-
-        return fuenteDTO;
-    }
-
-    /**
-     * Obtiene las actividades de un evaluador en un período académico.
-     *
-     * @param idEvaluador          ID del evaluador.
-     * @param idPeriodoAcademico   ID del período académico. Si es nulo, se utiliza el período académico activo.
-     * @return Lista de actividades del evaluador en el período académico.
-     */
-    public List<Actividad> obtenerActividadesPorEvaluadorYPeriodo(Integer idEvaluador, Integer idPeriodoAcademico) {
-        // Si el ID del período académico es nulo, obtenemos el período activo.
-        if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
-        };
-
-        // Consultamos las actividades del evaluador en el período académico.
-        return actividadRepository.findByProceso_Evaluado_OidUsuarioAndProceso_OidPeriodoAcademico_OidPeriodoAcademico(idEvaluador, idPeriodoAcademico);
     }
 }
