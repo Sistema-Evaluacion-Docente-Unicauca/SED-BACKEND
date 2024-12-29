@@ -13,6 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -35,47 +39,59 @@ public class ActividadController {
     private ActividadQueryService actividadQueryService;
 
     /**
-     * Obtiene todas las actividades del sistema.
+     * Obtiene todas las actividades del sistema con paginación.
      *
+     * @param page           Número de página.
+     * @param size           Tamaño de página.
      * @param ascendingOrder Indica si el orden es ascendente.
-     * @return Lista de actividades o un mensaje de error.
+     * @return Página de actividades.
      */
     @GetMapping("all")
-    public ResponseEntity<?> findAll(@RequestParam(defaultValue = "true") boolean ascendingOrder) {
+    public ResponseEntity<?> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         try {
-            List<ActividadDTO> list = actividadService.findAll(ascendingOrder);
-
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
+            Page<ActividadDTO> activities = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
+            if (activities.hasContent()) {
+                return ResponseEntity.ok().body(activities);
+            } else {
+                logger.warn("No se encontraron actividades");
+                return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
             logger.error("Error al obtener todas las actividades: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        logger.warn("No se encontraron actividades");
-        return ResponseEntity.notFound().build();
     }
 
     /**
-     * Obtiene todas las actividades de períodos académicos activos.
+     * Obtiene todas las actividades de períodos académicos activos con paginación.
      *
+     * @param page           Número de página.
+     * @param size           Tamaño de página.
      * @param ascendingOrder Indica si el orden es ascendente.
-     * @return Lista de actividades o un mensaje de error.
+     * @return Página de actividades o un mensaje de error.
      */
     @GetMapping("findAllInActivePeriods")
-    public ResponseEntity<?> findAllInActivePeriods(@RequestParam(defaultValue = "true") boolean ascendingOrder) {
+    public ResponseEntity<?> findAllInActivePeriods(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         try {
-            List<ActividadDTO> list = actividadService.findAllInActivePeriods(ascendingOrder);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<ActividadDTO> activities = actividadService.findAllInActivePeriods(pageable, ascendingOrder);
 
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
+            if (activities.hasContent()) {
+                return ResponseEntity.ok(activities);
+            } else {
+                logger.warn("No se encontraron actividades en períodos activos");
+                return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
             logger.error("Error al obtener actividades en períodos activos: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        logger.warn("No se encontraron actividades en períodos activos");
-        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -101,8 +117,10 @@ public class ActividadController {
     }
 
     /**
-     * Busca actividades asignadas a un evaluado en períodos activos.
+     * Busca actividades asignadas a un evaluado en períodos activos con paginación.
      *
+     * @param page            Número de página.
+     * @param size            Tamaño de página.
      * @param idEvaluador     ID del evaluador (opcional).
      * @param idEvaluado      ID del evaluado (opcional).
      * @param tipoActividad   Tipo de actividad (opcional).
@@ -113,10 +131,12 @@ public class ActividadController {
      * @param estadoFuente    Estado de la fuente (opcional).
      * @param orden           Orden ascendente o descendente (opcional).
      * @param estadoPeriodo   Estado del período (opcional).
-     * @return Lista de actividades o un mensaje de error.
+     * @return Página de actividades.
      */
     @GetMapping("/findActivitiesByEvaluado")
-    public ResponseEntity<List<ActividadDTO>> listActivitiesByEvaluadoInActivePeriod(
+    public ResponseEntity<?> listActivitiesByEvaluadoInActivePeriod(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer idEvaluador,
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) String tipoActividad,
@@ -128,22 +148,25 @@ public class ActividadController {
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Boolean estadoPeriodo) {
         try {
-            List<ActividadDTO> activities = actividadQueryService.findActivitiesByEvaluado(idEvaluador, idEvaluado,
-                    codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden,
-                    estadoPeriodo);
-            if (activities.isEmpty()) {
+            Page<ActividadDTO> activities = actividadQueryService.findActivitiesByEvaluado(
+                    idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador,
+                    roles, tipoFuente, estadoFuente, orden, estadoPeriodo,
+                    PageRequest.of(page, size));
+            if (activities.hasContent()) {
+                return ResponseEntity.ok(activities);
+            } else {
                 logger.warn("No se encontraron actividades para los parámetros proporcionados");
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(activities);
         } catch (Exception e) {
             logger.error("Error al buscar actividades por evaluado: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
 
     /**
-     * Busca actividades asignadas a un evaluador en períodos activos.
+     * Busca actividades asignadas a un evaluador en períodos activos con
+     * paginación.
      *
      * @param idEvaluador     ID del evaluador (opcional).
      * @param idEvaluado      ID del evaluado (opcional).
@@ -155,10 +178,12 @@ public class ActividadController {
      * @param estadoFuente    Estado de la fuente (opcional).
      * @param orden           Orden ascendente o descendente (opcional).
      * @param estadoPeriodo   Estado del período (opcional).
-     * @return Lista de actividades o un mensaje de error.
+     * @param page            Número de la página.
+     * @param size            Tamaño de la página.
+     * @return Página de actividades o un mensaje de error.
      */
     @GetMapping("/findActivitiesByEvaluador")
-    public ResponseEntity<List<ActividadDTOEvaluador>> listActivitiesByEvaluadorInActivePeriod(
+    public ResponseEntity<?> listActivitiesByEvaluadorInActivePeriod(
             @RequestParam(required = false) Integer idEvaluador,
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) String tipoActividad,
@@ -168,18 +193,27 @@ public class ActividadController {
             @RequestParam(required = false) String tipoFuente,
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(required = false) Boolean orden,
-            @RequestParam(required = false) Boolean estadoPeriodo) {
+            @RequestParam(required = false) Boolean estadoPeriodo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(idEvaluador,
-                    idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles, tipoFuente, estadoFuente, orden,
-                    estadoPeriodo);
-            if (activities.isEmpty()) {
-                return ResponseEntity.noContent().build(); // Returns 204 if no activities are found
+            Pageable pageable = PageRequest.of(page, size, orden != null && orden
+                    ? Sort.by("nombre").ascending()
+                    : Sort.by("nombre").descending());
+
+            Page<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(
+                    idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles,
+                    tipoFuente, estadoFuente, orden, estadoPeriodo, pageable);
+
+            if (activities.hasContent()) {
+                return ResponseEntity.ok(activities);
+            } else {
+                logger.warn("No se encontraron actividades para los parámetros proporcionados");
+                return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(activities);
         } catch (Exception e) {
             logger.error("Error al buscar actividades por evaluador: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
 

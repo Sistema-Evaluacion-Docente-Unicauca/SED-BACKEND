@@ -22,8 +22,7 @@ public class ActividadSortService {
      */
     public List<ActividadDTO> sortActivities(List<ActividadDTO> actividades, Boolean ascendingOrder) {
         // Comparador por el nombre del tipo de actividad
-        Comparator<ActividadDTO> comparator = Comparator
-                .comparing(actividad -> actividad.getTipoActividad().getNombre());
+        Comparator<ActividadDTO> comparator = Comparator.comparing(actividad -> actividad.getTipoActividad().getNombre());
 
         // Invertir el orden si no es ascendente
         if (ascendingOrder != null && !ascendingOrder) {
