@@ -12,10 +12,12 @@ import org.springframework.stereotype.Service;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.model.*;
+import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.utils.MathUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Servicio para la generación y manejo de consolidados.
@@ -43,6 +45,9 @@ public class ConsolidadoService {
 
     @Autowired
     private ExcelService excelService;
+
+    @Autowired
+    private ActividadRepository actividadRepository;
 
     // Métodos CRUD básicos
     /**
@@ -74,6 +79,53 @@ public class ConsolidadoService {
      */
     public Consolidado save(Consolidado consolidado) {
         return consolidadoRepository.save(consolidado);
+    }
+
+    /**
+     * Actualiza todos los consolidados asociados al evaluado de un consolidado
+     * específico.
+     *
+     * @param oidConsolidado ID del consolidado base para identificar los procesos
+     *                       asociados.
+     * @param consolidado    Datos actualizados para los consolidados.
+     */
+    @Transactional
+    public void updateAllFromConsolidado(Integer oidConsolidado, Consolidado datosActualizar) {
+        // Obtener el consolidado base
+        Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado)
+                .orElseThrow(() -> {
+                    return new IllegalArgumentException("Consolidado no encontrado");
+                });
+
+        // Obtener el evaluado a través del proceso del consolidado base
+        Proceso procesoBase = consolidadoBase.getProceso();
+        if (procesoBase == null) {
+            throw new IllegalStateException("Proceso no asociado al consolidado base.");
+        }
+
+        Usuario evaluado = procesoBase.getEvaluado();
+        if (evaluado == null) {
+            throw new IllegalStateException("Evaluado no asociado al proceso base.");
+        }
+
+        // Obtener todos los procesos asociados al evaluado
+        List<Proceso> procesosEvaluado = procesoRepository.findByEvaluado(evaluado);
+
+        if (procesosEvaluado.isEmpty()) {
+            throw new IllegalArgumentException("No hay procesos asociados al evaluado.");
+        }
+
+        // Iterar sobre los procesos y actualizar los consolidados asociados
+        for (Proceso proceso : procesosEvaluado) {
+            Optional<Consolidado> consolidadoOpt = consolidadoRepository.findByProceso(proceso);
+            if (consolidadoOpt.isPresent()) {
+                Consolidado consolidado = consolidadoOpt.get();
+                consolidado.setNombredocumento(datosActualizar.getNombredocumento());
+                consolidado.setRutaDocumento(datosActualizar.getRutaDocumento());
+                consolidado.setNota(datosActualizar.getNota());
+                consolidadoRepository.save(consolidado);
+            }
+        }
     }
 
     /**

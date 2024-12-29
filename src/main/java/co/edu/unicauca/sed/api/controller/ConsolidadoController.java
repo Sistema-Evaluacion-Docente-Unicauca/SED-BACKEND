@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class ConsolidadoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConsolidadoController.class);
-    
+
     @Autowired
     private ConsolidadoService consolidadoService;
 
@@ -31,16 +31,23 @@ public class ConsolidadoController {
                 return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            logger.error("Error al obtener la lista de consolidados: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
+        logger.warn("No se encontraron consolidados en la base de datos.");
         return ResponseEntity.notFound().build();
     }
 
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Consolidado resultado = this.consolidadoService.findByOid(oid);
-        if (resultado != null) {
-            return ResponseEntity.ok().body(resultado);
+        try {
+            Consolidado resultado = this.consolidadoService.findByOid(oid);
+            if (resultado != null) {
+                return ResponseEntity.ok().body(resultado);
+            }
+            logger.warn("Consolidado con ID {} no encontrado.", oid);
+        } catch (Exception e) {
+            logger.error("Error al buscar el consolidado con ID {}: {}", oid, e.getMessage(), e);
         }
         return ResponseEntity.notFound().build();
     }
@@ -53,29 +60,55 @@ public class ConsolidadoController {
                 return ResponseEntity.ok().body(resultado);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            logger.error("Error al guardar el consolidado: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
+        logger.error("El resultado del guardado fue nulo. Verifique los datos de entrada.");
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    }
+
+    /**
+     * Actualiza todos los consolidados asociados al evaluado extraído desde un
+     * consolidado específico.
+     *
+     * @param oidConsolidado ID del consolidado base para identificar el evaluado y
+     *                       sus procesos asociados.
+     * @param consolidado    Datos actualizados para los consolidados.
+     * @return Mensaje de éxito o error.
+     */
+    @PutMapping("update/{oidConsolidado}")
+    public ResponseEntity<?> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
+        try {
+            consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
+            return ResponseEntity.ok("Consolidados actualizados correctamente.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar los consolidados: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        Consolidado consolidado = null;
         try {
-            consolidado = consolidadoService.findByOid(oid);
+            Consolidado consolidado = consolidadoService.findByOid(oid);
             if (consolidado == null) {
+                logger.warn("No se pudo eliminar. Consolidado con ID {} no encontrado.", oid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
             }
         } catch (Exception e) {
+            logger.error("Error al buscar el consolidado con ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
         }
 
         try {
             this.consolidadoService.delete(oid);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al eliminar el consolidado con ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
+        logger.info("Consolidado con ID {} eliminado exitosamente.", oid);
         return ResponseEntity.ok().build();
     }
 
@@ -96,13 +129,15 @@ public class ConsolidadoController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error",  e.getMessage()));
+            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(),
+                    e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
 
     /**
-     * Aprueba el consolidado, lo guarda en la base de datos y genera un archivo Excel.
+     * Aprueba el consolidado, lo guarda en la base de datos y genera un archivo
+     * Excel.
      *
      * @param idEvaluado         ID del evaluado.
      * @param idPeriodoAcademico (Opcional) ID del período académico.
@@ -118,7 +153,8 @@ public class ConsolidadoController {
             consolidadoService.aprobarConsolidado(idEvaluado, idPeriodoAcademico, nota);
             return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
         } catch (Exception e) {
-            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
+            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(),
+                    e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al aprobar el consolidado: " + e.getMessage());
         }
