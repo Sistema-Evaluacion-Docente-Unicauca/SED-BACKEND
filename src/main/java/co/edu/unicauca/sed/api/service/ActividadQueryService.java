@@ -7,17 +7,19 @@ import co.edu.unicauca.sed.api.model.Actividad;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Comparator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 /**
- * Servicio para realizar consultas avanzadas sobre actividades utilizando Criteria API.
+ * Servicio para realizar consultas avanzadas sobre actividades utilizando
+ * Criteria API.
  */
 @Service
 public class ActividadQueryService {
@@ -32,7 +34,8 @@ public class ActividadQueryService {
     private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
     /**
-     * Recupera las actividades relacionadas con un evaluado en períodos académicos activos.
+     * Recupera las actividades relacionadas con un evaluado en períodos académicos
+     * activos con paginación.
      *
      * @param evaluatorUserId ID del usuario evaluador.
      * @param evaluatedUserId ID del usuario evaluado.
@@ -44,19 +47,24 @@ public class ActividadQueryService {
      * @param sourceStatus    Estado de la fuente.
      * @param order           Orden de los resultados (ascendente/descendente).
      * @param isActivePeriod  Indica si los períodos deben ser activos.
-     * @return Lista de actividades como DTO.
+     * @param pageable        Configuración de paginación.
+     * @return Página de actividades como DTO.
      */
-    public List<ActividadDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId,
-                                                       String activityCode, String activityType, String evaluatorName,
-                                                       List<String> roles, String sourceType, String sourceStatus,
-                                                       Boolean order, Boolean isActivePeriod) {
+    public Page<ActividadDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId,
+            String activityCode, String activityType, String evaluatorName, List<String> roles,
+            String sourceType, String sourceStatus, Boolean order, Boolean isActivePeriod, Pageable pageable) {
 
         // Consultar actividades aplicando los filtros
         List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode,
                 activityType, evaluatorName, roles, sourceType, sourceStatus, order, isActivePeriod);
 
-        // Convertir las actividades en DTOs
-        return activities.stream().map(activity -> {
+        // Aplicar paginación manual a la lista de actividades
+        int start = Math.toIntExact(pageable.getOffset());
+        int end = Math.min((start + pageable.getPageSize()), activities.size());
+        List<Actividad> paginatedActivities = (start > end) ? List.of() : activities.subList(start, end);
+
+        // Convertir las actividades a DTOs
+        List<ActividadDTO> activityDTOs = paginatedActivities.stream().map(activity -> {
             ActividadDTO dto = (sourceType != null || sourceStatus != null)
                     ? actividadDTOService.convertToDTO(activity, sourceType, sourceStatus)
                     : actividadDTOService.convertToDTO(activity);
@@ -65,10 +73,13 @@ public class ActividadQueryService {
             dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
             return dto;
         }).collect(Collectors.toList());
+
+        // Retornar un objeto Page
+        return new PageImpl<>(activityDTOs, pageable, activities.size());
     }
 
     /**
-     * Recupera las actividades relacionadas con un evaluador.
+     * Recupera las actividades relacionadas con un evaluador con paginación.
      *
      * @param evaluatorUserId ID del usuario evaluador.
      * @param evaluatedUserId ID del usuario evaluado.
@@ -80,13 +91,15 @@ public class ActividadQueryService {
      * @param sourceStatus    Estado de la fuente.
      * @param ascendingOrder  Orden de los resultados (ascendente/descendente).
      * @param activePeriod    Indica si los períodos deben ser activos.
-     * @return Lista de actividades como DTO con información del evaluador.
+     * @param pageable        Configuración de paginación.
+     * @return Página de actividades como DTO con información del evaluador.
      */
-    public List<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId,
-                                                                 String activityCode, String activityType,
-                                                                 String evaluatorName, List<String> roles,
-                                                                 String sourceType, String sourceStatus,
-                                                                 Boolean ascendingOrder, Boolean activePeriod) {
+    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId,
+            String activityCode, String activityType,
+            String evaluatorName, List<String> roles,
+            String sourceType, String sourceStatus,
+            Boolean ascendingOrder, Boolean activePeriod,
+            Pageable pageable) {
 
         boolean isActivePeriod = (activePeriod != null) ? activePeriod : DEFAULT_ASCENDING_ORDER;
 
@@ -94,8 +107,13 @@ public class ActividadQueryService {
         List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode,
                 activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, isActivePeriod);
 
-        // Convertir las actividades en DTOs con información del evaluador
-        return activities.stream().map(activity -> {
+        // Aplicar paginación manual a la lista de actividades
+        int start = Math.toIntExact(pageable.getOffset());
+        int end = Math.min((start + pageable.getPageSize()), activities.size());
+        List<Actividad> paginatedActivities = activities.subList(start, end);
+
+        // Convertir las actividades a DTOs
+        List<ActividadDTOEvaluador> activityDTOs = paginatedActivities.stream().map(activity -> {
             ActividadDTOEvaluador dto = (sourceType != null || sourceStatus != null)
                     ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
                     : actividadDTOService.convertToDTOWithEvaluado(activity);
@@ -104,6 +122,9 @@ public class ActividadQueryService {
             dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
             return dto;
         }).collect(Collectors.toList());
+
+        // Retornar un objeto Page
+        return new PageImpl<>(activityDTOs, pageable, activities.size());
     }
 
     /**
@@ -122,9 +143,9 @@ public class ActividadQueryService {
      * @return Lista de actividades filtradas.
      */
     public List<Actividad> findActivitiesWithFilters(Integer userEvaluatorId, Integer userEvaluatedId,
-                                                     String activityCode, String activityType, String evaluatorName,
-                                                     List<String> roles, String sourceType, String sourceStatus,
-                                                     Boolean ascendingOrder, Boolean isActivePeriod) {
+            String activityCode, String activityType, String evaluatorName,
+            List<String> roles, String sourceType, String sourceStatus,
+            Boolean ascendingOrder, Boolean isActivePeriod) {
 
         final String ATTRIBUTE_PROCESS = "proceso";
         final String ATTRIBUTE_EVALUATOR = "evaluador";
