@@ -13,6 +13,8 @@ import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class UsuarioService {
@@ -25,10 +27,8 @@ public class UsuarioService {
     @Autowired
     private RolRepository rolRepository;
 
-    public List<Usuario> findAll() {
-        List<Usuario> list = new ArrayList<>();
-        this.usuarioRepository.findAll().forEach(list::add);
-        return list;
+    public Page<Usuario> findAll(Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
     }
 
     public Usuario findByOid(Integer oid) {

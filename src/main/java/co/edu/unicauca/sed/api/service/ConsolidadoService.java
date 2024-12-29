@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.model.*;
-import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
@@ -45,9 +44,6 @@ public class ConsolidadoService {
 
     @Autowired
     private ExcelService excelService;
-
-    @Autowired
-    private ActividadRepository actividadRepository;
 
     // Métodos CRUD básicos
     /**

@@ -3,6 +3,7 @@ package co.edu.unicauca.sed.api.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -21,6 +22,7 @@ import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 
 /**
  * Controlador para gestionar las operaciones relacionadas con los usuarios en el sistema.
@@ -40,25 +42,31 @@ public class UsuarioController {
     private DocenteEvaluacionService docenteEvaluacionService;
 
     /**
-     * Obtiene todos los usuarios registrados en el sistema.
-     * 
-     * @return Lista de usuarios o un mensaje de error si ocurre algún problema.
+     * Obtiene todos los usuarios registrados en el sistema con soporte de
+     * paginación.
+     *
+     * @param page Número de página (opcional, por defecto 0).
+     * @param size Tamaño de la página (opcional, por defecto 10).
+     * @return Lista paginada de usuarios o un mensaje de error si ocurre algún problema.
      */
     @GetMapping("all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<?> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<Usuario> list = usuarioService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
+            Page<Usuario> paginatedList = usuarioService.findAll(PageRequest.of(page, size));
+            if (paginatedList.hasContent()) {
+                return ResponseEntity.ok().body(paginatedList);
             } else {
-                logger.warn("No se encontraron usuarios en el sistema.");
+                logger.warn("No se encontraron usuarios en la página solicitada.");
+                return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
-            logger.error("Error al obtener todos los usuarios: {}", e.getMessage(), e);
+            logger.error("Error al obtener todos los usuarios con paginación: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
-        return ResponseEntity.notFound().build();
     }
+
 
     /**
      * Busca un usuario específico por su ID.
@@ -177,15 +185,5 @@ public class UsuarioController {
             logger.error("Error inesperado al obtener evaluaciones de docentes: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error inesperado: " + e.getMessage());
         }
-    }
-
-    /**
-     * Obtiene todos los usuarios registrados en el sistema.
-     * 
-     * @return Lista de usuarios.
-     */
-    @GetMapping
-    public ResponseEntity<?> obtenerUsuarios() {
-        return ResponseEntity.ok(usuarioService.findAll());
     }
 }

@@ -3,7 +3,6 @@ package co.edu.unicauca.sed.api.service;
 import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;

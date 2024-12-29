@@ -129,7 +129,6 @@ public class ActividadQueryService {
         final String ATTRIBUTE_PROCESS = "proceso";
         final String ATTRIBUTE_EVALUATOR = "evaluador";
         final String ATTRIBUTE_EVALUATED = "evaluado";
-        final String ATTRIBUTE_ROLES = "roles";
         final String ATTRIBUTE_USER_ID = "oidUsuario";
         final String ATTRIBUTE_NAME = "nombre";
         final String ATTRIBUTE_SOURCES = "fuentes";
