@@ -27,9 +27,6 @@ import org.springframework.data.domain.Pageable;
 @Service
 public class FuenteService {
 
-    // Orden de clasificación predeterminado
-    private static final boolean DEFAULT_ASCENDING_ORDER = true;
-
     @Autowired
     private FuenteRepository fuenteRepository;
 
@@ -58,17 +55,18 @@ public class FuenteService {
         this.fuenteRepository = fuenteRepository;
     }
 
-/**
+    /**
      * Recupera todas las fuentes desde el repositorio con soporte de paginación.
      *
-     * @param pageable Parámetro para definir la paginación (número de página y tamaño de página).
+     * @param pageable Parámetro para definir la paginación (número de página y
+     *                 tamaño de página).
      * @return Página de entidades Fuente.
      */
     public Page<Fuente> findAll(Pageable pageable) {
         return fuenteRepository.findAll(pageable);
     }
 
-/**
+    /**
      * Busca una fuente por su identificador único.
      *
      * @param oid El ID de la fuente a buscar.
@@ -78,7 +76,7 @@ public class FuenteService {
         return fuenteRepository.findById(oid).orElse(null);
     }
 
-/**
+    /**
      * Busca todas las fuentes asociadas a una actividad específica.
      *
      * @param oidActividad El ID de la actividad.
@@ -88,7 +86,7 @@ public class FuenteService {
         return fuenteRepository.findByActividadOid(oidActividad);
     }
 
-/**
+    /**
      * Guarda una fuente y sube su archivo asociado.
      *
      * @param fuente  La entidad Fuente a guardar.
@@ -103,7 +101,7 @@ public class FuenteService {
         return response;
     }
 
-/**
+    /**
      * Elimina una fuente por su identificador único.
      *
      * @param oid El ID de la fuente a eliminar.
@@ -112,7 +110,7 @@ public class FuenteService {
         fuenteRepository.deleteById(oid);
     }
 
-/**
+    /**
      * Guarda múltiples fuentes junto con sus archivos asociados.
      *
      * @param sourcesJson   JSON con los datos de las fuentes.
@@ -129,8 +127,7 @@ public class FuenteService {
 
         // Filtrar archivos adicionales excluyendo informeFuente
         Map<String, MultipartFile> informeEjecutivoFiles = allFiles != null
-                ? allFiles.entrySet().stream()
-                        .filter(entry -> !entry.getKey().equals("informeFuente"))
+                ? allFiles.entrySet().stream().filter(entry -> !entry.getKey().equals("informeFuente"))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                 : Map.of();
 
@@ -208,7 +205,7 @@ public class FuenteService {
         }
     }
 
-     /**
+    /**
      * Asigna valores a una entidad Fuente, actualizando o configurando información como el estado, actividad, y archivos asociados.
      *
      * @param source              La entidad Fuente a modificar.
@@ -256,8 +253,7 @@ public class FuenteService {
     public ResponseEntity<?> getFile(Integer id, boolean isReport) {
         try {
             // Busca la fuente por ID
-            Fuente fuente = fuenteRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Fuente con ID " + id + " no encontrada."));
+            Fuente fuente = fuenteRepository.findById(id).orElseThrow(() -> new RuntimeException("Fuente con ID " + id + " no encontrada."));
 
             // Determina el archivo y la ruta según el flag
             String filePath = isReport ? fuente.getRutaDocumentoInforme() : fuente.getRutaDocumentoFuente();
@@ -265,21 +261,16 @@ public class FuenteService {
 
             // Validar que la ruta no sea nula ni vacía
             if (filePath == null || filePath.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("El archivo solicitado no está disponible para esta fuente.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El archivo solicitado no está disponible para esta fuente.");
             }
 
             // Recupera el recurso utilizando FileService
             Resource resource = fileService.getFileResource(filePath);
 
             // Retorna el archivo como respuesta
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                    .body(resource);
-
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"").body(resource);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
         }
     }
 }
