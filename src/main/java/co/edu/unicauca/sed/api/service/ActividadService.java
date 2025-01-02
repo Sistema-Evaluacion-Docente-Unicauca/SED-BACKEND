@@ -39,8 +39,7 @@ public class ActividadService {
      * paginación.
      *
      * @param pageable       Parámetros de paginación.
-     * @param ascendingOrder Indica si las actividades deben ordenarse de forma
-     *                       ascendente.
+     * @param ascendingOrder Indica si las actividades deben ordenarse de forma ascendente.
      * @return Página de actividades en formato DTO.
      */
     public Page<ActividadDTO> findAll(Pageable pageable, Boolean ascendingOrder) {

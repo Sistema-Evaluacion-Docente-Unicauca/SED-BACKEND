@@ -7,15 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
+import org.springframework.web.bind.annotation.*;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
@@ -165,14 +157,13 @@ public class UsuarioController {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes o un mensaje de error.
      */
-    @GetMapping("obtenerDocentes")
+    @GetMapping("obtenerEvaluacionDocente")
     public ResponseEntity<?> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
             @RequestParam(required = false) String departamento) {
         try {
-            List<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(
-                    idEvaluado, idPeriodoAcademico, departamento);
+            List<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes( idEvaluado, idPeriodoAcademico, departamento);
 
             if (evaluaciones.isEmpty()) {
                 return ResponseEntity.noContent().build();

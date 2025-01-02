@@ -3,7 +3,6 @@ package co.edu.unicauca.sed.api.service;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.EstadoFuente;
@@ -23,9 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class FuenteService {
+
+    // Orden de clasificación predeterminado
+    private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
     @Autowired
     private FuenteRepository fuenteRepository;
@@ -55,41 +58,42 @@ public class FuenteService {
         this.fuenteRepository = fuenteRepository;
     }
 
-    /**
-     * Retrieves all sources from the repository.
+/**
+     * Recupera todas las fuentes desde el repositorio con soporte de paginación.
      *
-     * @return List of all Fuente entities
+     * @param pageable Parámetro para definir la paginación (número de página y tamaño de página).
+     * @return Página de entidades Fuente.
      */
-    public List<Fuente> findAll() {
-        return (List<Fuente>) fuenteRepository.findAll();
+    public Page<Fuente> findAll(Pageable pageable) {
+        return fuenteRepository.findAll(pageable);
     }
 
-    /**
-     * Finds a source by its unique identifier.
+/**
+     * Busca una fuente por su identificador único.
      *
-     * @param oid The ID of the source to retrieve
-     * @return Fuente entity if found, null otherwise
+     * @param oid El ID de la fuente a buscar.
+     * @return La entidad Fuente si se encuentra, null en caso contrario.
      */
     public Fuente findByOid(Integer oid) {
         return fuenteRepository.findById(oid).orElse(null);
     }
 
-    /**
-     * Finds all sources associated with a specific activity.
+/**
+     * Busca todas las fuentes asociadas a una actividad específica.
      *
-     * @param oidActividad The ID of the activity
-     * @return List of Fuente entities linked to the activity
+     * @param oidActividad El ID de la actividad.
+     * @return Lista de entidades Fuente vinculadas a la actividad.
      */
     public List<Fuente> findByActividadOid(Integer oidActividad) {
         return fuenteRepository.findByActividadOid(oidActividad);
     }
 
-    /**
-     * Saves a source entity and uploads its associated file.
+/**
+     * Guarda una fuente y sube su archivo asociado.
      *
-     * @param fuente  The Fuente entity to save
-     * @param archivo The file to upload
-     * @return The saved Fuente entity
+     * @param fuente  La entidad Fuente a guardar.
+     * @param archivo El archivo a subir.
+     * @return La entidad Fuente guardada.
      */
     public Fuente save(Fuente fuente, MultipartFile archivo) {
         Fuente response = fuenteRepository.save(fuente);
@@ -99,24 +103,22 @@ public class FuenteService {
         return response;
     }
 
-        /**
-     * Deletes a source by its unique identifier.
+/**
+     * Elimina una fuente por su identificador único.
      *
-     * @param oid The ID of the source to delete
+     * @param oid El ID de la fuente a eliminar.
      */
     public void delete(Integer oid) {
         fuenteRepository.deleteById(oid);
     }
 
-    //Cunado se envia fuente vacia debe eliminar la referencia en el informe ejecutivo
-
-    /**
+/**
      * Guarda múltiples fuentes junto con sus archivos asociados.
      *
-     * @param sourcesJson   JSON con datos de fuentes.
-     * @param informeFuente Archivo común.
+     * @param sourcesJson   JSON con los datos de las fuentes.
+     * @param informeFuente Archivo común asociado a las fuentes.
      * @param observation   Observación general.
-     * @param allFiles      Archivos adicionales.
+     * @param allFiles      Archivos adicionales para manejar.
      * @throws IOException Si ocurre un error al manejar los archivos.
      */
     public void saveSource(String sourcesJson, MultipartFile informeFuente, String observation,
@@ -140,10 +142,10 @@ public class FuenteService {
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
 
             // Obtener el período académico y el evaluado dinámicamente desde la actividad
-            String academicPeriod = activity.getProceso().getOidPeriodoAcademico().getIdPeriodo(); // Ejemplo: "2024-2"
+            String academicPeriod = activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
             String evaluatedName = activity.getProceso().getEvaluado().getNombres() + "_"
                     + activity.getProceso().getEvaluado().getApellidos();
-            evaluatedName = evaluatedName.replaceAll("\\s+", "_"); // Reemplazar espacios por guiones bajos
+            evaluatedName = evaluatedName.replaceAll("\\s+", "_");
 
             // Manejar el archivo fuente (informeFuente)
             if (informeFuente != null) {
@@ -153,8 +155,7 @@ public class FuenteService {
             }
 
             // Busca si ya existe una fuente asociada para reemplazar o actualizar
-            Optional<Fuente> optionalFuente = fuenteRepository.findByActividadAndTipoFuente(activity,
-                    sourceDTO.getTipoFuente());
+            Optional<Fuente> optionalFuente = fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente());
             Fuente source = optionalFuente.orElse(new Fuente());
 
             // Eliminar archivos antiguos si se modifican
@@ -179,9 +180,7 @@ public class FuenteService {
             Path executiveReportPath = null;
 
             if (executiveReportName != null && !executiveReportName.isEmpty()) {
-                Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream()
-                        .filter(file -> file.getOriginalFilename().equalsIgnoreCase(executiveReportName))
-                        .findFirst();
+                Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream().filter(file -> file.getOriginalFilename().equalsIgnoreCase(executiveReportName)).findFirst();
 
                 if (matchedFile.isPresent()) {
                     // Guardar informe ejecutivo en una ruta dinámica
@@ -209,6 +208,19 @@ public class FuenteService {
         }
     }
 
+     /**
+     * Asigna valores a una entidad Fuente, actualizando o configurando información como el estado, actividad, y archivos asociados.
+     *
+     * @param source              La entidad Fuente a modificar.
+     * @param sourceDTO           Datos provenientes del DTO.
+     * @param commonFileName      Nombre del archivo común asociado.
+     * @param commonFilePath      Ruta del archivo común.
+     * @param observation         Observación a asociar.
+     * @param stateSource         Estado de la fuente.
+     * @param activity            Actividad vinculada.
+     * @param executiveReportName Nombre del informe ejecutivo.
+     * @param executiveReportPath Ruta del informe ejecutivo.
+     */
     private void assignSourceValues(Fuente source, FuenteCreateDTO sourceDTO, String commonFileName,
             Path commonFilePath, String observation, EstadoFuente stateSource,
             Actividad activity, String executiveReportName, Path executiveReportPath) {
@@ -238,7 +250,7 @@ public class FuenteService {
      * Recupera un archivo asociado a una fuente.
      *
      * @param id       ID de la fuente.
-     * @param isReport Indica si se debe recuperar el informe (true) o la fuente (false).
+     * @param isReport Indica si se debe recuperar el informe (true) o la fuente
      * @return Respuesta con el archivo como recurso descargable.
      */
     public ResponseEntity<?> getFile(Integer id, boolean isReport) {
@@ -270,5 +282,4 @@ public class FuenteService {
                     .body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
         }
     }
-
 }

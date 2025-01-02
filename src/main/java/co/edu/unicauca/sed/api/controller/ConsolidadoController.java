@@ -1,18 +1,18 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 
 @Controller
 @RequestMapping("consolidado")
@@ -23,21 +23,38 @@ public class ConsolidadoController {
     @Autowired
     private ConsolidadoService consolidadoService;
 
+    /**
+     * Recupera todos los consolidados con soporte de paginación y ordenamiento.
+     *
+     * @param page           Número de página.
+     * @param size           Tamaño de página.
+     * @param ascendingOrder Orden ascendente o descendente.
+     * @return Página de Consolidado o mensaje de error.
+     */
     @GetMapping("all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<?> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
         try {
-            List<Consolidado> list = consolidadoService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
+            Page<Consolidado> pageResult = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder);
+            if (pageResult.hasContent()) {
+                return ResponseEntity.ok().body(pageResult);
             }
         } catch (Exception e) {
             logger.error("Error al obtener la lista de consolidados: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
         logger.warn("No se encontraron consolidados en la base de datos.");
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Recupera un Consolidado por su OID.
+     *
+     * @param oid El ID del Consolidado.
+     * @return El objeto Consolidado o un mensaje de error.
+     */
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
@@ -52,6 +69,12 @@ public class ConsolidadoController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Guarda un nuevo Consolidado.
+     *
+     * @param consolidado El objeto Consolidado a guardar.
+     * @return El objeto Consolidado guardado o un mensaje de error.
+     */
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Consolidado consolidado) {
         try {
@@ -68,11 +91,9 @@ public class ConsolidadoController {
     }
 
     /**
-     * Actualiza todos los consolidados asociados al evaluado extraído desde un
-     * consolidado específico.
+     * Actualiza todos los consolidados asociados al evaluado.
      *
-     * @param oidConsolidado ID del consolidado base para identificar el evaluado y
-     *                       sus procesos asociados.
+     * @param oidConsolidado ID del Consolidado base para identificar al evaluado y sus procesos asociados.
      * @param consolidado    Datos actualizados para los consolidados.
      * @return Mensaje de éxito o error.
      */
@@ -82,13 +103,20 @@ public class ConsolidadoController {
             consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
             return ResponseEntity.ok("Consolidados actualizados correctamente.");
         } catch (IllegalArgumentException e) {
+            logger.warn("Actualización fallida: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al actualizar los consolidados: " + e.getMessage());
+            logger.error("Error al actualizar los consolidados: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar los consolidados: " + e.getMessage());
         }
     }
 
+    /**
+     * Elimina un Consolidado por su OID.
+     *
+     * @param oid El ID del Consolidado a eliminar.
+     * @return Mensaje de éxito o error.
+     */
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         try {
@@ -115,8 +143,8 @@ public class ConsolidadoController {
     /**
      * Genera un consolidado para un evaluado en un período académico.
      *
-     * @param evaluadoId       ID del evaluado para generar el consolidado.
-     * @param periodoAcademico ID del período académico (opcional).
+     * @param evaluadoId       ID del evaluado.
+     * @param periodoAcademico (Opcional) ID del período académico.
      * @return Consolidado generado o un mensaje de error.
      */
     @GetMapping("/generarConsolidado")
@@ -127,17 +155,16 @@ public class ConsolidadoController {
             ConsolidadoDTO consolidado = consolidadoService.generarConsolidado(idEvaluado, periodoAcademico);
             return ResponseEntity.ok(consolidado);
         } catch (IllegalArgumentException e) {
+            logger.warn("Error al generar el consolidado: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(),
-                    e);
+            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
 
     /**
-     * Aprueba el consolidado, lo guarda en la base de datos y genera un archivo
-     * Excel.
+     * Aprueba un consolidado, lo guarda en la base de datos y genera un archivo Excel.
      *
      * @param idEvaluado         ID del evaluado.
      * @param idPeriodoAcademico (Opcional) ID del período académico.
@@ -153,10 +180,8 @@ public class ConsolidadoController {
             consolidadoService.aprobarConsolidado(idEvaluado, idPeriodoAcademico, nota);
             return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
         } catch (Exception e) {
-            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(),
-                    e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al aprobar el consolidado: " + e.getMessage());
+            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al aprobar el consolidado: " + e.getMessage());
         }
     }
 }

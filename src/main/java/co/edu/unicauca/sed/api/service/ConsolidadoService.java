@@ -7,8 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.model.*;
@@ -17,12 +17,19 @@ import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.utils.MathUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servicio para la generación y manejo de consolidados.
  */
 @Service
 public class ConsolidadoService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConsolidadoService.class);
 
     @Autowired
     private ConsolidadoRepository consolidadoRepository;
@@ -45,16 +52,26 @@ public class ConsolidadoService {
     @Autowired
     private ExcelService excelService;
 
-    // Métodos CRUD básicos
     /**
-     * Encuentra todos los consolidados disponibles.
+     * Encuentra todos los consolidados con soporte de paginación y ordenamiento.
      *
-     * @return Lista de consolidados.
+     * @param pageable       Objeto para definir la paginación (tamaño de página y
+     *                       número de página).
+     * @param ascendingOrder Define si el orden es ascendente (true) o descendente
+     *                       (false).
+     * @return Página de consolidados que coinciden con los criterios especificados.
+     * @throws Exception En caso de error al realizar la consulta.
      */
-    public List<Consolidado> findAll() {
-        List<Consolidado> list = new ArrayList<>();
-        consolidadoRepository.findAll().forEach(list::add);
-        return list;
+    public Page<Consolidado> findAll(Pageable pageable, Boolean ascendingOrder) {
+        try {
+            boolean order = (ascendingOrder != null) ? ascendingOrder : true;
+            Sort sort = order ? Sort.by("fechaCreacion").ascending() : Sort.by("fechaCreacion").descending();
+            Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+            return consolidadoRepository.findAll(sortedPageable);
+        } catch (Exception e) {
+            logger.error("Error al realizar la consulta paginada de consolidado: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -135,45 +152,51 @@ public class ConsolidadoService {
 
     // Lógica de negocio específica
     /**
-     * Genera un listado de consolidado para un usuario evaluado en un período académico.
+     * Genera un listado de consolidado para un usuario evaluado en un período
+     * académico.
      *
      * @param idEvaluado         ID del usuario evaluado.
      * @param idPeriodoAcademico ID del período académico.
      * @return Consolidado generado.
      */
     public ConsolidadoDTO generarConsolidado(Integer idEvaluado, Integer idPeriodoAcademico) {
-        Usuario evaluado = obtenerEvaluado(idEvaluado);
-        if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        try {
+            Usuario evaluado = obtenerEvaluado(idEvaluado);
+            if (idPeriodoAcademico == null) {
+                idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            }
+            List<Proceso> procesosEvaluados = obtenerProcesosEvaluados(evaluado, idPeriodoAcademico);
+            PeriodoAcademico periodoAcademico = obtenerPeriodoAcademico(procesosEvaluados);
+            UsuarioDetalle detalleUsuario = evaluado.getUsuarioDetalle();
+            List<Actividad> actividades = obtenerActividades(procesosEvaluados);
+            // Cálculo de totales
+            float totalHoras = calculoService.calcularTotalHoras(actividades);
+
+            // Agrupación y transformación de actividades
+            Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
+                    .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre())) // Ordenar por tipo de actividad
+                    .collect(Collectors.groupingBy(
+                            actividad -> actividad.getTipoActividad().getNombre(),
+                            Collectors.mapping(
+                                    actividad -> transformacionService.transformarActividad(actividad, totalHoras),
+                                    Collectors.toList())));
+            double totalPorcentaje = actividadesPorTipo.values().stream()
+                    .flatMap(List::stream)
+                    .mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
+                    .sum();
+
+            double totalAcumulado = actividadesPorTipo.values().stream()
+                    .flatMap(List::stream)
+                    .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
+                    .sum();
+
+            // Construcción del consolidado
+            return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras,
+                    totalPorcentaje, totalAcumulado);
+        } catch (Exception e) {
+            logger.error("Error al generar consolidado para evaluado ID: {}", idEvaluado, e);
+            throw e;
         }
-        List<Proceso> procesosEvaluados = obtenerProcesosEvaluados(evaluado, idPeriodoAcademico);
-        PeriodoAcademico periodoAcademico = obtenerPeriodoAcademico(procesosEvaluados);
-        UsuarioDetalle detalleUsuario = evaluado.getUsuarioDetalle();
-        List<Actividad> actividades = obtenerActividades(procesosEvaluados);
-        // Cálculo de totales
-        float totalHoras = calculoService.calcularTotalHoras(actividades);
-
-        // Agrupación y transformación de actividades
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
-                .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre())) // Ordenar por tipo de actividad
-                .collect(Collectors.groupingBy(
-                        actividad -> actividad.getTipoActividad().getNombre(),
-                        Collectors.mapping(
-                                actividad -> transformacionService.transformarActividad(actividad, totalHoras),
-                                Collectors.toList())));
-        double totalPorcentaje = actividadesPorTipo.values().stream()
-                .flatMap(List::stream)
-                .mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
-                .sum();
-
-        double totalAcumulado = actividadesPorTipo.values().stream()
-                .flatMap(List::stream)
-                .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
-                .sum();
-
-        // Construcción del consolidado
-        return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras,
-                totalPorcentaje, totalAcumulado);
     }
 
     /**
@@ -237,25 +260,21 @@ public class ConsolidadoService {
         int totalFuentes = actividadesPorTipo.values().stream().flatMap(List::stream)
                 .mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
 
-        int fuentesCompletadas = actividadesPorTipo.values().stream()
-                .flatMap(List::stream) // Stream<Map<String, Object>>
-                .flatMap(map -> {
-                    Object fuentes = map.get("fuentes"); // Obtener el valor asociado a "fuentes"
-                    if (fuentes instanceof List<?>) { // Validar que sea una lista
-                        @SuppressWarnings("unchecked")
-                        List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes; // Cambiar a FuenteDTO
-                        return fuentesList.stream(); // Stream<FuenteDTO>
-                    }
-                    return Stream.empty(); // Si no es una lista, devuelve un stream vacío
-                })
-                .mapToInt(fuente -> {
-                    // Validar y contar las fuentes con estado "Diligenciado"
-                    if ("Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) {
-                        return 1;
-                    }
-                    return 0;
-                })
-                .sum();
+        int fuentesCompletadas = actividadesPorTipo.values().stream().flatMap(List::stream).flatMap(map -> {
+            Object fuentes = map.get("fuentes"); // Obtener el valor asociado a "fuentes"
+            if (fuentes instanceof List<?>) { // Validar que sea una lista
+                @SuppressWarnings("unchecked")
+                List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes; // Cambiar a FuenteDTO
+                return fuentesList.stream(); // Stream<FuenteDTO>
+            }
+            return Stream.empty(); // Si no es una lista, devuelve un stream vacío
+        }).mapToInt(fuente -> {
+            // Validar y contar las fuentes con estado "Diligenciado"
+            if ("Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) {
+                return 1;
+            }
+            return 0;
+        }).sum();
 
         // Calcular porcentaje completado
         float porcentajeCompletado = MathUtils.calcularPorcentajeCompletado(totalFuentes, fuentesCompletadas);
