@@ -14,20 +14,19 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE}
 
 files:
-  basePath: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos
-
+  basePath: ${FILES_BASE_PATH}
 document:
-  upload-dir: C:/Users/jaibe/Documents/SED/SED-BACKEND/src/main/java/co/edu/unicauca/sed/archivos
+  upload-dir: ${DOCUMENT_UPLOAD_DIR}
 
 logging:
   level:
-    root: INFO
-    'co.edu.unicauca.sed.api': DEBUG
+    root: ${LOG_LEVEL_ROOT}
+    'co.edu.unicauca.sed.api': ${LOG_LEVEL_API}
   file:
-    name: logs/application.log
-    max-size: 10MB
-    max-history: 5
+    name: ${LOG_FILE_NAME}
+    max-size: ${LOG_FILE_MAX_SIZE}
+    max-history: ${LOG_FILE_MAX_HISTORY}
