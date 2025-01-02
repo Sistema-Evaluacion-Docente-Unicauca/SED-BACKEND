@@ -1,11 +1,9 @@
 package co.edu.unicauca.sed.api.repository;
 
 import java.util.Optional;
-
-import org.springframework.data.repository.CrudRepository;
-
+import org.springframework.data.jpa.repository.JpaRepository;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 
-public interface PeriodoAcademicoRepository extends CrudRepository<PeriodoAcademico, Integer> {
+public interface PeriodoAcademicoRepository extends JpaRepository<PeriodoAcademico, Integer> {
   Optional<PeriodoAcademico> findByEstado(Integer estado);
 }

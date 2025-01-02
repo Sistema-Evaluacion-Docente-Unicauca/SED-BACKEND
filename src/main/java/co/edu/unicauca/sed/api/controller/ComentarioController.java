@@ -1,8 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,29 +11,53 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.Page;
 import co.edu.unicauca.sed.api.model.Comentario;
 import co.edu.unicauca.sed.api.service.ComentarioService;
 
+/**
+ * Controlador para gestionar las operaciones relacionadas con los comentarios.
+ * Proporciona endpoints para operaciones CRUD y consulta de comentarios con paginación.
+ */
 @Controller
 @RequestMapping("comentario")
 public class ComentarioController {
+
     @Autowired
     private ComentarioService comentarioService;
 
+    /**
+     * Recupera todos los comentarios con paginación y ordenamiento.
+     *
+     * @param page           Número de página (por defecto 0).
+     * @param size           Tamaño de página (por defecto 10).
+     * @param ascendingOrder Indica si los comentarios deben ordenarse de forma ascendente (true) o descendente (false).
+     * @return Página de comentarios o código 204 si no hay contenido.
+     */
     @GetMapping("all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<?> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
         try {
-            List<Comentario> list = comentarioService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
+            Page<Comentario> comentarios = comentarioService.findAll(PageRequest.of(page, size), ascendingOrder);
+            if (comentarios.hasContent()) {
+                return ResponseEntity.ok().body(comentarios);
+            } else {
+                return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
-        return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Recupera un comentario específico por su ID.
+     *
+     * @param oid ID del comentario.
+     * @return Comentario encontrado o código 404 si no existe.
+     */
     @GetMapping("find/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Comentario resultado = this.comentarioService.findByOid(oid);
@@ -44,6 +67,12 @@ public class ComentarioController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Guarda un nuevo comentario o actualiza uno existente.
+     *
+     * @param comentario Objeto Comentario a guardar.
+     * @return Comentario guardado o código 500 si ocurre un error.
+     */
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Comentario comentario) {
         try {
@@ -59,6 +88,12 @@ public class ComentarioController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
+    /**
+     * Elimina un comentario por su ID.
+     *
+     * @param oid ID del comentario a eliminar.
+     * @return Código 200 si se elimina exitosamente, 404 si no se encuentra, o 409 si hay conflictos al eliminar.
+     */
     @DeleteMapping("delete/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Comentario comentario = null;
