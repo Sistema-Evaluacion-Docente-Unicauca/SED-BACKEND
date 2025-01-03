@@ -161,14 +161,17 @@ public class UsuarioController {
     public ResponseEntity<?> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
-            @RequestParam(required = false) String departamento) {
+            @RequestParam(required = false) String departamento,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes( idEvaluado, idPeriodoAcademico, departamento);
+            Page<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado, idPeriodoAcademico, departamento, PageRequest.of(page, size));
 
-            if (evaluaciones.isEmpty()) {
+            if (evaluaciones.hasContent()) {
+                return ResponseEntity.ok(evaluaciones);
+            } else {
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(evaluaciones);
         } catch (IllegalStateException e) {
             logger.warn("Error en los parámetros proporcionados: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());

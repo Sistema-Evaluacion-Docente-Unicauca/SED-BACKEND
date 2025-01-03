@@ -73,7 +73,7 @@ public class ActividadController {
      * @param ascendingOrder Indica si el orden es ascendente.
      * @return Página de actividades o un mensaje de error.
      */
-    @GetMapping("findAllInActivePeriods")
+    @GetMapping("buscarActividadesPorPeriodoActivo")
     public ResponseEntity<?> findAllInActivePeriods(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -133,7 +133,7 @@ public class ActividadController {
      * @param estadoPeriodo   Estado del período (opcional).
      * @return Página de actividades.
      */
-    @GetMapping("/findActivitiesByEvaluado")
+    @GetMapping("/buscarActividadesPorEvaluado")
     public ResponseEntity<?> listActivitiesByEvaluadoInActivePeriod(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -165,8 +165,7 @@ public class ActividadController {
     }
 
     /**
-     * Busca actividades asignadas a un evaluador en períodos activos con
-     * paginación.
+     * Busca actividades asignadas a un evaluador en períodos activos con paginación.
      *
      * @param idEvaluador     ID del evaluador (opcional).
      * @param idEvaluado      ID del evaluado (opcional).
@@ -182,7 +181,7 @@ public class ActividadController {
      * @param size            Tamaño de la página.
      * @return Página de actividades o un mensaje de error.
      */
-    @GetMapping("/findActivitiesByEvaluador")
+    @GetMapping("/buscarActividadesPorEvaluador")
     public ResponseEntity<?> listActivitiesByEvaluadorInActivePeriod(
             @RequestParam(required = false) Integer idEvaluador,
             @RequestParam(required = false) Integer idEvaluado,
@@ -284,7 +283,7 @@ public class ActividadController {
         }
 
         try {
-            actividadService.delete(oid); // Tries to delete the activity
+            actividadService.delete(oid);
         } catch (Exception e) {
             logger.error("Error al eliminar actividad con ID {}: {}", oid, e.getMessage(), e);
             e.printStackTrace();
