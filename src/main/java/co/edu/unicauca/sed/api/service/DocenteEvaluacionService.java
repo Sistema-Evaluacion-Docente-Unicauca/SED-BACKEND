@@ -8,6 +8,9 @@ import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,31 +36,25 @@ public class DocenteEvaluacionService {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes.
      */
-    public List<DocenteEvaluacionDTO> obtenerEvaluacionDocentes(Integer idEvaluado, Integer idPeriodoAcademico,
-            String departamento) {
+    public Page<DocenteEvaluacionDTO> obtenerEvaluacionDocentes(Integer idEvaluado, Integer idPeriodoAcademico,
+            String departamento, Pageable pageable) {
         if (idPeriodoAcademico == null) {
             idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         }
 
-        final Integer periodoFinal = idPeriodoAcademico; // Hacerlo efectivamente final
+        final Integer periodoFinal = idPeriodoAcademico;
 
-        // Obtener lista de evaluados según los filtros
         List<Usuario> evaluados = obtenerUsuariosEvaluados(idEvaluado, idPeriodoAcademico);
 
-        // Aplicar filtro por departamento si es proporcionado
         if (departamento != null) {
             evaluados = filtrarPorDepartamento(evaluados, departamento);
-
-            // Si no hay evaluados y es el único filtro proporcionado
             if (evaluados.isEmpty() && idEvaluado == null) {
                 throw new IllegalArgumentException("No se encontraron docentes para el departamento: " + departamento);
             }
         }
 
-        // Transformar los usuarios en DocenteEvaluacionDTO
-        return evaluados.stream()
+        List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
                 .map(evaluado -> {
-                    // Obtener actividades asociadas al evaluado
                     List<Actividad> actividades = procesoRepository
                             .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
                                     evaluado.getOidUsuario(), periodoFinal)
@@ -65,10 +62,16 @@ public class DocenteEvaluacionService {
                             .flatMap(proceso -> proceso.getActividades().stream())
                             .collect(Collectors.toList());
 
-                    // Transformar Usuario y Actividades a DTO
                     return DocenteEvaluacionMapper.toDto(evaluado, actividades);
                 })
                 .collect(Collectors.toList());
+
+        // Implementar paginación manual
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
+        List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
+
+        return new PageImpl<>(paginatedList, pageable, evaluacionDTOs.size());
     }
 
     /**
