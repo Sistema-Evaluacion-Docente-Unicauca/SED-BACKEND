@@ -93,8 +93,8 @@ public class FuenteController {
         fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
         logger.info("Fuente guardada exitosamente");
         return ResponseEntity.ok("Archivos procesados correctamente");
-    } catch (IOException e) {
-        logger.error("Error al procesar los archivos: {}", e.getMessage(), e);
+    } catch (Exception e) {
+        logger.debug("Error al procesar los archivos: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
     }
 }

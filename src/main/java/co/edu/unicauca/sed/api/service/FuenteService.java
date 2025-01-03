@@ -2,6 +2,7 @@ package co.edu.unicauca.sed.api.service;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class FuenteService {
@@ -40,7 +43,15 @@ public class FuenteService {
     private FileService fileService;
 
     @Autowired
-    private EstadoFuenteService estadoFuenteService;
+    private FuenteBusinessService businessService;
+
+    @Autowired
+    private FuenteFileService fuenteFileService;
+
+    @Autowired
+    private FuenteIntegrationService integrationService;
+
+    private static final Logger logger = LoggerFactory.getLogger(FuenteService.class);
 
     @Value("${document.upload-dir}")
     private String uploadDir;
@@ -113,133 +124,32 @@ public class FuenteService {
     /**
      * Guarda múltiples fuentes junto con sus archivos asociados.
      *
-     * @param sourcesJson   JSON con los datos de las fuentes.
+     * @param sourcesJson   JSON que contiene los datos de las fuentes.
      * @param informeFuente Archivo común asociado a las fuentes.
      * @param observation   Observación general.
      * @param allFiles      Archivos adicionales para manejar.
-     * @throws IOException Si ocurre un error al manejar los archivos.
      */
     public void saveSource(String sourcesJson, MultipartFile informeFuente, String observation,
-            Map<String, MultipartFile> allFiles) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<FuenteCreateDTO> sources = objectMapper.readValue(sourcesJson, new TypeReference<List<FuenteCreateDTO>>() {
-        });
+            Map<String, MultipartFile> allFiles) {
+        try {
+            // Delegar la deserialización del JSON al servicio de integración
+            List<FuenteCreateDTO> sources = integrationService.parseSourcesJson(sourcesJson);
 
-        // Filtrar archivos adicionales excluyendo informeFuente
-        Map<String, MultipartFile> informeEjecutivoFiles = allFiles != null
-                ? allFiles.entrySet().stream().filter(entry -> !entry.getKey().equals("informeFuente"))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                : Map.of();
-
-        Path commonFilePath = null;
-        String commonFileName = null;
-
-        for (FuenteCreateDTO sourceDTO : sources) {
-            // Obtener la actividad asociada
-            Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
-
-            // Obtener el período académico y el evaluado dinámicamente desde la actividad
-            String academicPeriod = activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
-            String evaluatedName = activity.getProceso().getEvaluado().getNombres() + "_"
-                    + activity.getProceso().getEvaluado().getApellidos();
-            evaluatedName = evaluatedName.replaceAll("\\s+", "_");
-
-            // Manejar el archivo fuente (informeFuente)
-            if (informeFuente != null) {
-                // Guardar el archivo fuente en una ruta dinámica
-                commonFilePath = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, PREFIJO_FUENTE);
-                commonFileName = informeFuente.getOriginalFilename();
-            }
-
-            // Busca si ya existe una fuente asociada para reemplazar o actualizar
-            Optional<Fuente> optionalFuente = fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente());
-            Fuente source = optionalFuente.orElse(new Fuente());
-
-            // Eliminar archivos antiguos si se modifican
-            if (optionalFuente.isPresent()) {
-                Fuente existingSource = optionalFuente.get();
-
-                // Eliminar archivo fuente si se proporciona uno nuevo
-                if (informeFuente != null && existingSource.getRutaDocumentoFuente() != null) {
-                    fileService.deleteFile(existingSource.getRutaDocumentoFuente());
-                }
-
-                // Eliminar informe ejecutivo si se proporciona uno nuevo o si se vacía el campo
-                if (sourceDTO.getInformeEjecutivo() != null) {
-                    if (!sourceDTO.getInformeEjecutivo().equals(existingSource.getNombreDocumentoInforme())) {
-                        fileService.deleteFile(existingSource.getRutaDocumentoInforme());
-                    }
-                }
-            }
-
-            // Manejar el informe ejecutivo
-            String executiveReportName = sourceDTO.getInformeEjecutivo();
-            Path executiveReportPath = null;
-
-            if (executiveReportName != null && !executiveReportName.isEmpty()) {
-                Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream().filter(file -> file.getOriginalFilename().equalsIgnoreCase(executiveReportName)).findFirst();
-
-                if (matchedFile.isPresent()) {
-                    // Guardar informe ejecutivo en una ruta dinámica
-                    executiveReportPath = fileService.saveFile(matchedFile.get(), academicPeriod, evaluatedName, PREFIJO_INFORME);
-                }
-            }
-
-            EstadoFuente stateSource;
-
-            if (source.getEstadoFuente() != null && source.getEstadoFuente().getOidEstadoFuente() == 1) {
-                // Si el estado actual es 1, lo actualizamos a 2
-                stateSource = estadoFuenteService.createEstadoFuente(ESTADO_DILIGENCIADO);
-            } else if (source.getEstadoFuente() != null) {
-                // Si el estado no es null y no es 1, mantenemos el valor actual
-                stateSource = source.getEstadoFuente();
+            // Validar si existe alguna fuente tipo 1 para filtrar archivos adicionales
+            Map<String, MultipartFile> informeEjecutivoFiles = null;
+            if (sources.stream().anyMatch(source -> "1".equals(source.getTipoFuente()))) {
+                informeEjecutivoFiles = integrationService.filterExecutiveFiles(allFiles);
             } else {
-                // Si el estado es null, lo configuramos a 2 (estado diligenciado)
-                stateSource = estadoFuenteService.createEstadoFuente(ESTADO_DILIGENCIADO);
+                logger.info("No se encontraron fuentes tipo 1, no se procesarán archivos adicionales");
             }
 
-            // Asigna valores actualizados o nuevos a la fuente
-            assignSourceValues(source, sourceDTO, commonFileName, commonFilePath, observation, stateSource, activity, executiveReportName, executiveReportPath);
-
-            fuenteRepository.save(source);
-        }
-    }
-
-    /**
-     * Asigna valores a una entidad Fuente, actualizando o configurando información como el estado, actividad, y archivos asociados.
-     *
-     * @param source              La entidad Fuente a modificar.
-     * @param sourceDTO           Datos provenientes del DTO.
-     * @param commonFileName      Nombre del archivo común asociado.
-     * @param commonFilePath      Ruta del archivo común.
-     * @param observation         Observación a asociar.
-     * @param stateSource         Estado de la fuente.
-     * @param activity            Actividad vinculada.
-     * @param executiveReportName Nombre del informe ejecutivo.
-     * @param executiveReportPath Ruta del informe ejecutivo.
-     */
-    private void assignSourceValues(Fuente source, FuenteCreateDTO sourceDTO, String commonFileName,
-            Path commonFilePath, String observation, EstadoFuente stateSource,
-            Actividad activity, String executiveReportName, Path executiveReportPath) {
-        source.setTipoFuente(sourceDTO.getTipoFuente());
-        source.setCalificacion(sourceDTO.getCalificacion());
-
-        // Asignar nombre y ruta del documento fuente
-        source.setNombreDocumentoFuente(commonFileName); // Asignar el nombre del archivo fuente
-        source.setRutaDocumentoFuente(commonFilePath != null ? commonFilePath.toString() : null); // Asignar ruta
-
-        source.setObservacion(observation);
-        source.setActividad(activity);
-        source.setEstadoFuente(stateSource);
-
-        // Manejar el informe ejecutivo
-        if (executiveReportName != null && !executiveReportName.isEmpty()) {
-            source.setNombreDocumentoInforme(executiveReportName);
-            source.setRutaDocumentoInforme(executiveReportPath != null ? executiveReportPath.toString() : null);
-        } else {
-            // Si el informe ejecutivo viene vacío, limpiar los valores
-            source.setNombreDocumentoInforme(null);
-            source.setRutaDocumentoInforme(null);
+            // Delegar el procesamiento de cada fuente al servicio de negocio
+            for (FuenteCreateDTO sourceDTO : sources) {
+                businessService.processSource(sourceDTO, informeFuente, observation, informeEjecutivoFiles);
+            }
+        } catch (Exception e) {
+            logger.error("Error al guardar fuentes", e);
+            throw new RuntimeException("Error durante la operación de guardar fuentes: " + e.getMessage(), e);
         }
     }
 
