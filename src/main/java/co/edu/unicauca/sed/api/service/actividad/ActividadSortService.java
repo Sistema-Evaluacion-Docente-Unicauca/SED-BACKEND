@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import org.springframework.stereotype.Service;

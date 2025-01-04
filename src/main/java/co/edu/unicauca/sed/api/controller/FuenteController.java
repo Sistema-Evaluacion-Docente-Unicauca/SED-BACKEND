@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import co.edu.unicauca.sed.api.model.Fuente;
-import co.edu.unicauca.sed.api.service.FuenteService;
+import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 
 /**
  * Controlador para la gestión de las fuentes (Fuentes).
