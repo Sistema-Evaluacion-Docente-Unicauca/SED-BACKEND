@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.fuente;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +17,10 @@ import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
+import co.edu.unicauca.sed.api.service.DocumentoService;
+import co.edu.unicauca.sed.api.service.FileService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadService;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.Optional;

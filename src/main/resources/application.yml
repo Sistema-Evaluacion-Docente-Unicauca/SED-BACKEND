@@ -30,3 +30,5 @@ logging:
     name: ${LOG_FILE_NAME}
     max-size: ${LOG_FILE_MAX_SIZE}
     max-history: ${LOG_FILE_MAX_HISTORY}
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"

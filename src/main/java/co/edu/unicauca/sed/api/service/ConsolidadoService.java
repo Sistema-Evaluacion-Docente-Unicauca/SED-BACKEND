@@ -15,6 +15,8 @@ import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
 import co.edu.unicauca.sed.api.utils.MathUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;

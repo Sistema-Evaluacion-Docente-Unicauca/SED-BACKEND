@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.actividad;
 
 import java.util.Comparator;
 import java.util.List;
