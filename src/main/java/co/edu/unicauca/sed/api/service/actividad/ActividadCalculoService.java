@@ -18,7 +18,7 @@ public class ActividadCalculoService {
      */
     public float calcularTotalHoras(List<co.edu.unicauca.sed.api.model.Actividad> actividades) {
         return (float) actividades.stream()
-                .mapToDouble(co.edu.unicauca.sed.api.model.Actividad::getHoras)
+                .mapToDouble(co.edu.unicauca.sed.api.model.Actividad::getHorasSemanales)
                 .sum();
     }
 

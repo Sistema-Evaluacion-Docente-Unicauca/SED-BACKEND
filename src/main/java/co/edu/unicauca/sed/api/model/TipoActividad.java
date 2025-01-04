@@ -22,9 +22,6 @@ public class TipoActividad {
     @Column(name = "NOMBRE", nullable = false)
     private String nombre;
 
-    @Column(name = "HORASTOTALES", nullable = false)
-    private Float horasTotales;
-
     @Column(name = "DESCRIPCION", nullable = false)
     private String descripcion;
 }
