@@ -50,9 +50,10 @@ public class UsuarioController {
             @RequestParam(required = false) String contratacion,
             @RequestParam(required = false) String dedicacion,
             @RequestParam(required = false) String estudios,
-            @RequestParam(required = false) String rol) {
+            @RequestParam(required = false) String rol,
+            @RequestParam(required = false) Short estado) {
         try {
-            Page<Usuario> usuarios = usuarioService.findAll(facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, PageRequest.of(page, size));
+            Page<Usuario> usuarios = usuarioService.findAll(facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
             if (usuarios.hasContent()) {
                 return ResponseEntity.ok().body(usuarios);
             } else {
@@ -64,7 +65,6 @@ public class UsuarioController {
             return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
         }
     }
-
 
     /**
      * Busca un usuario específico por su ID.
