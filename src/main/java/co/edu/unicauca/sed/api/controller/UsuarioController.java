@@ -10,6 +10,7 @@ import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.UsuarioService;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -42,11 +43,18 @@ public class UsuarioController {
     @GetMapping("all")
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String facultad,
+            @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) String contratacion,
+            @RequestParam(required = false) String dedicacion,
+            @RequestParam(required = false) String estudios,
+            @RequestParam(required = false) String rol) {
         try {
-            Page<Usuario> paginatedList = usuarioService.findAll(PageRequest.of(page, size));
-            if (paginatedList.hasContent()) {
-                return ResponseEntity.ok().body(paginatedList);
+            Page<Usuario> usuarios = usuarioService.findAll(facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, PageRequest.of(page, size));
+            if (usuarios.hasContent()) {
+                return ResponseEntity.ok().body(usuarios);
             } else {
                 logger.warn("No se encontraron usuarios en la página solicitada.");
                 return ResponseEntity.noContent().build();
@@ -80,25 +88,24 @@ public class UsuarioController {
     }
 
     /**
-     * Guarda un nuevo usuario en el sistema.
+     * Guarda uno o varios usuarios en el sistema.
      * 
-     * @param usuario Objeto que contiene los datos del usuario a guardar.
-     * @return Usuario guardado o un mensaje de error si ocurre algún problema.
+     * @param usuarios Lista de objetos Usuario a guardar.
+     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún  problema.
      */
     @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> save(@RequestBody List<Usuario> usuarios) {
         try {
-            Usuario resultado = usuarioService.save(usuario);
-
-            if (resultado != null) {
+            List<Usuario> resultado = usuarioService.save(usuarios);
+            if (resultado != null && !resultado.isEmpty()) {
                 return ResponseEntity.ok().body(resultado);
             }
         } catch (Exception e) {
-            logger.error("Error al guardar el usuario: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
+            logger.error("Error al guardar los usuarios: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        logger.warn("El usuario no se pudo guardar. Resultado nulo.");
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+        logger.warn("No se pudieron guardar los usuarios. Resultado nulo o vacío.");
+        return ResponseEntity.internalServerError().body("Error: Resultado nulo o vacío.");
     }
 
     /**
