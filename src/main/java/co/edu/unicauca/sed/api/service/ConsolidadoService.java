@@ -193,8 +193,7 @@ public class ConsolidadoService {
                     .sum();
 
             // Construcción del consolidado
-            return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras,
-                    totalPorcentaje, totalAcumulado);
+            return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
         } catch (Exception e) {
             logger.error("Error al generar consolidado para evaluado ID: {}", idEvaluado, e);
             throw e;

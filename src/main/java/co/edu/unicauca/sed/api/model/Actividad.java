@@ -24,8 +24,11 @@ public class Actividad {
     @Column(name = "NOMBRE", nullable = false)
     private String nombre;
 
-    @Column(name = "HORAS", nullable = false)
-    private Float horas;
+    @Column(name = "HORASSEMANALES", nullable = false)
+    private Float horasSemanales;
+
+    @Column(name = "HORASTOTALES", nullable = false)
+    private Float horasTotales;
 
     @Column(name = "INFORMEEJECUTIVO", nullable = false)
     private Boolean informeEjecutivo;

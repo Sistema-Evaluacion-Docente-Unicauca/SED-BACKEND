@@ -66,7 +66,6 @@ public class DocenteEvaluacionService {
                 })
                 .collect(Collectors.toList());
 
-        // Implementar paginación manual
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
         List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
