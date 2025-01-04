@@ -28,7 +28,7 @@ public class UsuarioService {
     private RolRepository rolRepository;
 
     public Page<Usuario> findAll(String facultad, String departamento, String categoria, String contratacion,
-    String dedicacion, String estudios, String rol, Pageable pageable) {
+    String dedicacion, String estudios, String rol, Short estado, Pageable pageable) {
         Specification<Usuario> spec = Specification.where(null);
 
         if (facultad != null) {
@@ -58,6 +58,10 @@ public class UsuarioService {
         if (rol != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
+        }
+        if (estado != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("estado"), estado));
         }
 
         return usuarioRepository.findAll(spec, pageable);
