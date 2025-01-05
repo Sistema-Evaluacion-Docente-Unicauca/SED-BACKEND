@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import co.edu.unicauca.sed.api.dto.CatalogoDTO;
 import co.edu.unicauca.sed.api.model.Rol;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.UsuarioDetalle;
