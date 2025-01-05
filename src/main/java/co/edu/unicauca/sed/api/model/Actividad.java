@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "ACTIVIDAD")
@@ -47,6 +48,7 @@ public class Actividad {
 
     @ManyToOne
     @JoinColumn(name = "OIDPROCESO", nullable = false)
+    @JsonIgnore
     private Proceso proceso;
 
     @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

@@ -1,12 +1,15 @@
 package co.edu.unicauca.sed.api.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
+import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ProcesoService {
@@ -14,10 +17,23 @@ public class ProcesoService {
     @Autowired
     private ProcesoRepository procesoRepository;
 
-    public List<Proceso> findAll() {
-        List<Proceso> list = new ArrayList<>();
-        this.procesoRepository.findAll().forEach(list::add);
-        return list;
+    @Autowired
+    private PeriodoAcademicoService periodoAcademicoService;
+
+    public Page<Proceso> findAll(
+            Integer evaluadorId, Integer evaluadoId, Integer idPeriodo,
+            String nombreProceso, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
+            int page, int size) {
+
+        if (idPeriodo == null) {
+            idPeriodo = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        }
+        Pageable pageable = PageRequest.of(page, size);
+
+        return procesoRepository.findAll(
+                ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,
+                        fechaActualizacion),
+                pageable);
     }
 
     public Proceso findByOid(Integer oid) {
@@ -28,16 +44,6 @@ public class ProcesoService {
         }
 
         return null;
-    }
-
-    // Método para obtener los procesos de un evaluado
-    public List<Proceso> getProcessesByEvaluated(Integer oidUsuario) {
-        return this.procesoRepository.findByEvaluado_OidUsuario(oidUsuario);
-    }
-
-    // Método para obtener los procesos de un evaluado que están en un periodo activo
-    public List<Proceso> getProcessesByEvaluatedAndActivePeriod(Integer oidUsuario) {
-        return procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_Estado(oidUsuario, 1);
     }
 
     public Proceso save(Proceso proceso) {
@@ -54,6 +60,22 @@ public class ProcesoService {
         return result;
     }
 
+    public Proceso update(Integer oid, Proceso proceso) {
+        Proceso existingProceso = procesoRepository.findById(oid).orElse(null);
+        if (existingProceso != null) {
+            existingProceso.setEvaluador(proceso.getEvaluador());
+            existingProceso.setEvaluado(proceso.getEvaluado());
+            existingProceso.setOidPeriodoAcademico(proceso.getOidPeriodoAcademico());
+            existingProceso.setNombreProceso(proceso.getNombreProceso().toUpperCase());
+            existingProceso.setResolucion(proceso.getResolucion());
+            existingProceso.setOficio(proceso.getOficio());
+            existingProceso.setConsolidado(proceso.getConsolidado());
+            existingProceso.setActividades(proceso.getActividades());
+            return procesoRepository.save(existingProceso);
+        }
+        return null;
+    }
+    
     public void delete(Integer oid) {
         this.procesoRepository.deleteById(oid);
     }
