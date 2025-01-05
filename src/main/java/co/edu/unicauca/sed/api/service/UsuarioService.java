@@ -32,36 +32,28 @@ public class UsuarioService {
         Specification<Usuario> spec = Specification.where(null);
 
         if (facultad != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("facultad"), facultad));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("facultad"), facultad));
         }
         if (departamento != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("departamento"), departamento));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("departamento"), departamento));
         }
         if (categoria != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("categoria"), categoria));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("categoria"), categoria));
         }
         if (contratacion != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("contratacion"), contratacion));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("contratacion"), contratacion));
         }
         if (dedicacion != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("dedicacion"), dedicacion));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("dedicacion"), dedicacion));
         }
         if (estudios != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("usuarioDetalle").get("estudios"), estudios));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("estudios"), estudios));
         }
         if (rol != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
         }
         if (estado != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("estado"), estado));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("estado"), estado));
         }
 
         return usuarioRepository.findAll(spec, pageable);
@@ -90,14 +82,37 @@ public class UsuarioService {
                 usuario.setApellidos(usuario.getApellidos().toUpperCase());
             }
             // Verificar si UsuarioDetalle ya existe
+            // Verificar y convertir los campos de UsuarioDetalle
             if (usuario.getUsuarioDetalle() != null) {
-                UsuarioDetalle usuarioDetalleExistente = usuarioDetalleRepository
-                        .findByIdentificacion(usuario.getUsuarioDetalle().getIdentificacion());
+                UsuarioDetalle usuarioDetalle = usuario.getUsuarioDetalle();
+
+                // Convertir los campos de UsuarioDetalle a mayúsculas
+                if (usuarioDetalle.getFacultad() != null) {
+                    usuarioDetalle.setFacultad(usuarioDetalle.getFacultad().toUpperCase());
+                }
+                if (usuarioDetalle.getDepartamento() != null) {
+                    usuarioDetalle.setDepartamento(usuarioDetalle.getDepartamento().toUpperCase());
+                }
+                if (usuarioDetalle.getCategoria() != null) {
+                    usuarioDetalle.setCategoria(usuarioDetalle.getCategoria().toUpperCase());
+                }
+                if (usuarioDetalle.getContratacion() != null) {
+                    usuarioDetalle.setContratacion(usuarioDetalle.getContratacion().toUpperCase());
+                }
+                if (usuarioDetalle.getDedicacion() != null) {
+                    usuarioDetalle.setDedicacion(usuarioDetalle.getDedicacion().toUpperCase());
+                }
+                if (usuarioDetalle.getEstudios() != null) {
+                    usuarioDetalle.setEstudios(usuarioDetalle.getEstudios().toUpperCase());
+                }
+
+                // Verificar si UsuarioDetalle ya existe
+                UsuarioDetalle usuarioDetalleExistente = usuarioDetalleRepository.findByIdentificacion(usuarioDetalle.getIdentificacion());
 
                 if (usuarioDetalleExistente != null) {
                     usuario.setUsuarioDetalle(usuarioDetalleExistente);
                 } else {
-                    usuarioDetalleRepository.save(usuario.getUsuarioDetalle());
+                    usuarioDetalleRepository.save(usuarioDetalle);
                 }
             }
 
@@ -105,8 +120,7 @@ public class UsuarioService {
             List<Rol> rolesPersistidos = new ArrayList<>();
             for (Rol rol : usuario.getRoles()) {
                 if (rol.getOid() != null) {
-                    Rol rolExistente = rolRepository.findById(rol.getOid())
-                            .orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
+                    Rol rolExistente = rolRepository.findById(rol.getOid()).orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
                     rolesPersistidos.add(rolExistente);
                 } else {
                     Rol nuevoRol = rolRepository.save(rol);
@@ -128,22 +142,44 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
 
         // Actualizar datos básicos
-        usuarioExistente.setNombres(usuarioActualizado.getNombres());
-        usuarioExistente.setApellidos(usuarioActualizado.getApellidos());
+        usuarioExistente.setNombres(usuarioActualizado.getNombres().toUpperCase());
+        usuarioExistente.setApellidos(usuarioActualizado.getApellidos().toUpperCase());
         usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
         usuarioExistente.setEstado(usuarioActualizado.getEstado());
 
         // Actualizar o asociar UsuarioDetalle
         if (usuarioActualizado.getUsuarioDetalle() != null) {
-            if (usuarioActualizado.getUsuarioDetalle().getOidUsuarioDetalle() != null) {
+            UsuarioDetalle usuarioDetalle = usuarioActualizado.getUsuarioDetalle();
+        
+            // Convertir los campos a mayúsculas
+            if (usuarioDetalle.getFacultad() != null) {
+                usuarioDetalle.setFacultad(usuarioDetalle.getFacultad().toUpperCase());
+            }
+            if (usuarioDetalle.getDepartamento() != null) {
+                usuarioDetalle.setDepartamento(usuarioDetalle.getDepartamento().toUpperCase());
+            }
+            if (usuarioDetalle.getCategoria() != null) {
+                usuarioDetalle.setCategoria(usuarioDetalle.getCategoria().toUpperCase());
+            }
+            if (usuarioDetalle.getContratacion() != null) {
+                usuarioDetalle.setContratacion(usuarioDetalle.getContratacion().toUpperCase());
+            }
+            if (usuarioDetalle.getDedicacion() != null) {
+                usuarioDetalle.setDedicacion(usuarioDetalle.getDedicacion().toUpperCase());
+            }
+            if (usuarioDetalle.getEstudios() != null) {
+                usuarioDetalle.setEstudios(usuarioDetalle.getEstudios().toUpperCase());
+            }
+        
+            if (usuarioDetalle.getOidUsuarioDetalle() != null) {
                 UsuarioDetalle usuarioDetalleExistente = usuarioDetalleRepository
-                        .findById(usuarioActualizado.getUsuarioDetalle().getOidUsuarioDetalle())
-                        .orElseThrow(() -> new RuntimeException("UsuarioDetalle no encontrado con OID: "
-                                + usuarioActualizado.getUsuarioDetalle().getOidUsuarioDetalle()));
+                        .findById(usuarioDetalle.getOidUsuarioDetalle())
+                        .orElseThrow(() -> new RuntimeException("UsuarioDetalle no encontrado con OID: " 
+                                + usuarioDetalle.getOidUsuarioDetalle()));
                 usuarioExistente.setUsuarioDetalle(usuarioDetalleExistente);
             } else {
-                usuarioDetalleRepository.save(usuarioActualizado.getUsuarioDetalle());
-                usuarioExistente.setUsuarioDetalle(usuarioActualizado.getUsuarioDetalle());
+                usuarioDetalleRepository.save(usuarioDetalle);
+                usuarioExistente.setUsuarioDetalle(usuarioDetalle);
             }
         }
 

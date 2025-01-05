@@ -35,6 +35,12 @@ public class TipoActividadService {
     public TipoActividad save(TipoActividad tipoActividad) {
         TipoActividad result = null;
         try {
+            if (tipoActividad.getDescripcion() != null) {
+                tipoActividad.setDescripcion(tipoActividad.getDescripcion().toUpperCase());
+            }
+            if (tipoActividad.getNombre() != null) {
+                tipoActividad.setNombre(tipoActividad.getNombre().toUpperCase());
+            }
             result = this.tipoActividadRepository.save(tipoActividad);
         } catch (Exception e) {
             e.printStackTrace();

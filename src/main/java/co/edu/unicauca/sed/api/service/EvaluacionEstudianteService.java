@@ -44,6 +44,9 @@ public class EvaluacionEstudianteService {
     public EvaluacionEstudiante save(EvaluacionEstudiante evaluacionEstudiante) {
         EvaluacionEstudiante result = null;
         try {
+            if (evaluacionEstudiante.getObservacion() != null) {
+                evaluacionEstudiante.setObservacion(evaluacionEstudiante.getObservacion().toUpperCase());
+            }
             result = this.evaluacionEstudianteRepository.save(evaluacionEstudiante);
         } catch (Exception e) {
             e.printStackTrace();

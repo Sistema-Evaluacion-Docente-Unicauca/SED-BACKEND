@@ -34,6 +34,9 @@ public class PreguntaService {
     public Pregunta save(Pregunta pregunta) {
         Pregunta result = null;
         try {
+            if (pregunta.getPregunta() != null) {
+                pregunta.setPregunta(pregunta.getPregunta().toUpperCase());
+            }
             result = this.preguntaRepository.save(pregunta);
         } catch (Exception e) {
             e.printStackTrace();

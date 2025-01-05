@@ -123,7 +123,7 @@ public class ActividadService {
         // Actualizar los campos de la actividad existente
         actividadExistente.setCodigoActividad(actividad.getCodigoActividad());
         actividadExistente.setNombre(actividad.getNombre());
-        actividadExistente.setHoras(actividad.getHorasSemanales());
+        actividadExistente.setHorasSemanales(actividad.getHorasSemanales());
         actividadExistente.setInformeEjecutivo(actividad.getInformeEjecutivo());
         actividadExistente.setTipoActividad(actividad.getTipoActividad());
         actividadExistente.setProceso(actividad.getProceso());
