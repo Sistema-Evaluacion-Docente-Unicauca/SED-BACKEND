@@ -34,6 +34,9 @@ public class EstadoActividadService {
     public EstadoActividad save(EstadoActividad estadoActividad) {
         EstadoActividad result = null;
         try {
+            if (estadoActividad.getNombreEstado() != null) {
+                estadoActividad.setNombreEstado(estadoActividad.getNombreEstado().toUpperCase());
+            }
             result = this.estadoActividadRepository.save(estadoActividad);
         } catch (Exception e) {
             e.printStackTrace();

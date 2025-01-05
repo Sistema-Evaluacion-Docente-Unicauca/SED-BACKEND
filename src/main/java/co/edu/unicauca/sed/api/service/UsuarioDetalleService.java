@@ -35,6 +35,25 @@ public class UsuarioDetalleService {
 
     @Transactional
     public UsuarioDetalle save(UsuarioDetalle usuarioDetalle) {
+        // Convertir los campos de UsuarioDetalle a mayúsculas
+        if (usuarioDetalle.getFacultad() != null) {
+            usuarioDetalle.setFacultad(usuarioDetalle.getFacultad().toUpperCase());
+        }
+        if (usuarioDetalle.getDepartamento() != null) {
+            usuarioDetalle.setDepartamento(usuarioDetalle.getDepartamento().toUpperCase());
+        }
+        if (usuarioDetalle.getCategoria() != null) {
+            usuarioDetalle.setCategoria(usuarioDetalle.getCategoria().toUpperCase());
+        }
+        if (usuarioDetalle.getContratacion() != null) {
+            usuarioDetalle.setContratacion(usuarioDetalle.getContratacion().toUpperCase());
+        }
+        if (usuarioDetalle.getDedicacion() != null) {
+            usuarioDetalle.setDedicacion(usuarioDetalle.getDedicacion().toUpperCase());
+        }
+        if (usuarioDetalle.getEstudios() != null) {
+            usuarioDetalle.setEstudios(usuarioDetalle.getEstudios().toUpperCase());
+        }
         return usuarioDetalleRepository.save(usuarioDetalle);
     }
 

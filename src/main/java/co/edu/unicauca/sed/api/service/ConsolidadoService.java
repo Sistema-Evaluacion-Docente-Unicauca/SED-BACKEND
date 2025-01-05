@@ -137,7 +137,7 @@ public class ConsolidadoService {
                 Consolidado consolidado = consolidadoOpt.get();
                 consolidado.setNombredocumento(datosActualizar.getNombredocumento());
                 consolidado.setRutaDocumento(datosActualizar.getRutaDocumento());
-                consolidado.setNota(datosActualizar.getNota());
+                consolidado.setNota(datosActualizar.getNota().toUpperCase());
                 consolidadoRepository.save(consolidado);
             }
         }
@@ -212,8 +212,7 @@ public class ConsolidadoService {
      * Obtiene los procesos evaluados de un usuario en un período académico.
      */
     private List<Proceso> obtenerProcesosEvaluados(Usuario evaluado, Integer idPeriodoAcademico) {
-        List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado,
-                idPeriodoAcademico);
+        List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado, idPeriodoAcademico);
         if (procesos.isEmpty()) {
             throw new IllegalArgumentException("No hay procesos para el evaluado en el período académico.");
         }
@@ -297,6 +296,10 @@ public class ConsolidadoService {
 
         if (idPeriodoAcademico == null) {
             idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        }
+
+        if (nota != null) {
+            nota = nota.toUpperCase();
         }
 
         String nombreDocumento = "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-"

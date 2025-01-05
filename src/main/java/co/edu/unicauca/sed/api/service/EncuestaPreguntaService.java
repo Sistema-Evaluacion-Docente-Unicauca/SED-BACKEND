@@ -4,7 +4,6 @@ import co.edu.unicauca.sed.api.model.EncuestaPregunta;
 import co.edu.unicauca.sed.api.repository.EncuestaPreguntaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -26,7 +25,6 @@ public class EncuestaPreguntaService {
     }
 
     public EncuestaPregunta save(EncuestaPregunta encuestaPregunta, Integer oidEncuesta, Integer oidPregunta) {
-        // Implementar lógica adicional si es necesario
         return encuestaPreguntaRepository.save(encuestaPregunta);
     }
 

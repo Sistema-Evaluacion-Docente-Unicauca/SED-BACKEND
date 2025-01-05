@@ -37,13 +37,15 @@ public class ProcesoService {
 
     // Método para obtener los procesos de un evaluado que están en un periodo activo
     public List<Proceso> getProcessesByEvaluatedAndActivePeriod(Integer oidUsuario) {
-        // Estado 1 = Activo
         return procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_Estado(oidUsuario, 1);
     }
 
     public Proceso save(Proceso proceso) {
         Proceso result = null;
         try {
+            if (proceso.getNombreProceso() != null) {
+                proceso.setNombreProceso(proceso.getNombreProceso().toUpperCase());
+            }
             result = this.procesoRepository.save(proceso);
         } catch (Exception e) {
             e.printStackTrace();

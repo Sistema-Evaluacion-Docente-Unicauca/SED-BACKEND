@@ -52,6 +52,9 @@ public class EncuestaService {
     public Encuesta save(Encuesta encuesta) {
         Encuesta result = null;
         try {
+            if (encuesta.getNombre() != null) {
+                encuesta.setNombre(encuesta.getNombre().toUpperCase());
+            }
             result = this.encuestaRepository.save(encuesta);
         } catch (Exception e) {
             e.printStackTrace();

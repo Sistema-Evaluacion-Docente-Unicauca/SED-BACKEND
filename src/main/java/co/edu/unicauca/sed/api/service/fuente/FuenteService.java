@@ -1,8 +1,5 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,19 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.DocumentoService;
 import co.edu.unicauca.sed.api.service.FileService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadService;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.slf4j.Logger;
@@ -41,16 +30,10 @@ public class FuenteService {
     private DocumentoService documentoService;
 
     @Autowired
-    private ActividadService actividadService;
-
-    @Autowired
     private FileService fileService;
 
     @Autowired
     private FuenteBusinessService businessService;
-
-    @Autowired
-    private FuenteFileService fuenteFileService;
 
     @Autowired
     private FuenteIntegrationService integrationService;
@@ -64,11 +47,6 @@ public class FuenteService {
     public static final String PREFIJO_FUENTE = "fuente";
     public static final int ESTADO_DILIGENCIADO = 2;
     public static final int ESTADO_PENDIENTE = 1;
-
-    public FuenteService(ActividadService actividadService, FuenteRepository fuenteRepository) {
-        this.actividadService = actividadService;
-        this.fuenteRepository = fuenteRepository;
-    }
 
     /**
      * Recupera todas las fuentes desde el repositorio con soporte de paginación.
@@ -149,6 +127,9 @@ public class FuenteService {
 
             // Delegar el procesamiento de cada fuente al servicio de negocio
             for (FuenteCreateDTO sourceDTO : sources) {
+                if (observation != null) {
+                    observation.toUpperCase();
+                }
                 businessService.processSource(sourceDTO, informeFuente, observation, informeEjecutivoFiles);
             }
         } catch (Exception e) {

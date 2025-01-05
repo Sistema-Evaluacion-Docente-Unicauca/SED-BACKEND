@@ -58,6 +58,9 @@ public class ComentarioService {
     public Comentario save(Comentario comentario) {
         Comentario result = null;
         try {
+            if (comentario.getComentario() != null) {
+                comentario.setComentario(comentario.getComentario().toUpperCase());
+            }
             result = this.comentarioRepository.save(comentario);
         } catch (Exception e) {
             e.printStackTrace();

@@ -49,6 +49,9 @@ public class RolService {
      * @return El rol guardado.
      */
     public Rol save(Rol rol) {
+        if (rol.getNombre() != null) {
+            rol.setNombre(rol.getNombre().toUpperCase());
+        }
         return rolRepository.save(rol);
     }
 
