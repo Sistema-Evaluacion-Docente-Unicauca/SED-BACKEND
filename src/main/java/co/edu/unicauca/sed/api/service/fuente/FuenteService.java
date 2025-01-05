@@ -51,8 +51,7 @@ public class FuenteService {
     /**
      * Recupera todas las fuentes desde el repositorio con soporte de paginación.
      *
-     * @param pageable Parámetro para definir la paginación (número de página y
-     *                 tamaño de página).
+     * @param pageable Parámetro para definir la paginación (número de página y tamaño de página).
      * @return Página de entidades Fuente.
      */
     public Page<Fuente> findAll(Pageable pageable) {
