@@ -1,8 +1,9 @@
 package co.edu.unicauca.sed.api.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.Page;
 import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.service.ProcesoService;
 
@@ -22,17 +25,27 @@ public class ProcesoController {
     @Autowired
     private ProcesoService procesoService;
 
+
     @GetMapping("all")
-    public ResponseEntity<?> findAll() {
-        try {
-            List<Proceso> list = procesoService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
+    public ResponseEntity<Page<Proceso>> findAll(
+            @RequestParam(required = false) Integer evaluadorId,
+            @RequestParam(required = false) Integer evaluadoId,
+            @RequestParam(required = false) Integer idPeriodo,
+            @RequestParam(required = false) String nombreProceso,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaCreacion,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaActualizacion,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Proceso> procesos = procesoService.findAll(
+                evaluadorId, evaluadoId, idPeriodo,
+                nombreProceso, fechaCreacion, fechaActualizacion,
+                page, size);
+
+        if (procesos.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(procesos);
     }
 
     @GetMapping("find/{oid}")
@@ -42,24 +55,6 @@ public class ProcesoController {
             return ResponseEntity.ok().body(resultado);
         }
         return ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("findByEvaluado/{oidUsuario}")
-    public ResponseEntity<List<Proceso>> findByEvaluado(@PathVariable Integer oidUsuario) {
-        List<Proceso> procesos = procesoService.getProcessesByEvaluated(oidUsuario);
-        if (procesos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(procesos);
-    }
-
-    @GetMapping("findByEvaluadoInActivePeriod/{oidUsuario}")
-    public ResponseEntity<List<Proceso>> findByEvaluadoInActivePeriod(@PathVariable Integer oidUsuario) {
-        List<Proceso> procesos = procesoService.getProcessesByEvaluatedAndActivePeriod(oidUsuario);
-        if (procesos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(procesos);
     }
 
     @PostMapping("save")
@@ -75,6 +70,22 @@ public class ProcesoController {
             return ResponseEntity.internalServerError().body("Error:" + e.getStackTrace());
         }
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    }
+
+    @PutMapping("update/{oid}")
+    public ResponseEntity<?> update(@PathVariable Integer oid, @RequestBody Proceso proceso) {
+        try {
+            Proceso updatedProceso = procesoService.update(oid, proceso);
+
+            if (updatedProceso != null) {
+                return ResponseEntity.ok(updatedProceso);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Proceso no encontrado");
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("delete/{oid}")
