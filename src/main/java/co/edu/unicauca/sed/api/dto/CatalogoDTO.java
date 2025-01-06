@@ -13,6 +13,7 @@ public class CatalogoDTO {
     private List<String> dedicaciones;
     private List<String> estudios;
     private List<String> roles;
+    private List<String> tipoActividades;
 
     // Getters y setters
     public List<String> getFacultades() {
@@ -69,5 +70,13 @@ public class CatalogoDTO {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public List<String> getTipoActividades() {
+        return tipoActividades;
+    }
+
+    public void setTipoActividades(List<String> tipoActividades) {
+        this.tipoActividades = tipoActividades;
     }
 }

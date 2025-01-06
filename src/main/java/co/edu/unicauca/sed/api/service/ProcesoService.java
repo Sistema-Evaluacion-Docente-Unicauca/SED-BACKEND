@@ -20,10 +20,8 @@ public class ProcesoService {
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
 
-    public Page<Proceso> findAll(
-            Integer evaluadorId, Integer evaluadoId, Integer idPeriodo,
-            String nombreProceso, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
-            int page, int size) {
+    public Page<Proceso> findAll(Integer evaluadorId, Integer evaluadoId, Integer idPeriodo, String nombreProceso,
+        LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, int page, int size) {
 
         if (idPeriodo == null) {
             idPeriodo = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
@@ -31,9 +29,8 @@ public class ProcesoService {
         Pageable pageable = PageRequest.of(page, size);
 
         return procesoRepository.findAll(
-                ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,
-                        fechaActualizacion),
-                pageable);
+            ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,fechaActualizacion), pageable
+        );
     }
 
     public Proceso findByOid(Integer oid) {
@@ -75,7 +72,7 @@ public class ProcesoService {
         }
         return null;
     }
-    
+
     public void delete(Integer oid) {
         this.procesoRepository.deleteById(oid);
     }
