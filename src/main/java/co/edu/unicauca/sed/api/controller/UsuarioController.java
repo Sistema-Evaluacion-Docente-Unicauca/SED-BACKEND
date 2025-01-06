@@ -6,8 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import co.edu.unicauca.sed.api.dto.CatalogoDTO;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
