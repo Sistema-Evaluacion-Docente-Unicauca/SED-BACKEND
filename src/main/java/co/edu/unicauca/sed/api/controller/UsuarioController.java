@@ -44,6 +44,8 @@ public class UsuarioController {
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String identificacion,
+            @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String facultad,
             @RequestParam(required = false) String departamento,
             @RequestParam(required = false) String categoria,
@@ -53,7 +55,7 @@ public class UsuarioController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) Short estado) {
         try {
-            Page<Usuario> usuarios = usuarioService.findAll(facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
+            Page<Usuario> usuarios = usuarioService.findAll(identificacion, nombre, facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
             if (usuarios.hasContent()) {
                 return ResponseEntity.ok().body(usuarios);
             } else {

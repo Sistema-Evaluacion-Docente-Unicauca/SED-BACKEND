@@ -13,6 +13,7 @@ import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,36 +30,8 @@ public class UsuarioService {
     @Autowired
     private RolRepository rolRepository;
 
-    public Page<Usuario> findAll(String facultad, String departamento, String categoria, String contratacion,
-    String dedicacion, String estudios, String rol, Short estado, Pageable pageable) {
-        Specification<Usuario> spec = Specification.where(null);
-
-        if (facultad != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("facultad"), facultad));
-        }
-        if (departamento != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("departamento"), departamento));
-        }
-        if (categoria != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("categoria"), categoria));
-        }
-        if (contratacion != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("contratacion"), contratacion));
-        }
-        if (dedicacion != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("dedicacion"), dedicacion));
-        }
-        if (estudios != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("estudios"), estudios));
-        }
-        if (rol != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
-        }
-        if (estado != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("estado"), estado));
-        }
-
-        return usuarioRepository.findAll(spec, pageable);
+    public Page<Usuario> findAll(String identificacion, String nombre, String facultad, String departamento, String categoria, String contratacion, String dedicacion, String estudios, String rol, Short estado, Pageable pageable) {
+        return usuarioRepository.findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, estado), pageable);
     }
 
     public Usuario findByOid(Integer oid) {
