@@ -1,12 +1,18 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.dto.CatalogoDTO;
+import co.edu.unicauca.sed.api.model.Rol;
+import co.edu.unicauca.sed.api.model.TipoActividad;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
-import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class CatalogoService {
@@ -24,37 +30,69 @@ public class CatalogoService {
     public CatalogoDTO obtenerCatalogo() {
         CatalogoDTO catalogoDTO = new CatalogoDTO();
 
-        catalogoDTO.setFacultades(usuarioDetalleRepository.findDistinctFacultad().stream()
+        // Facultades
+        catalogoDTO.setFacultades(
+            usuarioDetalleRepository.findDistinctFacultad().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(facultad -> Map.<String, Object>of("codigo", facultad, "nombre", facultad))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setDepartamentos(usuarioDetalleRepository.findDistinctDepartamento().stream()
+        // Departamentos
+        catalogoDTO.setDepartamentos(
+            usuarioDetalleRepository.findDistinctDepartamento().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(departamento -> Map.<String, Object>of("codigo", departamento, "nombre", departamento))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setCategorias(usuarioDetalleRepository.findDistinctCategoria().stream()
+        // Categorías
+        catalogoDTO.setCategorias(
+            usuarioDetalleRepository.findDistinctCategoria().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(categoria -> Map.<String, Object>of("codigo", categoria, "nombre", categoria))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setContrataciones(usuarioDetalleRepository.findDistinctContratacion().stream()
+        // Contrataciones
+        catalogoDTO.setContrataciones(
+            usuarioDetalleRepository.findDistinctContratacion().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(contratacion -> Map.<String, Object>of("codigo", contratacion, "nombre", contratacion))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setDedicaciones(usuarioDetalleRepository.findDistinctDedicacion().stream()
+        // Dedicaciones
+        catalogoDTO.setDedicaciones(
+            usuarioDetalleRepository.findDistinctDedicacion().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(dedicacion -> Map.<String, Object>of("codigo", dedicacion, "nombre", dedicacion))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setEstudios(usuarioDetalleRepository.findDistinctEstudios().stream()
+        // Estudios
+        catalogoDTO.setEstudios(
+            usuarioDetalleRepository.findDistinctEstudios().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(estudio -> Map.<String, Object>of("codigo", estudio, "nombre", estudio))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setRoles(rolRepository.findDistinctNombre().stream()
+        // Roles
+        catalogoDTO.setRoles(
+            rolRepository.findAll().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(rol -> Map.<String, Object>of("codigo", rol.getOid(), "nombre", rol.getNombre()))
+                .collect(Collectors.toList())
+        );
 
-        catalogoDTO.setTipoActividades(tipoActividadRepository.findDistinctNombre().stream()
+        // Tipo de Actividades
+        catalogoDTO.setTipoActividades(
+            tipoActividadRepository.findAll().stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+                .map(tipoActividad -> Map.<String, Object>of("codigo", tipoActividad.getOidTipoActividad(), "nombre", tipoActividad.getNombre()))
+                .collect(Collectors.toList())
+        );
 
         return catalogoDTO;
     }

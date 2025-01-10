@@ -1,82 +1,80 @@
 package co.edu.unicauca.sed.api.dto;
 
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CatalogoDTO {
 
-    private List<String> facultades;
-    private List<String> departamentos;
-    private List<String> categorias;
-    private List<String> contrataciones;
-    private List<String> dedicaciones;
-    private List<String> estudios;
-    private List<String> roles;
-    private List<String> tipoActividades;
+    private List<Map<String, Object>> facultades;
+    private List<Map<String, Object>> departamentos;
+    private List<Map<String, Object>> categorias;
+    private List<Map<String, Object>> contrataciones;
+    private List<Map<String, Object>> dedicaciones;
+    private List<Map<String, Object>> estudios;
+    private List<Map<String, Object>> roles;
+    private List<Map<String, Object>> tipoActividades;
 
-    // Getters y setters
-    public List<String> getFacultades() {
+    public List<Map<String, Object>> getFacultades() {
         return facultades;
     }
 
-    public void setFacultades(List<String> facultades) {
+    public void setFacultades(List<Map<String, Object>> facultades) {
         this.facultades = facultades;
     }
 
-    public List<String> getDepartamentos() {
+    public List<Map<String, Object>> getDepartamentos() {
         return departamentos;
     }
 
-    public void setDepartamentos(List<String> departamentos) {
+    public void setDepartamentos(List<Map<String, Object>> departamentos) {
         this.departamentos = departamentos;
     }
 
-    public List<String> getCategorias() {
+    public List<Map<String, Object>> getCategorias() {
         return categorias;
     }
 
-    public void setCategorias(List<String> categorias) {
+    public void setCategorias(List<Map<String, Object>> categorias) {
         this.categorias = categorias;
     }
 
-    public List<String> getContrataciones() {
+    public List<Map<String, Object>> getContrataciones() {
         return contrataciones;
     }
 
-    public void setContrataciones(List<String> contrataciones) {
+    public void setContrataciones(List<Map<String, Object>> contrataciones) {
         this.contrataciones = contrataciones;
     }
 
-    public List<String> getDedicaciones() {
+    public List<Map<String, Object>> getDedicaciones() {
         return dedicaciones;
     }
 
-    public void setDedicaciones(List<String> dedicaciones) {
+    public void setDedicaciones(List<Map<String, Object>> dedicaciones) {
         this.dedicaciones = dedicaciones;
     }
 
-    public List<String> getEstudios() {
+    public List<Map<String, Object>> getEstudios() {
         return estudios;
     }
 
-    public void setEstudios(List<String> estudios) {
+    public void setEstudios(List<Map<String, Object>> estudios) {
         this.estudios = estudios;
     }
 
-    public List<String> getRoles() {
+    public List<Map<String, Object>> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<Map<String, Object>> roles) {
         this.roles = roles;
     }
 
-    public List<String> getTipoActividades() {
+    public List<Map<String, Object>> getTipoActividades() {
         return tipoActividades;
     }
 
-    public void setTipoActividades(List<String> tipoActividades) {
+    public void setTipoActividades(List<Map<String, Object>> tipoActividades) {
         this.tipoActividades = tipoActividades;
     }
 }
