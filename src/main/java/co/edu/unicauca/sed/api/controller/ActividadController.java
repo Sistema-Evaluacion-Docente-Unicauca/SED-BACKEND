@@ -249,11 +249,10 @@ public class ActividadController {
      * @param actividad   Datos actualizados de la actividad.
      * @return Actividad actualizada o mensaje de error.
      */
-    @PutMapping("update/{idActividad}")
+    @PutMapping(value = "update/{idActividad}", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody Actividad actividad) {
         logger.info("Intentando actualizar actividad con ID: {}", idActividad);
         try {
-            // Delegar la lógica de actualización al servicio
             Actividad actividadActualizada = actividadService.update(idActividad, actividad);
             logger.info("Actividad actualizada exitosamente con ID: {}", actividadActualizada.getOidActividad());
             return ResponseEntity.ok(actividadActualizada);

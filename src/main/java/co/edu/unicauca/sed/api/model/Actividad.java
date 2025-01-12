@@ -38,6 +38,9 @@ public class Actividad {
     @Column(name = "ESTADOACTIVIDAD", nullable = false)
     private Short estadoActividad;
 
+    @Column(name = "ACTOADMINISTRATIVO")
+    private String actoAdministrativo;
+
     @Column(name = "FECHACREACION", updatable = false)
     @CreationTimestamp
     private LocalDateTime fechaCreacion;
@@ -56,5 +59,6 @@ public class Actividad {
     private Proceso proceso;
 
     @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Fuente> fuentes;
 }

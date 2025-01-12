@@ -3,10 +3,7 @@ package co.edu.unicauca.sed.api.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 import co.edu.unicauca.sed.api.model.TipoActividad;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-// DTO for activity details
 public class ActividadDTO {
 
     private Integer oidActividad;
@@ -15,6 +12,7 @@ public class ActividadDTO {
     private Float horasTotales;
     private Boolean informeEjecutivo;
     private String codVRI;
+    private String actoAdministrativo;  // Campo movido después de codVRI
     private Short estadoActividad;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -22,14 +20,15 @@ public class ActividadDTO {
     private List<FuenteDTO> fuentes;
     private UsuarioDTO evaluador;
 
-    // Constructor corregido
-    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horasTotales, Boolean informeEjecutivo, String codVRI, Short estadoActividad, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
+    // Constructor actualizado
+    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horasTotales, Boolean informeEjecutivo, String codVRI, String actoAdministrativo, Short estadoActividad, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
         this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
         this.nombre = nombre;
         this.horasTotales = horasTotales;
         this.informeEjecutivo = informeEjecutivo;
         this.codVRI = codVRI;
+        this.actoAdministrativo = actoAdministrativo;
         this.estadoActividad = estadoActividad;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
@@ -38,7 +37,7 @@ public class ActividadDTO {
         this.evaluador = evaluador;
     }
 
-    // Getters and Setters
+    // Getters y Setters actualizados
     public Integer getOidActividad() {
         return oidActividad;
     }
@@ -133,5 +132,13 @@ public class ActividadDTO {
 
     public void setEvaluador(UsuarioDTO evaluador) {
         this.evaluador = evaluador;
+    }
+
+    public String getActoAdministrativo() {
+        return actoAdministrativo;
+    }
+
+    public void setActoAdministrativo(String actoAdministrativo) {
+        this.actoAdministrativo = actoAdministrativo;
     }
 }

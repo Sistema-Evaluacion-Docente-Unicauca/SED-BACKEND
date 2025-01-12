@@ -4,6 +4,8 @@ import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.model.Proceso;
+import co.edu.unicauca.sed.api.model.TipoActividad;
+import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
@@ -16,7 +18,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Servicio para gestionar las actividades, incluyendo operaciones de consulta, creación, actualización, y eliminación.
+ * Servicio para gestionar las actividades, incluyendo operaciones de consulta,
+ * creación, actualización, y eliminación.
  */
 @Service
 public class ActividadService {
@@ -43,10 +46,12 @@ public class ActividadService {
     private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
     /**
-     * Recupera todas las actividades junto con sus fuentes asociadas con paginación.
+     * Recupera todas las actividades junto con sus fuentes asociadas con
+     * paginación.
      *
      * @param pageable       Parámetros de paginación.
-     * @param ascendingOrder Indica si las actividades deben ordenarse de forma ascendente.
+     * @param ascendingOrder Indica si las actividades deben ordenarse de forma
+     *                       ascendente.
      * @return Página de actividades en formato DTO.
      */
     public Page<ActividadDTO> findAll(Pageable pageable, Boolean ascendingOrder) {
@@ -68,17 +73,21 @@ public class ActividadService {
     }
 
     /**
-     * Recupera todas las actividades que forman parte de períodos académicos activos con paginación.
+     * Recupera todas las actividades que forman parte de períodos académicos
+     * activos con paginación.
      *
      * @param pageable       Parámetros de paginación.
-     * @param ascendingOrder Indica si las actividades deben ordenarse de forma ascendente.
-     * @return Página de actividades en formato DTO en períodos activos, ordenadas según el parámetro.
+     * @param ascendingOrder Indica si las actividades deben ordenarse de forma
+     *                       ascendente.
+     * @return Página de actividades en formato DTO en períodos activos, ordenadas
+     *         según el parámetro.
      */
     public Page<ActividadDTO> findAllInActivePeriods(Pageable pageable, Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
 
         // Consultar todas las actividades en períodos académicos activos
-        List<Actividad> actividades = actividadRepository.findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
+        List<Actividad> actividades = actividadRepository
+                .findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
 
         // Convertir las actividades en DTOs
         List<ActividadDTO> actividadDTOs = actividades.stream()
@@ -138,27 +147,29 @@ public class ActividadService {
         return actividadRepository.save(actividad);
     }
 
-
     /**
      * Actualiza una actividad existente en la base de datos.
      *
      * @param idActividad ID de la actividad a actualizar.
      * @param actividad   Datos actualizados de la actividad.
      * @return La actividad actualizada.
-     * @throws IllegalArgumentException Si no se encuentra la actividad con el ID proporcionado.
+     * @throws IllegalArgumentException Si no se encuentra la actividad con el ID
+     *                                  proporcionado.
      */
     public Actividad update(Integer idActividad, Actividad actividad) {
+        // Buscar la actividad existente
         Actividad actividadExistente = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new IllegalArgumentException("Actividad con ID " + idActividad + " no encontrada."));
 
-        // Actualizar los campos de la actividad existente
+        // Actualizar solo los campos básicos
         actividadExistente.setCodigoActividad(actividad.getCodigoActividad());
         actividadExistente.setNombre(actividad.getNombre());
-        actividadExistente.setHorasSemanales(actividad.getHorasTotales());
+        actividadExistente.setHorasTotales(actividad.getHorasTotales());
         actividadExistente.setInformeEjecutivo(actividad.getInformeEjecutivo());
-        actividadExistente.setTipoActividad(actividad.getTipoActividad());
-        actividadExistente.setProceso(actividad.getProceso());
+        actividadExistente.setEstadoActividad(actividad.getEstadoActividad());
+        actividadExistente.setCodVRI(actividad.getCodVRI());
 
+        // Guardar y devolver la actividad actualizada
         return actividadRepository.save(actividadExistente);
     }
 

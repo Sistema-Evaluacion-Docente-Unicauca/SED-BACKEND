@@ -41,18 +41,20 @@ public class ActividadDTOService {
                 .map(this::convertFuenteToDTO).collect(Collectors.toList());
 
         return new ActividadDTO(
-                actividad.getOidActividad(),
+                actividad.getOidActividad(),   
                 actividad.getCodigoActividad(),
                 actividad.getNombre(),
                 actividad.getHorasTotales(),
-                actividad.getCodVRI(),
-                actividad.getEstadoActividad(),
                 actividad.getInformeEjecutivo(),
+                actividad.getCodVRI(),
+                actividad.getActoAdministrativo(),
+                actividad.getEstadoActividad(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
                 actividad.getTipoActividad(),
                 filteredFuentes,
-                evaluadorDTO);
+                evaluadorDTO
+        );
     }
 
     /**
@@ -74,12 +76,14 @@ public class ActividadDTOService {
                 actividad.getHorasTotales(),
                 actividad.getInformeEjecutivo(),
                 actividad.getCodVRI(),
+                actividad.getActoAdministrativo(),
                 actividad.getEstadoActividad(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
                 actividad.getTipoActividad(),
                 fuenteDTOs,
-                evaluadorDTO);
+                evaluadorDTO
+        );
     }
 
     /**
