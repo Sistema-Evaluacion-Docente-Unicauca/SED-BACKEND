@@ -6,8 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import co.edu.unicauca.sed.api.dto.CatalogoDTO;
 import co.edu.unicauca.sed.api.model.Rol;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.UsuarioDetalle;
@@ -17,7 +15,6 @@ import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class UsuarioService {

@@ -44,7 +44,9 @@ public class ActividadDTOService {
                 actividad.getOidActividad(),
                 actividad.getCodigoActividad(),
                 actividad.getNombre(),
-                actividad.getHorasSemanales(),
+                actividad.getHorasTotales(),
+                actividad.getCodVRI(),
+                actividad.getEstadoActividad(),
                 actividad.getInformeEjecutivo(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
@@ -69,8 +71,10 @@ public class ActividadDTOService {
                 actividad.getOidActividad(),
                 actividad.getCodigoActividad(),
                 actividad.getNombre(),
-                actividad.getHorasSemanales(),
+                actividad.getHorasTotales(),
                 actividad.getInformeEjecutivo(),
+                actividad.getCodVRI(),
+                actividad.getEstadoActividad(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
                 actividad.getTipoActividad(),
@@ -87,19 +91,22 @@ public class ActividadDTOService {
      */
     public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad) {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
-
+    
         return new ActividadDTOEvaluador(
                 actividad.getOidActividad(),
                 actividad.getCodigoActividad(),
                 actividad.getNombre(),
-                actividad.getHorasSemanales(),
+                actividad.getHorasTotales(),
+                actividad.getCodVRI(),
+                actividad.getEstadoActividad(),
                 actividad.getInformeEjecutivo(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
                 actividad.getTipoActividad(),
                 actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
-                evaluadoDTO);
-    }
+                evaluadoDTO
+        );
+    }    
 
     /**
      * Convierte una entidad Actividad en un ActividadDTOEvaluador.
@@ -120,7 +127,9 @@ public class ActividadDTOService {
                 actividad.getOidActividad(),
                 actividad.getCodigoActividad(),
                 actividad.getNombre(),
-                actividad.getHorasSemanales(),
+                actividad.getHorasTotales(),
+                actividad.getCodVRI(),
+                actividad.getEstadoActividad(),
                 actividad.getInformeEjecutivo(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),

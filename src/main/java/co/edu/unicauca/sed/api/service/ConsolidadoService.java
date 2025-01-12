@@ -252,7 +252,7 @@ public class ConsolidadoService {
         consolidado.setTipoContratacion(detalleUsuario.getContratacion());
         consolidado.setDedicacion(detalleUsuario.getDedicacion());
         consolidado.setActividades(actividadesPorTipo);
-        consolidado.setTotalHoras(totalHoras);
+        consolidado.setHorasTotales(totalHoras);
         consolidado.setTotalPorcentaje(totalPorcentaje);
         consolidado.setTotalAcumulado(totalAcumulado);
 

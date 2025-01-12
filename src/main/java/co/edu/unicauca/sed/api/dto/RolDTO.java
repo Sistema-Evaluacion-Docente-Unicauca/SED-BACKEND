@@ -6,7 +6,7 @@ public class RolDTO {
 
     public RolDTO(String nombre, Integer estado) {
         this.nombre = nombre;
-        this.estado = estado == 1 ? "activo" : "inactivo";
+        this.estado = estado == 1 ? "ACTIVO" : "INACTIVO";
     }
 
     // Getters and setters

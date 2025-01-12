@@ -4,13 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import co.edu.unicauca.sed.api.model.TipoActividad;
 
-// DTO for activity details
 public class ActividadDTOEvaluador {
 
     private Integer oidActividad;
     private String codigoActividad;
     private String nombre;
     private Float horas;
+    private String codVRI;
+    private Short estadoActividad;
     private Boolean informeEjecutivo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -19,12 +20,18 @@ public class ActividadDTOEvaluador {
     private UsuarioDTO evaluado;
 
     // Constructor with all necessary fields
-    public ActividadDTOEvaluador(Integer oidActividad, String codigoActividad, String nombre, Float horas, Boolean informeEjecutivo, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
-                                TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluado) {
+    public ActividadDTOEvaluador(
+            Integer oidActividad, String codigoActividad, String nombre, Float horas,
+            String codVRI, Short estadoActividad, Boolean informeEjecutivo,
+            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
+            TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluado) {
+
         this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
         this.nombre = nombre;
         this.horas = horas;
+        this.codVRI = codVRI;
+        this.estadoActividad = estadoActividad;
         this.informeEjecutivo = informeEjecutivo;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
@@ -64,6 +71,22 @@ public class ActividadDTOEvaluador {
 
     public void setHoras(Float horas) {
         this.horas = horas;
+    }
+
+    public String getCodVRI() {
+        return codVRI;
+    }
+
+    public void setCodVRI(String codVRI) {
+        this.codVRI = codVRI;
+    }
+
+    public Short getEstadoActividad() {
+        return estadoActividad;
+    }
+
+    public void setEstadoActividad(Short estadoActividad) {
+        this.estadoActividad = estadoActividad;
     }
 
     public Boolean getInformeEjecutivo() {

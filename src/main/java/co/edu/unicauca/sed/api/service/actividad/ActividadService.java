@@ -2,7 +2,11 @@ package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.PeriodoAcademico;
+import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.ProcesoRepository;
+import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +25,16 @@ public class ActividadService {
     private ActividadRepository actividadRepository;
 
     @Autowired
+    private ProcesoRepository procesoRepository;
+
+    @Autowired
     private ActividadDTOService actividadDTOService;
 
     @Autowired
     private ActividadSortService actividadSortService;
+
+    @Autowired
+    private PeriodoAcademicoService periodoAcademicoService;
 
     // Constante para el estado de períodos activos
     private static final int ACTIVE_PERIOD_STATUS = 1;
@@ -99,14 +109,35 @@ public class ActividadService {
     }
 
     /**
-     * Guarda una nueva actividad en la base de datos.
+     * Guarda una nueva actividad junto con el proceso asociado en la base de datos.
      *
-     * @param actividad La actividad a guardar.
+     * @param actividad La actividad a guardar, incluyendo el proceso asociado.
      * @return La actividad guardada.
      */
     public Actividad save(Actividad actividad) {
+        // Obtener el periodo académico activo
+        Integer idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+
+        if (idPeriodoAcademico == null) {
+            throw new IllegalStateException("No se encontró un periodo académico activo.");
+        }
+
+        // Asignar el periodo académico activo al proceso
+        if (actividad.getProceso() != null) {
+            PeriodoAcademico periodoAcademico = new PeriodoAcademico();
+            periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
+            actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
+            actividad.getProceso().setNombreProceso("ACTIVIDAD");
+            // Guardar el proceso primero
+            Proceso savedProceso = procesoRepository.save(actividad.getProceso());
+            // Asignar el proceso guardado a la actividad
+            actividad.setProceso(savedProceso);
+        }
+
+        // Guardar la actividad después de guardar el proceso
         return actividadRepository.save(actividad);
     }
+
 
     /**
      * Actualiza una actividad existente en la base de datos.
@@ -123,7 +154,7 @@ public class ActividadService {
         // Actualizar los campos de la actividad existente
         actividadExistente.setCodigoActividad(actividad.getCodigoActividad());
         actividadExistente.setNombre(actividad.getNombre());
-        actividadExistente.setHorasSemanales(actividad.getHorasSemanales());
+        actividadExistente.setHorasSemanales(actividad.getHorasTotales());
         actividadExistente.setInformeEjecutivo(actividad.getInformeEjecutivo());
         actividadExistente.setTipoActividad(actividad.getTipoActividad());
         actividadExistente.setProceso(actividad.getProceso());

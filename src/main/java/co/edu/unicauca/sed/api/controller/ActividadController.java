@@ -224,6 +224,9 @@ public class ActividadController {
      */
     @PostMapping("save")
     public ResponseEntity<?> save(@RequestBody Actividad actividad) {
+        if (actividad.getProceso() == null) {
+            return ResponseEntity.badRequest().body("El proceso no puede ser nulo.");
+        }
         logger.info("Intentando guardar actividad: {}", actividad);
         try {
             Actividad resultado = actividadService.save(actividad);

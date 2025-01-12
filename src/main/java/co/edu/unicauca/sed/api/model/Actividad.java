@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -25,14 +26,17 @@ public class Actividad {
     @Column(name = "NOMBRE", nullable = false)
     private String nombre;
 
-    @Column(name = "HORASSEMANALES", nullable = false)
-    private Float horasSemanales;
-
     @Column(name = "HORASTOTALES", nullable = false)
     private Float horasTotales;
 
     @Column(name = "INFORMEEJECUTIVO", nullable = false)
     private Boolean informeEjecutivo;
+
+    @Column(name = "CODVRI")
+    private String codVRI;
+
+    @Column(name = "ESTADOACTIVIDAD", nullable = false)
+    private Short estadoActividad;
 
     @Column(name = "FECHACREACION", updatable = false)
     @CreationTimestamp
@@ -46,9 +50,9 @@ public class Actividad {
     @JoinColumn(name = "OIDTIPOACTIVIDAD", nullable = false)
     private TipoActividad tipoActividad;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "OIDPROCESO", nullable = false)
-    @JsonIgnore
+    @JsonProperty("proceso")
     private Proceso proceso;
 
     @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

@@ -12,22 +12,25 @@ public class ActividadDTO {
     private Integer oidActividad;
     private String codigoActividad;
     private String nombre;
-    private Float horasSemanales;
+    private Float horasTotales;
     private Boolean informeEjecutivo;
+    private String codVRI;
+    private Short estadoActividad;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private TipoActividad tipoActividad;
     private List<FuenteDTO> fuentes;
     private UsuarioDTO evaluador;
 
-    // Constructor with all necessary fields
-    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horasSemanales, Boolean informeEjecutivo, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
-                        TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
+    // Constructor corregido
+    public ActividadDTO(Integer oidActividad, String codigoActividad, String nombre, Float horasTotales, Boolean informeEjecutivo, String codVRI, Short estadoActividad, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluador) {
         this.oidActividad = oidActividad;
         this.codigoActividad = codigoActividad;
         this.nombre = nombre;
-        this.horasSemanales = horasSemanales;
+        this.horasTotales = horasTotales;
         this.informeEjecutivo = informeEjecutivo;
+        this.codVRI = codVRI;
+        this.estadoActividad = estadoActividad;
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
         this.tipoActividad = tipoActividad;
@@ -35,7 +38,7 @@ public class ActividadDTO {
         this.evaluador = evaluador;
     }
 
-    // Getters and setters
+    // Getters and Setters
     public Integer getOidActividad() {
         return oidActividad;
     }
@@ -60,12 +63,12 @@ public class ActividadDTO {
         this.nombre = nombre;
     }
 
-    public Float getHorasSemanales() {
-        return horasSemanales;
+    public Float getHorasTotales() {
+        return horasTotales;
     }
 
-    public void setHorasSemanales(Float horasSemanales) {
-        this.horasSemanales = horasSemanales;
+    public void setHorasTotales(Float horasTotales) {
+        this.horasTotales = horasTotales;
     }
 
     public Boolean getInformeEjecutivo() {
@@ -75,7 +78,23 @@ public class ActividadDTO {
     public void setInformeEjecutivo(Boolean informeEjecutivo) {
         this.informeEjecutivo = informeEjecutivo;
     }
-    
+
+    public String getCodVRI() {
+        return codVRI;
+    }
+
+    public void setCodVRI(String codVRI) {
+        this.codVRI = codVRI;
+    }
+
+    public Short getEstadoActividad() {
+        return estadoActividad;
+    }
+
+    public void setEstadoActividad(Short estadoActividad) {
+        this.estadoActividad = estadoActividad;
+    }
+
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }

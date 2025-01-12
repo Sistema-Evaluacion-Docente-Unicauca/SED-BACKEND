@@ -28,7 +28,7 @@ public class ConsolidadoDTO {
     private String tipoContratacion;
     private String dedicacion;
     private Map<String, List<Map<String, Object>>> actividades;
-    private Float totalHoras;
+    private Float horasTotales;
     private Float porcentajeEvaluacionCompletado;
     private Double totalPorcentaje;
     private Double totalAcumulado;

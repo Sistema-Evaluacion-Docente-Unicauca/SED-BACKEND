@@ -1,13 +1,9 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.dto.CatalogoDTO;
-import co.edu.unicauca.sed.api.model.Rol;
-import co.edu.unicauca.sed.api.model.TipoActividad;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
