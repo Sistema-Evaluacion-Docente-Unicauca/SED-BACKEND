@@ -18,7 +18,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConsolidadoDTO {
-
     private String nombreDocente;
     private String numeroIdentificacion;
     private String periodoAcademico;

@@ -175,13 +175,27 @@ public class ConsolidadoController {
     public ResponseEntity<?> aprobarConsolidado(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam Integer idEvaluador,
             @RequestParam(required = false) String nota) {
         try {
-            consolidadoService.aprobarConsolidado(idEvaluado, idPeriodoAcademico, nota);
+            consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, idPeriodoAcademico, nota);
             return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
         } catch (Exception e) {
             logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al aprobar el consolidado: " + e.getMessage());
         }
+    }
+
+    /**
+     * Descarga el archivo consolidado por su ID.
+     *
+     * @param idConsolidado ID del consolidado a descargar.
+     * @return Archivo consolidado como recurso.
+     */
+    @GetMapping("/download/{id}")
+    public ResponseEntity<?> downloadFile(
+            @PathVariable("id") Integer id) {
+        logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id);
+        return consolidadoService.getFile(id);
     }
 }

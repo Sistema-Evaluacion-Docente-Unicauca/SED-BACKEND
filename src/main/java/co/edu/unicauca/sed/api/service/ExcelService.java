@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExcelService {
@@ -33,7 +34,7 @@ public class ExcelService {
             crearEncabezados(sheet, currentRow++);
 
             // Llenar actividades en el Excel y calcular sumas
-            double totalHS = 0;
+            double totalHoras = 0;
             double totalPorcentaje = 0;
             double totalAcumula = 0;
 
@@ -41,28 +42,26 @@ public class ExcelService {
                 String tipoActividad = entry.getKey();
                 List<?> actividades = entry.getValue();
 
-                // Título del tipo de actividad
                 Row tipoActividadRow = sheet.createRow(currentRow++);
                 Cell cell = tipoActividadRow.createCell(0);
                 cell.setCellValue(tipoActividad);
                 cell.setCellStyle(crearEstiloTitulo(workbook));
 
-                // Llenar actividades del tipo
                 for (Object actividadObj : actividades) {
-                    if (actividadObj instanceof java.util.Map) {
+                    if (actividadObj instanceof Map) {
                         @SuppressWarnings("unchecked")
-                        java.util.Map<String, Object> actividad = (java.util.Map<String, Object>) actividadObj;
+                        Map<String, Object> actividad = (Map<String, Object>) actividadObj;
 
                         Row row = sheet.createRow(currentRow++);
-                        double hs = (double) ((Float) actividad.get("horas")).floatValue();
-                        double porcentaje = (double) ((Float) actividad.get("porcentaje")).floatValue();
-                        double acumula = (double) actividad.get("acumulado");
+
+                        double horas = actividad.get("horasTotales") != null ? ((Number) actividad.get("horasTotales")).doubleValue() : 0.0;
+                        double porcentaje = calcularPorcentaje(horas, consolidadoDTO.getHorasTotales());
+                        double acumula = actividad.get("acumulado") != null ? ((Number) actividad.get("acumulado")).doubleValue() : 0.0;
 
                         row.createCell(0).setCellValue((String) actividad.get("nombre"));
-                        row.createCell(1).setCellValue((Float) actividad.get("horas"));
-                        row.createCell(2).setCellValue((Float) actividad.get("porcentaje"));
-                        row.createCell(5).setCellValue((Double) actividad.get("promedio"));
-                        row.createCell(6).setCellValue((Double) actividad.get("acumulado"));
+                        row.createCell(1).setCellValue(horas);
+                        row.createCell(2).setCellValue(porcentaje);
+                        row.createCell(6).setCellValue(acumula);
 
                         // Procesar fuentes
                         List<FuenteDTO> fuentes = (List<FuenteDTO>) actividad.get("fuentes");
@@ -74,8 +73,9 @@ public class ExcelService {
                                 row.createCell(4).setCellValue(fuentes.get(1).getCalificacion());
                             }
                         }
+
                         // Sumar totales
-                        totalHS += hs;
+                        totalHoras += horas;
                         totalPorcentaje += porcentaje;
                         totalAcumula += acumula;
                     }
@@ -88,7 +88,7 @@ public class ExcelService {
             totalTitleCell.setCellValue("TOTALES:");
 
             Cell hsCell = totalRow.createCell(1);
-            hsCell.setCellValue(totalHS);
+            hsCell.setCellValue(totalHoras);
 
             Cell porcentajeCell = totalRow.createCell(2);
             porcentajeCell.setCellValue(totalPorcentaje);
@@ -128,10 +128,18 @@ public class ExcelService {
 
             // Guardar el archivo usando FileService
             return fileService.saveFile(
-                    workbookToMultipartFile(workbook, nombreDocumento),
-                    consolidadoDTO.getPeriodoAcademico(),
-                    "Consolidados");
+                workbookToMultipartFile(workbook, nombreDocumento),
+                consolidadoDTO.getPeriodoAcademico(),
+                "Consolidados"
+            );
         }
+    }
+
+    private double calcularPorcentaje(double horasTotalesActividad, double horasTotales) {
+        if (horasTotales == 0) {
+            return 0;
+        }
+        return (horasTotalesActividad / horasTotales) * 100;
     }
 
     private int llenarDatosPrincipales(Sheet sheet, ConsolidadoDTO consolidadoDTO) {
@@ -145,9 +153,16 @@ public class ExcelService {
         identificacionRow.createCell(0).setCellValue("Número de Identificación:");
         identificacionRow.createCell(1).setCellValue(consolidadoDTO.getNumeroIdentificacion());
 
+        Row vinculacionRow = sheet.createRow(currentRow++);
+        vinculacionRow.createCell(0).setCellValue("Vinculación:");
+        vinculacionRow.createCell(1).setCellValue(consolidadoDTO.getTipoContratacion());
+
+        Row dedicacionRow = sheet.createRow(currentRow++);
+        dedicacionRow.createCell(0).setCellValue("Dedicación:");
+        dedicacionRow.createCell(1).setCellValue(consolidadoDTO.getDedicacion());
+        
         Row periodoRow = sheet.createRow(currentRow++);
-        periodoRow.createCell(0).setCellValue("Periodo Académico:");
-        periodoRow.createCell(1).setCellValue(consolidadoDTO.getPeriodoAcademico());
+        periodoRow.createCell(0).setCellValue(consolidadoDTO.getPeriodoAcademico());
 
         return currentRow;
     }

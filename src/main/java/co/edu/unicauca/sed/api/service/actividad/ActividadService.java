@@ -4,8 +4,6 @@ import co.edu.unicauca.sed.api.dto.ActividadDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.model.Proceso;
-import co.edu.unicauca.sed.api.model.TipoActividad;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
