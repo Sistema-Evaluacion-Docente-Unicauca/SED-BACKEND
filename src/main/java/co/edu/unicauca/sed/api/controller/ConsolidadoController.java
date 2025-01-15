@@ -91,27 +91,6 @@ public class ConsolidadoController {
     }
 
     /**
-     * Actualiza todos los consolidados asociados al evaluado.
-     *
-     * @param oidConsolidado ID del Consolidado base para identificar al evaluado y sus procesos asociados.
-     * @param consolidado    Datos actualizados para los consolidados.
-     * @return Mensaje de éxito o error.
-     */
-    @PutMapping("update/{oidConsolidado}")
-    public ResponseEntity<?> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
-        try {
-            consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
-            return ResponseEntity.ok("Consolidados actualizados correctamente.");
-        } catch (IllegalArgumentException e) {
-            logger.warn("Actualización fallida: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error al actualizar los consolidados: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar los consolidados: " + e.getMessage());
-        }
-    }
-
-    /**
      * Elimina un Consolidado por su OID.
      *
      * @param oid El ID del Consolidado a eliminar.
