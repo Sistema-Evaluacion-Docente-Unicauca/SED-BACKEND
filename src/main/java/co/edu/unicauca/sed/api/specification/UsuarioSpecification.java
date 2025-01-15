@@ -2,6 +2,7 @@ package co.edu.unicauca.sed.api.specification;
 
 import co.edu.unicauca.sed.api.model.Usuario;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
 
 public class UsuarioSpecification {
 
@@ -11,55 +12,51 @@ public class UsuarioSpecification {
 
         Specification<Usuario> spec = Specification.where(null);
 
-        if (identificacion != null) {
+        if (StringUtils.hasText(identificacion)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("identificacion"), identificacion));
         }
-        
-        if (nombre != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.like(
-                criteriaBuilder.upper(
-                    criteriaBuilder.concat(
-                        criteriaBuilder.concat(root.get("nombres"), " "),
-                        root.get("apellidos")
-                    )
-                ),
-                "%" + nombre.toUpperCase() + "%"
-            ));
-        }
-            
 
-        if (facultad != null) {
+        if (StringUtils.hasText(nombre)) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.like(
+                    criteriaBuilder.upper(
+                            criteriaBuilder.concat(
+                                    criteriaBuilder.concat(root.get("nombres"), " "),
+                                    root.get("apellidos"))),
+                    "%" + nombre.toUpperCase() + "%"));
+        }
+
+        if (StringUtils.hasText(facultad)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("facultad"), facultad));
         }
 
-        if (departamento != null) {
+        if (StringUtils.hasText(departamento)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("departamento"), departamento));
         }
 
-        if (categoria != null) {
+        if (StringUtils.hasText(categoria)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("categoria"), categoria));
         }
 
-        if (contratacion != null) {
+        if (StringUtils.hasText(contratacion)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("contratacion"), contratacion));
         }
 
-        if (dedicacion != null) {
+        if (StringUtils.hasText(dedicacion)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("dedicacion"), dedicacion));
         }
 
-        if (estudios != null) {
+        if (StringUtils.hasText(estudios)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
                     .equal(root.get("usuarioDetalle").get("estudios"), estudios));
         }
 
-        if (rol != null) {
+        if (StringUtils.hasText(rol)) {
             spec = spec.and(
                     (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
         }
