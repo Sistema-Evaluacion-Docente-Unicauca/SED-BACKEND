@@ -2,16 +2,17 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
-@Table(name = "ACTIVIDAD")
 @Data
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+@Table(name = "ACTIVIDAD")
 public class Actividad {
 
     @Id
@@ -20,45 +21,39 @@ public class Actividad {
     @Column(name = "OIDACTIVIDAD")
     private Integer oidActividad;
 
-    @Column(name = "CODIGOACTIVIDAD")
-    private String codigoActividad;
-
-    @Column(name = "NOMBRE", nullable = false)
-    private String nombre;
-
-    @Column(name = "HORASTOTALES", nullable = false)
-    private Float horasTotales;
-
-    @Column(name = "INFORMEEJECUTIVO", nullable = false)
-    private Boolean informeEjecutivo;
-
-    @Column(name = "CODVRI")
-    private String codVRI;
-
-    @Column(name = "ESTADOACTIVIDAD", nullable = false)
-    private Short estadoActividad;
-
-    @Column(name = "ACTOADMINISTRATIVO")
-    private String actoAdministrativo;
-
-    @Column(name = "FECHACREACION", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime fechaCreacion;
-
-    @Column(name = "FECHAACTUALIZACION")
-    @UpdateTimestamp
-    private LocalDateTime fechaActualizacion;
-
     @ManyToOne
     @JoinColumn(name = "OIDTIPOACTIVIDAD", nullable = false)
     private TipoActividad tipoActividad;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "OIDPROCESO", nullable = false)
-    @JsonProperty("proceso")
     private Proceso proceso;
 
     @OneToMany(mappedBy = "actividad", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Fuente> fuentes;
+
+    @ManyToOne
+    @JoinColumn(name = "OIDESTADOACTIVIDAD", nullable = false)
+    private EstadoActividad estadoActividad;
+
+    @Column(name = "NOMBREACTIVIDAD", nullable = false, length = 255)
+    private String nombreActividad;
+
+    @Column(name = "HORAS", nullable = false)
+    private Float horas;
+
+    @Column(name = "SEMANAS", nullable = false)
+    private Float semanas;
+
+    @Column(name = "INFORMEEJECUTIVO", nullable = false)
+    private Boolean informeEjecutivo;
+
+    @Column(name = "FECHACREACION", updatable = false, nullable = false)
+    @CreatedDate
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime fechaActualizacion;
 }

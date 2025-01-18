@@ -37,17 +37,24 @@ public class Usuario {
     @JoinColumn(name = "OIDUSUARIODETALLE", nullable = false)
     private UsuarioDetalle usuarioDetalle;
 
+    @ManyToOne
+    @JoinColumn(name = "OIDESTADOUSUARIO")
+    private EstadoUsuario estadoUsuario;
+
+    @Column(name = "IDENTIFICACION", nullable = false, length = 11)
+    private String identificacion;
+
     @Column(name = "NOMBRES", nullable = false)
     private String nombres;
 
     @Column(name = "APELLIDOS", nullable = false)
     private String apellidos;
 
+    @Column(name = "USERNAME")
+    private String username;
+
     @Column(name = "CORREO", nullable = false)
     private String correo;
-
-    @Column(name = "ESTADO", nullable = false)
-    private Short estado;
 
     @Column(name = "FECHACREACION")
     @CreationTimestamp

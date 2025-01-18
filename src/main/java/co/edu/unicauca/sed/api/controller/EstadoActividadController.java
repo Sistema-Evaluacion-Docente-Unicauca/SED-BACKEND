@@ -1,82 +1,66 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import co.edu.unicauca.sed.api.model.EstadoActividad;
 import co.edu.unicauca.sed.api.service.EstadoActividadService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("estadoactividad")
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/estado-actividad")
 public class EstadoActividadController {
 
+    private static final Logger logger = LoggerFactory.getLogger(EstadoActividadController.class);
+
     @Autowired
-    private EstadoActividadService estadoActividadService;
+    private EstadoActividadService service;
 
-    @GetMapping("all")
-    public ResponseEntity<?> findAll() {
-        try {
-            List<EstadoActividad> list = estadoActividadService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
-        }
-        return ResponseEntity.notFound().build();
+    @PostMapping
+    public ResponseEntity<EstadoActividad> create(@RequestBody EstadoActividad estadoActividad) {
+        logger.info("Solicitud recibida para crear EstadoActividad: {}", estadoActividad);
+        return new ResponseEntity<>(service.create(estadoActividad), HttpStatus.CREATED);
     }
 
-    @GetMapping("find/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        EstadoActividad resultado = this.estadoActividadService.findByOid(oid);
-        if (resultado != null) {
-            return ResponseEntity.ok().body(resultado);
-        }
-        return ResponseEntity.notFound().build();
+    @GetMapping("/{id}")
+    public ResponseEntity<EstadoActividad> findById(@PathVariable Integer id) {
+        logger.info("Solicitud recibida para buscar EstadoActividad con id: {}", id);
+        Optional<EstadoActividad> estadoActividad = service.findById(id);
+        return estadoActividad.map(ResponseEntity::ok)
+                .orElseThrow(() -> {
+                    logger.error("EstadoActividad no encontrado con id: {}", id);
+                    return new RuntimeException("EstadoActividad no encontrado con id: " + id);
+                });
     }
 
-    @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody EstadoActividad estadoActividad) {
-        try {
-            EstadoActividad resultado = estadoActividadService.save(estadoActividad);
-
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
-        }
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    @GetMapping
+    public ResponseEntity<Page<EstadoActividad>> findAll(Pageable pageable) {
+        logger.info("Solicitud recibida para listar EstadoActividad con paginación");
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
-    @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        EstadoActividad estadoActividad = null;
-        try {
-            estadoActividad = this.estadoActividadService.findByOid(oid);
-            if (estadoActividad == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("EstadoActividad no encontrado");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("EstadoActividad no encontrado");
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<EstadoActividad> update(@PathVariable Integer id, @RequestBody EstadoActividad estadoActividad) {
+        logger.info("Solicitud recibida para actualizar EstadoActividad con id: {}", id);
+        return ResponseEntity.ok(service.update(id, estadoActividad));
+    }
 
-        try {
-            this.estadoActividadService.delete(oid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        logger.info("Solicitud recibida para eliminar EstadoActividad con id: {}", id);
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        logger.error("Error manejado: {}", ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }

@@ -1,10 +1,8 @@
 package co.edu.unicauca.sed.api.model;
 
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "USUARIODETALLE")
+@Table(name = "USUARIODETALLE", schema = "SEDOCENTE")
 @Data
 public class UsuarioDetalle {
 
@@ -24,9 +22,6 @@ public class UsuarioDetalle {
     @SequenceGenerator(name = "usuarioDetalleSeq", sequenceName = "SEQ_OIDUSUARIODETALLE", allocationSize = 1)
     @Column(name = "OIDUSUARIODETALLE", nullable = false)
     private Integer oidUsuarioDetalle;
-
-    @Column(name = "IDENTIFICACION", nullable = false)
-    private String identificacion;
 
     @Column(name = "FACULTAD", nullable = false)
     private String facultad;
@@ -46,11 +41,11 @@ public class UsuarioDetalle {
     @Column(name = "ESTUDIOS")
     private String estudios;
 
-    @Column(name = "FECHACREACION")
+    @Column(name = "FECHACREACION", updatable = false, nullable = false)
     @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "FECHAACTUALIZACION")
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
     @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 }
