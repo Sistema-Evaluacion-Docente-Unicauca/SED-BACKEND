@@ -2,8 +2,8 @@ package co.edu.unicauca.sed.api.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,10 +23,10 @@ public class EstadoActividad {
     private String nombre;
 
     @Column(name = "FECHACREACION", updatable = false, nullable = false)
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
     @Column(name = "FECHAACTUALIZACION", nullable = false)
-    @LastModifiedDate
+    @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 }

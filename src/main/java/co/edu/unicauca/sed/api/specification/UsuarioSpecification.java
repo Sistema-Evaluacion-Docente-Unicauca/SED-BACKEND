@@ -14,7 +14,7 @@ public class UsuarioSpecification {
 
         if (StringUtils.hasText(identificacion)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder
-                    .equal(root.get("usuarioDetalle").get("identificacion"), identificacion));
+                    .equal(root.get("identificacion"), identificacion));
         }
 
         if (StringUtils.hasText(nombre)) {
@@ -62,7 +62,7 @@ public class UsuarioSpecification {
         }
 
         if (estado != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("estado"), estado));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("estadoUsuario").get("nombre"), estado));
         }
 
         return spec;

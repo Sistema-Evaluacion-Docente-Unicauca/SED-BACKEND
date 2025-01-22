@@ -1,6 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -27,8 +31,13 @@ public class Rol {
     @Column(name = "NOMBRE")
     private String nombre;
 
-    @Column(name = "ESTADO")
-    private Integer estado;
+    @Column(name = "FECHACREACION", updatable = false, nullable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore

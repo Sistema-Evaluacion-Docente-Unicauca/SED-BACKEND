@@ -1,8 +1,7 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
-import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
-import co.edu.unicauca.sed.api.dto.FuenteDTO;
+import co.edu.unicauca.sed.api.dto.actividad.*;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Comparator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +48,7 @@ public class ActividadQueryService {
      * @param pageable        Configuración de paginación.
      * @return Página de actividades como DTO.
      */
-    public Page<ActividadDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId,
+    public Page<ActividadBaseDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId,
             String activityCode, String activityType, String evaluatorName, List<String> roles,
             String sourceType, String sourceStatus, Boolean order, Boolean isActivePeriod, Pageable pageable) {
 
@@ -63,16 +61,10 @@ public class ActividadQueryService {
         int end = Math.min((start + pageable.getPageSize()), activities.size());
         List<Actividad> paginatedActivities = (start > end) ? List.of() : activities.subList(start, end);
 
-        // Convertir las actividades a DTOs
-        List<ActividadDTO> activityDTOs = paginatedActivities.stream().map(activity -> {
-            ActividadDTO dto = (sourceType != null || sourceStatus != null)
-                    ? actividadDTOService.convertToDTO(activity, sourceType, sourceStatus)
-                    : actividadDTOService.convertToDTO(activity);
-
-            // Ordenar las fuentes por tipoFuente
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
-            return dto;
-        }).collect(Collectors.toList());
+        // Convertir las actividades a DTOs según su tipo
+        List<ActividadBaseDTO> activityDTOs = paginatedActivities.stream()
+                .map(actividadDTOService::convertActividadToDTO)
+                .collect(Collectors.toList());
 
         // Retornar un objeto Page
         return new PageImpl<>(activityDTOs, pageable, activities.size());
@@ -113,15 +105,11 @@ public class ActividadQueryService {
         List<Actividad> paginatedActivities = activities.subList(start, end);
 
         // Convertir las actividades a DTOs
-        List<ActividadDTOEvaluador> activityDTOs = paginatedActivities.stream().map(activity -> {
-            ActividadDTOEvaluador dto = (sourceType != null || sourceStatus != null)
-                    ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
-                    : actividadDTOService.convertToDTOWithEvaluado(activity);
-
-            // Ordenar las fuentes por tipoFuente
-            dto.getFuentes().sort(Comparator.comparing(FuenteDTO::getTipoFuente));
-            return dto;
-        }).collect(Collectors.toList());
+        List<ActividadDTOEvaluador> activityDTOs = paginatedActivities.stream()
+                .map(activity -> (sourceType != null || sourceStatus != null)
+                        ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
+                        : actividadDTOService.convertToDTOWithEvaluado(activity))
+                .collect(Collectors.toList());
 
         // Retornar un objeto Page
         return new PageImpl<>(activityDTOs, pageable, activities.size());
@@ -151,7 +139,7 @@ public class ActividadQueryService {
         final String ATTRIBUTE_EVALUATOR = "evaluador";
         final String ATTRIBUTE_EVALUATED = "evaluado";
         final String ATTRIBUTE_USER_ID = "oidUsuario";
-        final String ATTRIBUTE_NAME = "nombre";
+        final String ATTRIBUTE_NAME = "nombreActividad";
         final String ATTRIBUTE_SOURCES = "fuentes";
         final String ATTRIBUTE_SOURCE_TYPE = "tipoFuente";
         final String ATTRIBUTE_SOURCE_STATUS = "estadoFuente";
@@ -166,17 +154,15 @@ public class ActividadQueryService {
 
         // Filtros por evaluador, evaluado, código, tipo y otros parámetros
         if (userEvaluatorId != null) {
-            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get(ATTRIBUTE_USER_ID),
-                    userEvaluatorId));
+            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get(ATTRIBUTE_USER_ID),userEvaluatorId));
         }
 
         if (userEvaluatedId != null) {
-            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED).get(ATTRIBUTE_USER_ID),
-                    userEvaluatedId));
+            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED).get(ATTRIBUTE_USER_ID),userEvaluatedId));
         }
 
         if (activityCode != null && !activityCode.isEmpty()) {
-            predicates.add(cb.like(root.get("nombre"), "%" + activityCode + "%"));
+            predicates.add(cb.like(root.get("nombreActividad"), "%" + activityCode + "%"));
         }
 
         if (activityType != null && !activityType.isEmpty()) {
@@ -200,11 +186,11 @@ public class ActividadQueryService {
                 predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("nombreEstado"), sourceStatus));
             }
         }
-
+        /*
         // Filtro por período académico activo
         boolean periodStatus = (isActivePeriod != null) ? isActivePeriod : DEFAULT_ACTIVE_PERIOD;
-        predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join("oidPeriodoAcademico").get(ATTRIBUTE_PERIOD_STATUS),
-                periodStatus ? 1 : 2));
+        predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join("oidPeriodoAcademico").get(ATTRIBUTE_PERIOD_STATUS),periodStatus ? 1 : 2));
+         */
 
         // Aplicar filtros y ordenar resultados
         query.where(predicates.toArray(new Predicate[0]));

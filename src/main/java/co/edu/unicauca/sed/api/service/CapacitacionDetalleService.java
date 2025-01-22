@@ -39,7 +39,7 @@ public class CapacitacionDetalleService {
             logger.info("Actualizando CapacitacionDetalle con id: {}", id);
             return repository.findById(id).map(existing -> {
                 existing.setActoAdministrativo(detalle.getActoAdministrativo());
-                existing.setActividad(detalle.getActividad());
+                existing.setDetalle(detalle.getDetalle());
                 return repository.save(existing);
             }).orElseThrow(() -> {
                 logger.error("CapacitacionDetalle no encontrado con id: {}", id);

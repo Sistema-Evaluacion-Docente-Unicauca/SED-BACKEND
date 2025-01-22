@@ -11,6 +11,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -26,6 +28,10 @@ public class PeriodoAcademico {
     @Column(name = "OIDPERIODOACADEMICO")
     private Integer oidPeriodoAcademico;
 
+    @ManyToOne
+    @JoinColumn(name = "OIDESTADOPERIODOACADEMICO", nullable = false)
+    private EstadoPeriodoAcademico estadoPeriodoAcademico;
+
     @Column(name = "IDPERIODO")
     private String idPeriodo;
 
@@ -34,9 +40,6 @@ public class PeriodoAcademico {
 
     @Column(name = "FECHAFIN")
     private Date fechaFin;
-
-    @Column(name = "ESTADO")
-    private Integer estado;
 
     @JsonIgnore
     @OneToMany(mappedBy = "oidPeriodoAcademico", cascade = CascadeType.REMOVE)

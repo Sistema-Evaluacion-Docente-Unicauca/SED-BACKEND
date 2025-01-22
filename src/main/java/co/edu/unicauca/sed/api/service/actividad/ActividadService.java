@@ -1,14 +1,12 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.PeriodoAcademico;
-import co.edu.unicauca.sed.api.model.Proceso;
-import co.edu.unicauca.sed.api.model.TipoActividad;
-import co.edu.unicauca.sed.api.model.Usuario;
-import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import co.edu.unicauca.sed.api.repository.ProcesoRepository;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
+import co.edu.unicauca.sed.api.mapper.ActividadMapper;
+import co.edu.unicauca.sed.api.model.*;
+import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +35,16 @@ public class ActividadService {
     private ActividadSortService actividadSortService;
 
     @Autowired
+    private ActividadMapper actividadMapper;
+
+    @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
 
-    // Constante para el estado de períodos activos
-    private static final int ACTIVE_PERIOD_STATUS = 1;
+    @Autowired
+    private ActividadDetalleService actividadDetalleService;
 
-    // Orden de clasificación predeterminado
-    private static final boolean DEFAULT_ASCENDING_ORDER = true;
+    @Autowired
+    private EstadoActividadRepository estadoActividadRepository;
 
     /**
      * Recupera todas las actividades junto con sus fuentes asociadas con
@@ -54,57 +55,22 @@ public class ActividadService {
      *                       ascendente.
      * @return Página de actividades en formato DTO.
      */
-    public Page<ActividadDTO> findAll(Pageable pageable, Boolean ascendingOrder) {
-        boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
+    public Page<ActividadBaseDTO> findAll(Pageable pageable, Boolean ascendingOrder) {
+        boolean order = (ascendingOrder != null) ? ascendingOrder : ActividadSortService.DEFAULT_ASCENDING_ORDER;
 
         // Obtener actividades paginadas desde el repositorio
         Page<Actividad> actividades = actividadRepository.findAll(pageable);
 
-        // Convertir las actividades a DTOs
-        List<ActividadDTO> actividadDTOs = actividades.getContent().stream()
-                .map(actividadDTOService::convertToDTO)
+        // Convertir actividades a DTOs según el tipo de detalle
+        List<ActividadBaseDTO> actividadDTOs = actividades.getContent().stream()
+                .map(actividad -> actividadDTOService.convertActividadToDTO(actividad))
                 .collect(Collectors.toList());
 
-        // Ordenar actividades
-        List<ActividadDTO> sortedDTOs = actividadSortService.sortActivities(actividadDTOs, order);
+        // Ordenar las actividades si es necesario
+        List<ActividadBaseDTO> sortedDTOs = actividadSortService.sortActivitiesByType(actividadDTOs, order);
 
         // Crear y retornar un nuevo objeto Page
         return new PageImpl<>(sortedDTOs, pageable, actividades.getTotalElements());
-    }
-
-    /**
-     * Recupera todas las actividades que forman parte de períodos académicos
-     * activos con paginación.
-     *
-     * @param pageable       Parámetros de paginación.
-     * @param ascendingOrder Indica si las actividades deben ordenarse de forma
-     *                       ascendente.
-     * @return Página de actividades en formato DTO en períodos activos, ordenadas
-     *         según el parámetro.
-     */
-    public Page<ActividadDTO> findAllInActivePeriods(Pageable pageable, Boolean ascendingOrder) {
-        boolean order = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-
-        // Consultar todas las actividades en períodos académicos activos
-        List<Actividad> actividades = actividadRepository
-                .findByProceso_OidPeriodoAcademico_Estado(ACTIVE_PERIOD_STATUS);
-
-        // Convertir las actividades en DTOs
-        List<ActividadDTO> actividadDTOs = actividades.stream()
-                .map(actividad -> actividadDTOService.convertToDTO(actividad))
-                .collect(Collectors.toList());
-
-        // Ordenar las actividades
-        List<ActividadDTO> sortedDTOs = actividadSortService.sortActivities(actividadDTOs, order);
-
-        // Paginar manualmente la lista de actividades ordenadas
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), sortedDTOs.size());
-
-        List<ActividadDTO> paginatedDTOs = (start > end) ? List.of() : sortedDTOs.subList(start, end);
-
-        // Crear y retornar un objeto Page con los datos paginados
-        return new PageImpl<>(paginatedDTOs, pageable, sortedDTOs.size());
     }
 
     /**
@@ -118,58 +84,73 @@ public class ActividadService {
     }
 
     /**
-     * Guarda una nueva actividad junto con el proceso asociado en la base de datos.
+     * Busca una actividad por su ID y la convierte en su correspondiente DTO.
      *
-     * @param actividad La actividad a guardar, incluyendo el proceso asociado.
+     * @param oid ID de la actividad.
+     * @return El DTO correspondiente a la actividad.
+     */
+    public ActividadBaseDTO findDTOByOid(Integer oid) {
+        Actividad actividad = actividadRepository.findById(oid)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
+        return actividadDTOService.convertActividadToDTO(actividad);
+    }
+
+    /**
+     * Guarda una nueva actividad junto con el detalle específico y el proceso
+     * asociado en la base de datos.
+     *
+     * @param actividadDTO DTO que contiene la actividad y su detalle específico.
      * @return La actividad guardada.
      */
-    public Actividad save(Actividad actividad) {
-        // Obtener el periodo académico activo
-        Integer idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+    @Transactional
+    public Actividad save(ActividadBaseDTO actividadDTO) {
+        try {
+            Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
+            asignarPeriodoAcademicoActivo(actividad);
+            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
+                String nombreProceso = "ACTIVIDAD";
+                actividad.getProceso().setNombreProceso(nombreProceso);
+            }
+            actividad.getProceso().setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
+            actividad.getProceso().setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
+            guardarProceso(actividad);
 
-        if (idPeriodoAcademico == null) {
-            throw new IllegalStateException("No se encontró un periodo académico activo.");
+            if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
+                String nombreActividad = actividadDetalleService.generarNombreActividad(actividadDTO);
+                actividad.setNombreActividad(nombreActividad);
+            }
+            Actividad savedActividad = actividadRepository.save(actividad);
+
+            if (actividadDTO.getDetalle() != null) {
+                actividadDetalleService.saveActivityDetail(savedActividad, actividadDTO.getDetalle());
+            }
+            return savedActividad;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al guardar la actividad: " + e.getMessage(), e);
         }
-
-        // Asignar el periodo académico activo al proceso
-        if (actividad.getProceso() != null) {
-            PeriodoAcademico periodoAcademico = new PeriodoAcademico();
-            periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
-            actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
-            actividad.getProceso().setNombreProceso("ACTIVIDAD");
-            // Guardar el proceso primero
-            Proceso savedProceso = procesoRepository.save(actividad.getProceso());
-            // Asignar el proceso guardado a la actividad
-            actividad.setProceso(savedProceso);
-        }
-
-        // Guardar la actividad después de guardar el proceso
-        return actividadRepository.save(actividad);
     }
 
     /**
      * Actualiza una actividad existente en la base de datos.
      *
-     * @param idActividad ID de la actividad a actualizar.
-     * @param actividad   Datos actualizados de la actividad.
+     * @param idActividad  ID de la actividad a actualizar.
+     * @param actividadDTO DTO con los datos actualizados de la actividad.
      * @return La actividad actualizada.
-     * @throws IllegalArgumentException Si no se encuentra la actividad con el ID
-     *                                  proporcionado.
      */
-    public Actividad update(Integer idActividad, Actividad actividad) {
-        // Buscar la actividad existente
+    public Actividad update(Integer idActividad, ActividadBaseDTO actividadDTO) {
         Actividad actividadExistente = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new IllegalArgumentException("Actividad con ID " + idActividad + " no encontrada."));
 
-        // Actualizar solo los campos básicos
-        actividadExistente.setCodigoActividad(actividad.getCodigoActividad());
-        actividadExistente.setNombre(actividad.getNombre());
-        actividadExistente.setHorasTotales(actividad.getHorasTotales());
-        actividadExistente.setInformeEjecutivo(actividad.getInformeEjecutivo());
-        actividadExistente.setEstadoActividad(actividad.getEstadoActividad());
-        actividadExistente.setCodVRI(actividad.getCodVRI());
+        actualizarCamposBasicos(actividadExistente, actividadDTO);
 
-        // Guardar y devolver la actividad actualizada
+        if (actividadDTO.getOidEstadoActividad() != null) {
+            asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
+        }
+
+        if (actividadDTO.getDetalle() != null) {
+            actividadDetalleService.updateActivityDetail(actividadExistente, actividadDTO.getDetalle());
+        }
+
         return actividadRepository.save(actividadExistente);
     }
 
@@ -180,5 +161,62 @@ public class ActividadService {
      */
     public void delete(Integer oid) {
         actividadRepository.deleteById(oid);
+    }
+
+    /**
+     * Asigna el período académico activo a la actividad.
+     *
+     * @param actividad La actividad a la que se asignará el período.
+     */
+    private void asignarPeriodoAcademicoActivo(Actividad actividad) {
+        Integer idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+        if (idPeriodoAcademico == null) {
+            throw new IllegalStateException("No se encontró un período académico activo.");
+        }
+
+        if (actividad.getProceso() == null) {
+            actividad.setProceso(new Proceso());
+        }
+
+        PeriodoAcademico periodoAcademico = new PeriodoAcademico();
+        periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
+        actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
+    }
+
+    /**
+     * Guarda el proceso de la actividad si es necesario.
+     *
+     * @param actividad La actividad con su proceso asociado.
+     */
+    private void guardarProceso(Actividad actividad) {
+        if (actividad.getProceso() != null) {
+            Proceso savedProceso = procesoRepository.save(actividad.getProceso());
+            actividad.setProceso(savedProceso);
+        }
+    }
+
+    /**
+     * Asigna el estado de la actividad si es válido.
+     *
+     * @param actividad          La actividad a actualizar.
+     * @param oidEstadoActividad El ID del estado de actividad.
+     */
+    private void asignarEstadoActividad(Actividad actividad, Integer oidEstadoActividad) {
+        EstadoActividad estadoExistente = estadoActividadRepository.findById(oidEstadoActividad)
+                .orElseThrow(() -> new IllegalArgumentException("Estado de actividad no válido."));
+        actividad.setEstadoActividad(estadoExistente);
+    }
+
+    /**
+     * Actualiza los campos básicos de la actividad.
+     *
+     * @param actividadExistente La actividad existente.
+     * @param actividadDTO       DTO con los datos actualizados.
+     */
+    private void actualizarCamposBasicos(Actividad actividadExistente, ActividadBaseDTO actividadDTO) {
+        actividadExistente.setNombreActividad(actividadDTO.getNombreActividad());
+        actividadExistente.setHoras(actividadDTO.getHoras());
+        actividadExistente.setSemanas(actividadDTO.getSemanas());
+        actividadExistente.setInformeEjecutivo(actividadDTO.getInformeEjecutivo());
     }
 }

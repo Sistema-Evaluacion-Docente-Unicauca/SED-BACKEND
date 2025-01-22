@@ -26,7 +26,7 @@ public class ActividadTransformacionService {
      * @return Mapa con los datos de la actividad transformados.
      */
     public Map<String, Object> transformarActividad(Actividad actividad, float horasTotales) {
-        float porcentaje = calculoService.calcularPorcentaje(actividad.getHorasTotales(), horasTotales);
+        float porcentaje = calculoService.calcularPorcentaje(actividad.getHoras(), horasTotales);
         double promedio = calculoService.calcularPromedio(actividad.getFuentes());
         double acumulado = calculoService.calcularAcumulado(promedio, porcentaje);
 
@@ -34,9 +34,8 @@ public class ActividadTransformacionService {
 
         return Map.of(
                 "oidActividad", actividad.getOidActividad(),
-                "codigoActividad", actividad.getCodigoActividad(),
-                "nombre", actividad.getNombre(),
-                "horas", actividad.getHorasTotales(),
+                "nombre", actividad.getNombreActividad(),
+                "horas", actividad.getHoras(),
                 "fuentes", transformarFuentes(actividad.getFuentes()),
                 "porcentaje", porcentaje,
                 "promedio", promedio,

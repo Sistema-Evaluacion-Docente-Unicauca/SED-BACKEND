@@ -2,9 +2,13 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 
@@ -17,24 +21,25 @@ public class ProyectoInvestigacionDetalle {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "proyectoInvDetalleSeq")
     @SequenceGenerator(name = "proyectoInvDetalleSeq", sequenceName = "SEQ_PROYECTOINVDETALLE", allocationSize = 1)
-    @Column(name = "PROYECTOINVDETALLE", nullable = false)
-    private Integer proyectoInvestigacionDetalle;
+    @Column(name = "OIDPROYECTOINVDETALLE", nullable = false)
+    private Integer oidProyectoInvestigacionDetalle;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
     private Actividad actividad;
 
-    @Column(name = "ACTOADMINISTRATIVO_", nullable = false)
-    private String actoAdministrativo;
+    @Column(name = "VRI", nullable = false)
+    private String vri;
 
     @Column(name = "NOMBREPROYECTO", nullable = false)
     private String nombreProyecto;
 
     @Column(name = "FECHACREACION", updatable = false, nullable = false)
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
     @Column(name = "FECHAACTUALIZACION", nullable = false)
-    @LastModifiedDate
+    @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 }

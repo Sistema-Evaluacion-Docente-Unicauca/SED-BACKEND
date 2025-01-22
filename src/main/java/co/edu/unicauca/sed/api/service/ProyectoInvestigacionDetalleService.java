@@ -38,7 +38,7 @@ public class ProyectoInvestigacionDetalleService {
         try {
             logger.info("Actualizando ProyectoInvestigacionDetalle con id: {}", id);
             return repository.findById(id).map(existing -> {
-                existing.setActoAdministrativo(detalle.getActoAdministrativo());
+                existing.setVri(detalle.getVri());
                 existing.setNombreProyecto(detalle.getNombreProyecto());
                 existing.setActividad(detalle.getActividad());
                 return repository.save(existing);

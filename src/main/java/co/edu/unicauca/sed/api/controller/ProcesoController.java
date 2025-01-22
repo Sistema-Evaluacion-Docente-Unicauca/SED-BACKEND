@@ -19,16 +19,16 @@ import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.service.ProcesoService;
 
 @Controller
-@RequestMapping("proceso")
+@RequestMapping("api/proceso")
 public class ProcesoController {
     @Autowired
     private ProcesoService procesoService;
 
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<Page<Proceso>> findAll(
-            @RequestParam(required = false) Integer evaluadorId,
-            @RequestParam(required = false) Integer evaluadoId,
+            @RequestParam(required = false) Integer idEvaluador,
+            @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodo,
             @RequestParam(required = false) String nombreProceso,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaCreacion,
@@ -36,10 +36,7 @@ public class ProcesoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Page<Proceso> procesos = procesoService.findAll(
-                evaluadorId, evaluadoId, idPeriodo,
-                nombreProceso, fechaCreacion, fechaActualizacion,
-                page, size);
+        Page<Proceso> procesos = procesoService.findAll(idEvaluador, idEvaluado, idPeriodo, nombreProceso, fechaCreacion, fechaActualizacion, page, size);
 
         if (procesos.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -47,7 +44,7 @@ public class ProcesoController {
         return ResponseEntity.ok(procesos);
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         Proceso resultado = this.procesoService.findByOid(oid);
         if (resultado != null) {
@@ -56,7 +53,7 @@ public class ProcesoController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Proceso proceso) {
         try {
             Proceso resultado = procesoService.save(proceso);
@@ -71,7 +68,7 @@ public class ProcesoController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @PutMapping("update/{oid}")
+    @PutMapping("/{oid}")
     public ResponseEntity<?> update(@PathVariable Integer oid, @RequestBody Proceso proceso) {
         try {
             Proceso updatedProceso = procesoService.update(oid, proceso);
@@ -87,7 +84,7 @@ public class ProcesoController {
         }
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Proceso proceso = null;
         try {

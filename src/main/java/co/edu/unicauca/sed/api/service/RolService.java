@@ -37,9 +37,8 @@ public class RolService {
      * @param oid El ID del rol.
      * @return El rol encontrado o null si no existe.
      */
-    public Rol findByOid(Integer oid) {
-        Optional<Rol> resultado = rolRepository.findById(oid);
-        return resultado.orElse(null);
+    public Optional<Rol> findByOid(Integer id) {
+        return rolRepository.findById(id);
     }
 
     /**
@@ -62,16 +61,14 @@ public class RolService {
      * @param rol Datos actualizados del rol.
      * @return true si la actualización fue exitosa, false si el rol no existe.
      */
-    public boolean update(Integer oid, Rol rol) {
-        Optional<Rol> existingRol = rolRepository.findById(oid);
-        if (existingRol.isPresent()) {
-            rol.setOid(oid);
-            rolRepository.save(rol);
-            return true;
-        } else {
-            logger.warn("Rol con ID {} no encontrado.", oid);
-            return false;
-        }
+    public Rol update(Integer id, Rol updatedRol) {
+        Rol existingRol = rolRepository.findById(id).orElseThrow(() -> new RuntimeException("Rol con ID " + id + " no encontrado."));
+    
+        // Actualizar los campos del rol existente
+        existingRol.setNombre(updatedRol.getNombre().toUpperCase());
+    
+        // Guardar y devolver el rol actualizado
+        return rolRepository.save(existingRol);
     }
 
     /**

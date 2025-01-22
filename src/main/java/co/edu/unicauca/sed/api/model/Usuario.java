@@ -27,6 +27,13 @@ import lombok.Data;
 @Data
 public class Usuario {
 
+    public Usuario() {
+    }
+    
+    public Usuario(Integer oidUsuario) {
+        this.oidUsuario = oidUsuario;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuarioSeq")
     @SequenceGenerator(name = "usuarioSeq", sequenceName = "SEQ_OIDUSUARIO", allocationSize = 1)
@@ -41,7 +48,7 @@ public class Usuario {
     @JoinColumn(name = "OIDESTADOUSUARIO")
     private EstadoUsuario estadoUsuario;
 
-    @Column(name = "IDENTIFICACION", nullable = false, length = 11)
+    @Column(name = "IDENTIFICACION", nullable = false)
     private String identificacion;
 
     @Column(name = "NOMBRES", nullable = false)

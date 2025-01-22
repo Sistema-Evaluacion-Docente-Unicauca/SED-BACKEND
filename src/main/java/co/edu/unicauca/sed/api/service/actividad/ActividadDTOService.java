@@ -1,145 +1,400 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
-import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.RolDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Fuente;
-import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.dto.actividad.*;
+import co.edu.unicauca.sed.api.model.*;
+import co.edu.unicauca.sed.api.repository.*;
+import co.edu.unicauca.sed.api.service.FuenteDTOService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Servicio encargado de convertir entidades del modelo a DTOs relacionados con Actividades.
+ * Servicio para la conversión entre entidades Actividad y sus respectivos DTOs.
  */
 @Service
 public class ActividadDTOService {
 
     private static final String DEFAULT_NAME = "N/A";
 
-    /**
-     * Convierte una entidad Actividad en un ActividadDTO.
-     * Incluye la conversión de los campos evaluador y fuentes.
-     *
-     * @param actividad    La entidad Actividad a convertir.
-     * @param tipoFuente   Filtro para el tipo de fuente (opcional).
-     * @param estadoFuente Filtro para el estado de la fuente (opcional).
-     * @return El objeto ActividadDTO convertido.
-     */
-    public ActividadDTO convertToDTO(Actividad actividad, String tipoFuente, String estadoFuente) {
-        // Convertir el evaluador a DTO
-        UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+    @Autowired
+    private FuenteDTOService fuenteDTOService;
 
-        // Filtrar y convertir las fuentes a DTO
-        List<FuenteDTO> filteredFuentes = actividad.getFuentes().stream().filter(
-                fuente -> (tipoFuente == null || tipoFuente.equals(fuente.getTipoFuente()))
-                        && (estadoFuente == null || estadoFuente.equals(fuente.getEstadoFuente().getNombreEstado())))
-                .map(this::convertFuenteToDTO).collect(Collectors.toList());
+    @Autowired
+    private AdministracionDetalleRepository administracionDetalleRepository;
 
-        return new ActividadDTO(
-                actividad.getOidActividad(),   
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHorasTotales(),
-                actividad.getInformeEjecutivo(),
-                actividad.getCodVRI(),
-                actividad.getActoAdministrativo(),
-                actividad.getEstadoActividad(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                filteredFuentes,
-                evaluadorDTO
-        );
-    }
+    @Autowired
+    private DocenciaDetalleRepository docenciaDetalleRepository;
+
+    @Autowired
+    private TrabajoDocenciaDetalleRepository trabajoDocenciaDetalleRepository;
+
+    @Autowired
+    private ProyectoInvestigacionDetalleRepository proyectoInvestigacionDetalleRepository;
+
+    @Autowired
+    private CapacitacionDetalleRepository capacitacionDetalleRepository;
+
+    @Autowired
+    private OtroServicioDetalleRepository otroServicioDetalleRepository;
+
+    @Autowired
+    private ExtensionDetalleRepository extensionDetalleRepository;
+
+    @Autowired
+    private TrabajoInvestigacionDetalleRepository trabajoInvestigacionDetalleRepository;
 
     /**
-     * Convierte una entidad Actividad en un ActividadDTO sin filtros.
-     *
-     * @param actividad La entidad Actividad a convertir.
-     * @return El objeto ActividadDTO convertido.
+     * Convierte una entidad Actividad con AdministracionDetalle a su
+     * correspondiente DTO.
      */
-    public ActividadDTO convertToDTO(Actividad actividad) {
-        UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+    public ActividadBaseDTO convertToAdministracionDetalleDTO(Actividad actividad) {
+        Optional<AdministracionDetalle> detalleOptional = administracionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de administración para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
 
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO)
-                .collect(Collectors.toList());
-
-        return new ActividadDTO(
+        AdministracionDetalle detalle = detalleOptional.get();
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        return new ActividadBaseDTO(
                 actividad.getOidActividad(),
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHorasTotales(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
                 actividad.getInformeEjecutivo(),
-                actividad.getCodVRI(),
-                actividad.getActoAdministrativo(),
-                actividad.getEstadoActividad(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                fuenteDTOs,
-                evaluadorDTO
-        );
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+				evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
     }
 
     /**
-     * Convierte una entidad Actividad en un ActividadDTOEvaluador.
-     * Incluye los detalles del evaluado y las fuentes asociadas.
-     *
-     * @param actividad La entidad Actividad a convertir.
-     * @return El objeto ActividadDTOEvaluador convertido.
+     * Convierte una entidad Actividad con DocenciaDetalle a su correspondiente DTO.
      */
+    public ActividadBaseDTO convertToDocenciaDetalleDTO(Actividad actividad) {
+        Optional<DocenciaDetalle> detalleOptional = docenciaDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de docencia para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+
+        DocenciaDetalle detalle = detalleOptional.get();
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+                evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con TrabajoDocenciaDetalle a su
+     * correspondiente DTO.
+     */
+    public ActividadBaseDTO convertToTrabajoDocenciaDetalleDTO(Actividad actividad) {
+        Optional<TrabajoDocenciaDetalle> detalleOptional = trabajoDocenciaDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+		System.err.println("ActividadDTOService.convertToTrabajoDocenciaDetalleDTO: detalleOptional.isEmpty() = " + detalleOptional.isEmpty());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de trabajo de docencia para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        TrabajoDocenciaDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+                evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con ProyectoInvestigacionDetalle a su
+     * correspondiente DTO.
+     */
+    public ActividadBaseDTO convertToProyectoInvestigacionDetalleDTO(Actividad actividad) {
+        Optional<ProyectoInvestigacionDetalle> detalleOptional = proyectoInvestigacionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de proyecto de investigación para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        ProyectoInvestigacionDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+                evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con CapacitacionDetalle a su correspondiente DTO.
+     */
+    public ActividadBaseDTO convertToCapacitacionDetalleDTO(Actividad actividad) {
+        Optional<CapacitacionDetalle> detalleOptional = capacitacionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de capacitación para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        CapacitacionDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+                evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con TrabajoInvestigacionDetalle a su
+     * correspondiente DTO.
+     */
+    public ActividadBaseDTO convertToTrabajoInvestigacionDetalleDTO(Actividad actividad) {
+        Optional<TrabajoInvestigacionDetalle> detalleOptional = trabajoInvestigacionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de trabajo de investigación para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        TrabajoInvestigacionDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+			actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+                evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con OtroServicioDetalle a su correspondiente
+     * DTO.
+     */
+    public ActividadBaseDTO convertToOtroServicioDetalleDTO(Actividad actividad) {
+        Optional<OtroServicioDetalle> detalleOptional = otroServicioDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de otro servicio para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        OtroServicioDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+				evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad con ExtensionDetalle a su correspondiente
+     * DTO.
+     */
+    public ActividadBaseDTO convertToExtensionDetalleDTO(Actividad actividad) {
+        Optional<ExtensionDetalle> detalleOptional = extensionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad());
+        if (detalleOptional.isEmpty()) {
+            throw new RuntimeException(
+                    "No se encontró un detalle de extensión para la actividad con ID: "
+                            + actividad.getOidActividad());
+        }
+		UsuarioDTO evaluadorDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluador());
+        ExtensionDetalle detalle = detalleOptional.get();
+        return new ActividadBaseDTO(
+                actividad.getOidActividad(),
+                actividad.getTipoActividad(),
+                actividad.getProceso().getOidProceso(),
+                actividad.getEstadoActividad().getOidEstadoActividad(),
+                actividad.getNombreActividad(),
+                actividad.getHoras(),
+                actividad.getSemanas(),
+                actividad.getInformeEjecutivo(),
+                actividad.getFechaCreacion(),
+                actividad.getFechaActualizacion(),
+                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                detalle, 
+				evaluadorDTO,
+				actividad.getProceso().getEvaluado().getOidUsuario(),
+				actividad.getProceso().getEvaluador().getOidUsuario());
+    }
+
+    /**
+     * Convierte una entidad Actividad en su DTO correspondiente basado en su tipo
+     * de actividad.
+     */
+    public ActividadBaseDTO convertActividadToDTO(Actividad actividad) {
+        String tipoActividad = actividad.getTipoActividad().getNombre().toUpperCase();
+        switch (tipoActividad) {
+            case "DOCENCIA":
+                return convertToDocenciaDetalleDTO(actividad);
+            case "TRABAJO DE DOCENCIA":
+                return convertToTrabajoDocenciaDetalleDTO(actividad);
+            case "PROYECTO DE INVESTIGACIÓN":
+                return convertToProyectoInvestigacionDetalleDTO(actividad);
+            case "CAPACITACIÓN":
+                return convertToCapacitacionDetalleDTO(actividad);
+            case "ADMINISTRACIÓN":
+                return convertToAdministracionDetalleDTO(actividad);
+            case "OTRO SERVICIO":
+                return convertToOtroServicioDetalleDTO(actividad);
+            case "EXTENSIÓN":
+                return convertToExtensionDetalleDTO(actividad);
+            case "TRABAJO DE INVESTIGACIÓN":
+                return convertToTrabajoInvestigacionDetalleDTO(actividad);
+            default:
+                throw new IllegalArgumentException("Tipo de actividad no reconocido: " + tipoActividad);
+        }
+    }
+
     public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad) {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
-    
-        return new ActividadDTOEvaluador(
-                actividad.getOidActividad(),
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHorasTotales(),
-                actividad.getCodVRI(),
-                actividad.getEstadoActividad(),
-                actividad.getInformeEjecutivo(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                actividad.getFuentes().stream().map(this::convertFuenteToDTO).collect(Collectors.toList()),
-                evaluadoDTO
-        );
-    }    
 
-    /**
-     * Convierte una entidad Actividad en un ActividadDTOEvaluador.
-     * Permite aplicar filtros por tipo y estado de fuente.
-     *
-     * @param actividad    La entidad Actividad a convertir.
-     * @param tipoFuente   Filtro para el tipo de fuente (opcional).
-     * @param estadoFuente Filtro para el estado de la fuente (opcional).
-     * @return El objeto ActividadDTOEvaluador convertido.
-     */
-    public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad, String tipoFuente, String estadoFuente) {
-        UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
-
-        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream().map(this::convertFuenteToDTO)
+        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream()
+                .map(this::convertFuenteToDTO)
                 .collect(Collectors.toList());
 
         return new ActividadDTOEvaluador(
-                actividad.getOidActividad(),
-                actividad.getCodigoActividad(),
-                actividad.getNombre(),
-                actividad.getHorasTotales(),
-                actividad.getCodVRI(),
-                actividad.getEstadoActividad(),
-                actividad.getInformeEjecutivo(),
-                actividad.getFechaCreacion(),
-                actividad.getFechaActualizacion(),
-                actividad.getTipoActividad(),
-                fuenteDTOs,
-                evaluadoDTO);
+			actividad.getOidActividad(),
+			actividad.getNombreActividad(),
+			actividad.getHoras(),
+			actividad.getSemanas(),
+			actividad.getEstadoActividad(),
+			actividad.getInformeEjecutivo(),
+			actividad.getFechaCreacion(),
+			actividad.getFechaActualizacion(),
+			actividad.getTipoActividad(),
+			fuenteDTOs,
+			evaluadoDTO
+		);
+    }
+
+    public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad, String tipoFuente,
+            String estadoFuente) {
+        UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
+
+        List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream()
+                .filter(fuente -> {
+                    boolean tipoMatch = (tipoFuente == null || fuente.getTipoFuente().equalsIgnoreCase(tipoFuente));
+                    boolean estadoMatch = (estadoFuente == null || fuente.getEstadoFuente().getNombreEstado().equalsIgnoreCase(estadoFuente));
+                    return tipoMatch && estadoMatch;
+                }).map(this::convertFuenteToDTO).collect(Collectors.toList());
+
+        return new ActividadDTOEvaluador(
+			actividad.getOidActividad(),
+			actividad.getNombreActividad(),
+			actividad.getHoras(),
+			actividad.getSemanas(),
+			actividad.getEstadoActividad(),
+			actividad.getInformeEjecutivo(),
+			actividad.getFechaCreacion(),
+			actividad.getFechaActualizacion(),
+			actividad.getTipoActividad(),
+			fuenteDTOs,
+			evaluadoDTO
+		);
+    }
+
+    /**
+     * Convierte una entidad Usuario en un UsuarioDTO.
+     * Usa valores predeterminados para nombres y apellidos si son nulos.
+     *
+     * @param evaluador La entidad Usuario a convertir.
+     * @return El objeto UsuarioDTO convertido.
+     */
+    public UsuarioDTO convertToUsuarioDTO(Usuario evaluador) {
+        List<RolDTO> rolDTOList = evaluador.getRoles().stream()
+                .map(rol -> new RolDTO(rol.getNombre()))
+                .collect(Collectors.toList());
+
+        String nombres = evaluador.getNombres() != null ? evaluador.getNombres() : DEFAULT_NAME;
+        String apellidos = evaluador.getApellidos() != null ? evaluador.getApellidos() : DEFAULT_NAME;
+
+        return new UsuarioDTO(
+                evaluador.getOidUsuario(),
+                evaluador.getIdentificacion(),
+                nombres,
+                apellidos,
+                rolDTOList);
     }
 
     /**
@@ -159,28 +414,5 @@ public class ActividadDTOService {
                 fuente.getFechaCreacion(),
                 fuente.getFechaActualizacion(),
                 fuente.getEstadoFuente().getNombreEstado());
-    }
-
-    /**
-     * Convierte una entidad Usuario en un UsuarioDTO.
-     * Usa valores predeterminados para nombres y apellidos si son nulos.
-     *
-     * @param evaluador La entidad Usuario a convertir.
-     * @return El objeto UsuarioDTO convertido.
-     */
-    public UsuarioDTO convertToUsuarioDTO(Usuario evaluador) {
-        List<RolDTO> rolDTOList = evaluador.getRoles().stream()
-                .map(rol -> new RolDTO(rol.getNombre(), rol.getEstado()))
-                .collect(Collectors.toList());
-
-        String nombres = evaluador.getNombres() != null ? evaluador.getNombres() : DEFAULT_NAME;
-        String apellidos = evaluador.getApellidos() != null ? evaluador.getApellidos() : DEFAULT_NAME;
-
-        return new UsuarioDTO(
-                evaluador.getOidUsuario(),
-                evaluador.getUsuarioDetalle().getIdentificacion(),
-                nombres,
-                apellidos,
-                rolDTOList);
     }
 }

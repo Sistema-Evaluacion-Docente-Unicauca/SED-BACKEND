@@ -38,7 +38,7 @@ public class AdministracionDetalleService {
         logger.info("Actualizando AdministracionDetalle con id: {}", id);
         return repository.findById(id).map(existing -> {
             existing.setActoAdministrativo(detalle.getActoAdministrativo());
-            existing.setActividad(detalle.getActividad());
+            existing.setDetalle(detalle.getDetalle());
             return repository.save(existing);
         }).orElseThrow(() -> {
             logger.error("AdministracionDetalle no encontrado con id: {}", id);

@@ -21,7 +21,7 @@ import org.springframework.data.domain.Page;
  * así como la evaluación de docentes.
  */
 @Controller
-@RequestMapping("usuario")
+@RequestMapping("api/usuarios")
 public class UsuarioController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
@@ -40,7 +40,7 @@ public class UsuarioController {
      * @param size Tamaño de la página (opcional, por defecto 10).
      * @return Lista paginada de usuarios o un mensaje de error si ocurre algún problema.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -74,7 +74,7 @@ public class UsuarioController {
      * @param oid ID del usuario a buscar.
      * @return Información del usuario encontrado o un mensaje de error si no existe.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
             Usuario resultado = usuarioService.findByOid(oid);
@@ -95,7 +95,7 @@ public class UsuarioController {
      * @param usuarios Lista de objetos Usuario a guardar.
      * @return Lista de usuarios guardados o un mensaje de error si ocurre algún  problema.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody List<Usuario> usuarios) {
         try {
             List<Usuario> resultado = usuarioService.save(usuarios);
@@ -117,7 +117,7 @@ public class UsuarioController {
      * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
      * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
      */
-    @PutMapping("update/{idUsuario}")
+    @PutMapping("/{idUsuario}")
     public ResponseEntity<?> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
         try {
             Usuario usuario = usuarioService.update(idUsuario, usuarioActualizado);
@@ -164,7 +164,7 @@ public class UsuarioController {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes o un mensaje de error.
      */
-    @GetMapping("obtenerEvaluacionDocente")
+    @GetMapping("/obtenerEvaluacionDocente")
     public ResponseEntity<?> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,

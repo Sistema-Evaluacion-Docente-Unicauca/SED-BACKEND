@@ -2,8 +2,10 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,10 +52,10 @@ public class Actividad {
     private Boolean informeEjecutivo;
 
     @Column(name = "FECHACREACION", updatable = false, nullable = false)
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
     @Column(name = "FECHAACTUALIZACION", nullable = false)
-    @LastModifiedDate
+    @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 }

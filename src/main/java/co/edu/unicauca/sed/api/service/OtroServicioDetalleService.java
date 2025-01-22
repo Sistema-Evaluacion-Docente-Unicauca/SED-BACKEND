@@ -39,7 +39,7 @@ public class OtroServicioDetalleService {
             logger.info("Actualizando OtroServicioDetalle con id: {}", id);
             return repository.findById(id).map(existing -> {
                 existing.setActoAdministrativo(detalle.getActoAdministrativo());
-                existing.setActividadDetalle(detalle.getActividadDetalle());
+                existing.setDetalle(detalle.getDetalle());
                 existing.setActividad(detalle.getActividad());
                 return repository.save(existing);
             }).orElseThrow(() -> {

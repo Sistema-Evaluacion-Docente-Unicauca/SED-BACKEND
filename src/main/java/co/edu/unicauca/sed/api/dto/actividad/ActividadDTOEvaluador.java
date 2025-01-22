@@ -1,17 +1,23 @@
-package co.edu.unicauca.sed.api.dto;
+package co.edu.unicauca.sed.api.dto.actividad;
+
+import co.edu.unicauca.sed.api.dto.FuenteDTO;
+import co.edu.unicauca.sed.api.dto.UsuarioDTO;
+import co.edu.unicauca.sed.api.model.EstadoActividad;
+import co.edu.unicauca.sed.api.model.TipoActividad;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import co.edu.unicauca.sed.api.model.TipoActividad;
 
+/**
+ * DTO for representing activity details with evaluator information.
+ */
 public class ActividadDTOEvaluador {
 
     private Integer oidActividad;
-    private String codigoActividad;
-    private String nombre;
+    private String nombreActividad;
     private Float horas;
-    private String codVRI;
-    private Short estadoActividad;
+    private Float semanas;
+    private EstadoActividad estadoActividad;
     private Boolean informeEjecutivo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -19,18 +25,37 @@ public class ActividadDTOEvaluador {
     private List<FuenteDTO> fuentes;
     private UsuarioDTO evaluado;
 
-    // Constructor with all necessary fields
+    /**
+     * Constructor with all fields.
+     *
+     * @param oidActividad       ID of the activity.
+     * @param nombreActividad    Name of the activity.
+     * @param horas              Hours spent on the activity.
+     * @param semanas            Weeks spent on the activity.
+     * @param estadoActividad    Status of the activity.
+     * @param informeEjecutivo   Whether an executive report is required.
+     * @param fechaCreacion      Creation date of the activity.
+     * @param fechaActualizacion Last update date of the activity.
+     * @param tipoActividad      Type of the activity.
+     * @param fuentes            List of associated sources.
+     * @param evaluado           Evaluated user information.
+     */
     public ActividadDTOEvaluador(
-            Integer oidActividad, String codigoActividad, String nombre, Float horas,
-            String codVRI, Short estadoActividad, Boolean informeEjecutivo,
-            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
-            TipoActividad tipoActividad, List<FuenteDTO> fuentes, UsuarioDTO evaluado) {
-
+            Integer oidActividad,
+            String nombreActividad,
+            Float horas,
+            Float semanas,
+            EstadoActividad estadoActividad,
+            Boolean informeEjecutivo,
+            LocalDateTime fechaCreacion,
+            LocalDateTime fechaActualizacion,
+            TipoActividad tipoActividad,
+            List<FuenteDTO> fuentes,
+            UsuarioDTO evaluado) {
         this.oidActividad = oidActividad;
-        this.codigoActividad = codigoActividad;
-        this.nombre = nombre;
+        this.nombreActividad = nombreActividad;
         this.horas = horas;
-        this.codVRI = codVRI;
+        this.semanas = semanas;
         this.estadoActividad = estadoActividad;
         this.informeEjecutivo = informeEjecutivo;
         this.fechaCreacion = fechaCreacion;
@@ -40,7 +65,12 @@ public class ActividadDTOEvaluador {
         this.evaluado = evaluado;
     }
 
+    // Default constructor
+    public ActividadDTOEvaluador() {
+    }
+
     // Getters and setters
+
     public Integer getOidActividad() {
         return oidActividad;
     }
@@ -49,20 +79,12 @@ public class ActividadDTOEvaluador {
         this.oidActividad = oidActividad;
     }
 
-    public String getCodigoActividad() {
-        return codigoActividad;
+    public String getNombreActividad() {
+        return nombreActividad;
     }
 
-    public void setCodigoActividad(String codigoActividad) {
-        this.codigoActividad = codigoActividad;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setNombreActividad(String nombreActividad) {
+        this.nombreActividad = nombreActividad;
     }
 
     public Float getHoras() {
@@ -73,19 +95,19 @@ public class ActividadDTOEvaluador {
         this.horas = horas;
     }
 
-    public String getCodVRI() {
-        return codVRI;
+    public Float getSemanas() {
+        return semanas;
     }
 
-    public void setCodVRI(String codVRI) {
-        this.codVRI = codVRI;
+    public void setSemanas(Float semanas) {
+        this.semanas = semanas;
     }
 
-    public Short getEstadoActividad() {
+    public EstadoActividad getEstadoActividad() {
         return estadoActividad;
     }
 
-    public void setEstadoActividad(Short estadoActividad) {
+    public void setEstadoActividad(EstadoActividad estadoActividad) {
         this.estadoActividad = estadoActividad;
     }
 

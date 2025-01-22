@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import co.edu.unicauca.sed.api.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaSpecificationExecutor<Usuario> {
+    Usuario findByIdentificacion(String identificacion);
     List<Usuario> findByRoles_Nombre(String nombreRol);
 }

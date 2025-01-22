@@ -21,6 +21,7 @@ public class EstadoActividadService {
 
     public EstadoActividad create(EstadoActividad estadoActividad) {
         logger.info("Creando EstadoActividad: {}", estadoActividad);
+        estadoActividad.setNombre(estadoActividad.getNombre().toUpperCase());
         return repository.save(estadoActividad);
     }
 
@@ -38,7 +39,7 @@ public class EstadoActividadService {
         try {
             logger.info("Actualizando EstadoActividad con id: {}", id);
             return repository.findById(id).map(existing -> {
-                existing.setNombre(estadoActividad.getNombre());
+                existing.setNombre(estadoActividad.getNombre().toUpperCase());
                 return repository.save(existing);
             }).orElseThrow(() -> {
                 logger.error("EstadoActividad no encontrado con id: {}", id);

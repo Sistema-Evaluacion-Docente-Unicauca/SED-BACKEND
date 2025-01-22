@@ -1,9 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
-import co.edu.unicauca.sed.api.dto.ActividadDTOEvaluador;
+import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.service.actividad.ActividadDTOService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +22,13 @@ import java.util.List;
  * Controlador para gestionar las actividades del sistema.
  */
 @Controller
-@RequestMapping("actividad")
+@RequestMapping("api/actividades")
 public class ActividadController {
 
     private static final Logger logger = LoggerFactory.getLogger(ActividadController.class);
 
     @Autowired
     private ActividadService actividadService;
-
-    @Autowired
-    private ActividadDTOService actividadDTOService;
 
     @Autowired
     private ActividadQueryService actividadQueryService;
@@ -46,13 +41,13 @@ public class ActividadController {
      * @param ascendingOrder Indica si el orden es ascendente.
      * @return Página de actividades.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         try {
-            Page<ActividadDTO> activities = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
+            Page<?> activities = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
             if (activities.hasContent()) {
                 return ResponseEntity.ok().body(activities);
             } else {
@@ -66,54 +61,23 @@ public class ActividadController {
     }
 
     /**
-     * Obtiene todas las actividades de períodos académicos activos con paginación.
-     *
-     * @param page           Número de página.
-     * @param size           Tamaño de página.
-     * @param ascendingOrder Indica si el orden es ascendente.
-     * @return Página de actividades o un mensaje de error.
-     */
-    @GetMapping("buscarActividadesPorPeriodoActivo")
-    public ResponseEntity<?> findAllInActivePeriods(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "true") boolean ascendingOrder) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<ActividadDTO> activities = actividadService.findAllInActivePeriods(pageable, ascendingOrder);
-
-            if (activities.hasContent()) {
-                return ResponseEntity.ok(activities);
-            } else {
-                logger.warn("No se encontraron actividades en períodos activos");
-                return ResponseEntity.noContent().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error al obtener actividades en períodos activos: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-    }
-
-    /**
      * Busca una actividad por su ID.
      *
      * @param oid ID de la actividad.
      * @return Actividad encontrada o un mensaje de error.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         try {
-            Actividad actividad = actividadService.findByOid(oid);
-            if (actividad != null) {
-                ActividadDTO actividadDTO = actividadDTOService.convertToDTO(actividad);
-                return ResponseEntity.ok().body(actividadDTO);
-            }
+            ActividadBaseDTO actividadDTO = actividadService.findDTOByOid(oid);
+            return ResponseEntity.ok().body(actividadDTO);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Actividad con ID: {} no encontrada", oid);
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             logger.error("Error al buscar actividad con ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
-        logger.warn("Actividad con ID: {} no encontrada", oid);
-        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -135,6 +99,7 @@ public class ActividadController {
      */
     @GetMapping("/buscarActividadesPorEvaluado")
     public ResponseEntity<?> listActivitiesByEvaluadoInActivePeriod(
+        /*Nombre actividad, Acto administrativo, VRI, tipo actividad */
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer idEvaluador,
@@ -148,7 +113,7 @@ public class ActividadController {
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Boolean estadoPeriodo) {
         try {
-            Page<ActividadDTO> activities = actividadQueryService.findActivitiesByEvaluado(
+            Page<ActividadBaseDTO> activities = actividadQueryService.findActivitiesByEvaluado(
                     idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador,
                     roles, tipoFuente, estadoFuente, orden, estadoPeriodo,
                     PageRequest.of(page, size));
@@ -165,7 +130,8 @@ public class ActividadController {
     }
 
     /**
-     * Busca actividades asignadas a un evaluador en períodos activos con paginación.
+     * Busca actividades asignadas a un evaluador en períodos activos con
+     * paginación.
      *
      * @param idEvaluador     ID del evaluador (opcional).
      * @param idEvaluado      ID del evaluado (opcional).
@@ -196,14 +162,16 @@ public class ActividadController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, orden != null && orden
-                    ? Sort.by("nombre").ascending()
-                    : Sort.by("nombre").descending());
+            // Configurar la paginación
+            Pageable pageable = PageRequest.of(page, size,
+                    orden != null && orden ? Sort.by("nombre").ascending() : Sort.by("nombre").descending());
 
+            // Delegar al servicio la búsqueda de actividades
             Page<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(
                     idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles,
                     tipoFuente, estadoFuente, orden, estadoPeriodo, pageable);
 
+            // Verificar si hay resultados
             if (activities.hasContent()) {
                 return ResponseEntity.ok(activities);
             } else {
@@ -212,9 +180,10 @@ public class ActividadController {
             }
         } catch (Exception e) {
             logger.error("Error al buscar actividades por evaluador: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error al buscar actividades: " + e.getMessage());
         }
     }
+
 
     /**
      * Guarda una nueva actividad en el sistema.
@@ -222,14 +191,10 @@ public class ActividadController {
      * @param actividad Datos de la actividad.
      * @return Actividad guardada o un mensaje de error.
      */
-    @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody Actividad actividad) {
-        if (actividad.getProceso() == null) {
-            return ResponseEntity.badRequest().body("El proceso no puede ser nulo.");
-        }
-        logger.info("Intentando guardar actividad: {}", actividad);
+    @PostMapping
+    public ResponseEntity<?> save(@RequestBody ActividadBaseDTO actividadDTO) {
         try {
-            Actividad resultado = actividadService.save(actividad);
+            Actividad resultado = actividadService.save(actividadDTO);
             if (resultado != null) {
                 logger.info("Actividad guardada exitosamente con ID: {}", resultado.getOidActividad());
                 return ResponseEntity.ok().body(resultado);
@@ -245,20 +210,15 @@ public class ActividadController {
     /**
      * Actualiza una actividad existente en el sistema.
      *
-     * @param idActividad ID de la actividad a actualizar.
-     * @param actividad   Datos actualizados de la actividad.
+     * @param idActividad  ID de la actividad a actualizar.
+     * @param actividadDTO DTO con los datos actualizados de la actividad.
      * @return Actividad actualizada o mensaje de error.
      */
-    @PutMapping(value = "update/{idActividad}", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody Actividad actividad) {
+    @PutMapping
+    public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
         logger.info("Intentando actualizar actividad con ID: {}", idActividad);
         try {
-            Actividad actividadActualizada = actividadService.update(idActividad, actividad);
-            logger.info("Actividad actualizada exitosamente con ID: {}", actividadActualizada.getOidActividad());
-            return ResponseEntity.ok(actividadActualizada);
-        } catch (IllegalArgumentException e) {
-            logger.warn("No se encontró la actividad con ID: {}", idActividad);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.ok(actividadService.update(idActividad, actividadDTO));
         } catch (Exception e) {
             logger.error("Error al actualizar actividad con ID {}: {}", idActividad, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la actividad.");
