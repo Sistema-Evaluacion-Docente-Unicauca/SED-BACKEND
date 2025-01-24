@@ -191,6 +191,8 @@ public class ConsolidadoService {
                     .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
                     .sum();
 
+            totalAcumulado = Math.round(totalAcumulado);
+
             // Construcción del consolidado
             return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
         } catch (Exception e) {

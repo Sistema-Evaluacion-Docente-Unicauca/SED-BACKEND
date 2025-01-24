@@ -18,7 +18,7 @@ public class ActividadCalculoService {
      */
     public float calcularTotalHoras(List<co.edu.unicauca.sed.api.model.Actividad> actividades) {
         return (float) actividades.stream()
-                .mapToDouble(co.edu.unicauca.sed.api.model.Actividad::getHoras)
+                .mapToDouble(actividad -> actividad.getHoras())
                 .sum();
     }
 
@@ -29,8 +29,8 @@ public class ActividadCalculoService {
      * @param horasTotales   Horas totales.
      * @return Porcentaje calculado redondeado a 2 decimales.
      */
-    public float calcularPorcentaje(float horasActividad, float horasTotales) {
-        return horasTotales > 0 ? (float) MathUtils.calcularPorcentaje(horasActividad, horasTotales) : 0;
+    public int calcularPorcentaje(float horasActividad, float horasTotales) {
+        return horasTotales > 0 ? Math.round((horasActividad / horasTotales) * 100) : 0;
     }
 
     /**
@@ -54,6 +54,10 @@ public class ActividadCalculoService {
      * @return Valor acumulado redondeado a 2 decimales.
      */
     public double calcularAcumulado(double promedio, float porcentaje) {
-        return MathUtils.redondearDecimal(promedio * (porcentaje / 100), 2).doubleValue();
+        if (porcentaje <= 0) {
+            return 0;
+        }
+        double acumulado = promedio * (porcentaje / 100);
+        return Math.round(acumulado * 100.0) / 100.0;
     }
 }
