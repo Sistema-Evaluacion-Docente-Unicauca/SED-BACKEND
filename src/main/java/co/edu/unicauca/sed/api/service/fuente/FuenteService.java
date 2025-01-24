@@ -113,18 +113,13 @@ public class FuenteService {
     public void saveSource(String sourcesJson, MultipartFile informeFuente, String observation,
             Map<String, MultipartFile> allFiles) {
         try {
-            // Delegar la deserialización del JSON al servicio de integración
             List<FuenteCreateDTO> sources = integrationService.parseSourcesJson(sourcesJson);
-
-            // Validar si existe alguna fuente tipo 1 para filtrar archivos adicionales
             Map<String, MultipartFile> informeEjecutivoFiles = null;
             if (sources.stream().anyMatch(source -> "1".equals(source.getTipoFuente()))) {
                 informeEjecutivoFiles = integrationService.filterExecutiveFiles(allFiles);
             } else {
                 logger.info("No se encontraron fuentes tipo 1, no se procesarán archivos adicionales");
             }
-
-            // Delegar el procesamiento de cada fuente al servicio de negocio
             for (FuenteCreateDTO sourceDTO : sources) {
                 if (observation != null) {
                     observation.toUpperCase();

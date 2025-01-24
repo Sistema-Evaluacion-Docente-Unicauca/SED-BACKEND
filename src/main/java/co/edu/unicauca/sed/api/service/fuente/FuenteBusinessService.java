@@ -45,24 +45,25 @@ public class FuenteBusinessService {
      * @param observation           Observación general.
      * @param informeEjecutivoFiles Archivos adicionales (informes ejecutivos).
      */
-    public void processSource(FuenteCreateDTO sourceDTO, MultipartFile informeFuente, String observation,
-            Map<String, MultipartFile> informeEjecutivoFiles) {
+        public void processSource(FuenteCreateDTO sourceDTO, MultipartFile informeFuente, String observation, Map<String, MultipartFile> informeEjecutivoFiles) {
         try {
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
             String academicPeriod = fileService.getAcademicPeriod(activity);
             String evaluatedName = fileService.getEvaluatedName(activity);
 
-            Optional<Fuente> optionalFuente = fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente());
+            // Garantizar que el repositorio no devuelva null
+            Optional<Fuente> optionalFuente = Optional.ofNullable(
+                    fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente())
+            ).orElse(Optional.empty());
+
             Fuente source = optionalFuente.orElse(new Fuente());
             // Manejo según tipo de fuente
             Path commonFilePath = null;
             Path executiveReportPath = null;
 
             if ("2".equals(sourceDTO.getTipoFuente())) {
-                // Tipo de fuente 1: Solo procesar informeFuente
                 commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, academicPeriod, evaluatedName);
             } else if ("1".equals(sourceDTO.getTipoFuente())) {
-                // Tipo de fuente 2: Procesar informeFuente y archivos adicionales
                 commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, academicPeriod, evaluatedName);
                 executiveReportPath = fileService.handleExecutiveReport(optionalFuente, sourceDTO, informeEjecutivoFiles, academicPeriod, evaluatedName);
             } else {

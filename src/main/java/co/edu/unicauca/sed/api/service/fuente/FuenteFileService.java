@@ -36,75 +36,85 @@ public class FuenteFileService {
     public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente,
             String academicPeriod, String evaluatedName) {
         try {
+            if (informeFuente == null || informeFuente.isEmpty()) {
+                logger.warn("El archivo fuente no fue proporcionado.");
+                return null; // Retornar null si no hay archivo proporcionado
+            }
+
+            // Si existe una fuente previa, verifica si el archivo es diferente
             if (optionalFuente.isPresent()) {
                 Fuente existingSource = optionalFuente.get();
-                if (informeFuente != null && existingSource.getRutaDocumentoFuente() != null) {
-                    String existingFileName = Path.of(existingSource.getRutaDocumentoFuente()).getFileName().toString();
-                    if (!informeFuente.getOriginalFilename().equals(existingFileName)) {
-                        fileService.deleteFile(existingSource.getRutaDocumentoFuente());
-                        Path savedFile = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, "fuente");
-                        return savedFile;
-                    }
-                    return Path.of(existingSource.getRutaDocumentoFuente());
-                } else {
-                    if (informeFuente != null) {
-                        Path savedFile = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, "fuente");
-                        return savedFile;
-                    }
+                String existingFileName = existingSource.getRutaDocumentoFuente() != null
+                        ? Path.of(existingSource.getRutaDocumentoFuente()).getFileName().toString()
+                        : null;
+
+                if (existingFileName != null && !informeFuente.getOriginalFilename().equals(existingFileName)) {
+                    fileService.deleteFile(existingSource.getRutaDocumentoFuente());
+                    logger.info("Archivo fuente existente eliminado: {}", existingFileName);
                 }
-            } else {
-                logger.warn("No se encontró una fuente existente para la actividad y tipoFuente proporcionados.");
             }
-            return null;
+
+            // Siempre guarda el archivo en caso de que sea la primera vez o si es un
+            // archivo nuevo
+            Path savedFile = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, "fuente");
+            logger.info("Archivo fuente guardado en: {}", savedFile.toString());
+            return savedFile;
+
         } catch (Exception e) {
             logger.error("Error al manejar el archivo fuente común", e);
             throw new RuntimeException("Error al manejar el archivo fuente común: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Maneja el informe ejecutivo, eliminándolo y guardándolo si es necesario.
-     *
-     * @param optionalFuente        Fuente existente opcional.
-     * @param sourceDTO             El DTO de la fuente.
-     * @param informeEjecutivoFiles Mapa de archivos adicionales (informes
-     *                              ejecutivos).
-     * @param academicPeriod        Identificador del período académico.
-     * @param evaluatedName         Nombre del evaluado.
-     * @return La ruta del archivo de informe ejecutivo guardado.
-     */
     public Path handleExecutiveReport(Optional<Fuente> optionalFuente, FuenteCreateDTO sourceDTO,
             Map<String, MultipartFile> informeEjecutivoFiles, String academicPeriod,
             String evaluatedName) {
         try {
-            if (optionalFuente.isPresent()) {
-                Fuente existingSource = optionalFuente.get();
+            // Si no hay informe ejecutivo en la nueva solicitud
+            if (sourceDTO.getInformeEjecutivo() == null || sourceDTO.getInformeEjecutivo().isEmpty()) {
+                if (optionalFuente.isPresent()) {
+                    Fuente existingSource = optionalFuente.get();
+                    if (existingSource.getRutaDocumentoInforme() != null) {
+                        // Eliminar el archivo previo si existe
+                        fileService.deleteFile(existingSource.getRutaDocumentoInforme());
+                        logger.info("Informe ejecutivo previo eliminado: {}", existingSource.getRutaDocumentoInforme());
 
-                // Validar si hay un informe ejecutivo en el DTO
-                if (sourceDTO.getInformeEjecutivo() != null) {
-                    String existingExecutiveReportName = existingSource.getNombreDocumentoInforme();
-
-                    // Si no hay informe previo o el informe es diferente, manejar el guardado
-                    if (existingExecutiveReportName == null || !sourceDTO.getInformeEjecutivo().equals(existingExecutiveReportName)) {
-                        // Eliminar informe previo si existe
-                        if (existingExecutiveReportName != null) {
-                            fileService.deleteFile(existingSource.getRutaDocumentoInforme());
-                        }
-
-                        // Buscar el archivo correspondiente en los archivos adicionales
-                        Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream().filter( file -> file.getOriginalFilename().equalsIgnoreCase(sourceDTO.getInformeEjecutivo())).findFirst();
-
-                        // Guardar el nuevo informe
-                        if (matchedFile.isPresent()) {
-                            Path savedFile = fileService.saveFile(matchedFile.get(), academicPeriod, evaluatedName,"informe");
-                            return savedFile;
-                        }
+                        // Actualizar la entidad Fuente para eliminar la referencia al archivo
+                        existingSource.setNombreDocumentoInforme(null);
+                        existingSource.setRutaDocumentoInforme(null);
                     }
                 }
-            } else {
-                logger.warn("No se encontró una fuente existente para manejar el informe ejecutivo.");
+                return null; // No hay archivo nuevo que guardar
             }
-            return null;
+
+            // Buscar el archivo correspondiente en los archivos adicionales
+            Optional<MultipartFile> matchedFile = informeEjecutivoFiles.values().stream()
+                    .filter(file -> file.getOriginalFilename().equalsIgnoreCase(sourceDTO.getInformeEjecutivo()))
+                    .findFirst();
+
+            if (matchedFile.isEmpty()) {
+                logger.warn("No se encontró un archivo coincidente para el informe ejecutivo: {}",
+                        sourceDTO.getInformeEjecutivo());
+                return null;
+            }
+
+            if (optionalFuente.isPresent()) {
+                Fuente existingSource = optionalFuente.get();
+                String existingExecutiveReportName = existingSource.getNombreDocumentoInforme();
+
+                // Eliminar el archivo previo si es diferente
+                if (existingExecutiveReportName != null
+                        && !sourceDTO.getInformeEjecutivo().equals(existingExecutiveReportName)) {
+                    fileService.deleteFile(existingSource.getRutaDocumentoInforme());
+                    logger.info("Informe ejecutivo previo eliminado: {}", existingExecutiveReportName);
+                }
+            }
+
+            // Guardar el nuevo informe ejecutivo
+            Path savedFile = fileService.saveFile(matchedFile.get(), academicPeriod, evaluatedName, "informe");
+            logger.info("Informe ejecutivo guardado en: {}", savedFile.toString());
+            return savedFile;
+
         } catch (Exception e) {
             logger.error("Error al manejar el informe ejecutivo", e);
             throw new RuntimeException("Error al manejar el informe ejecutivo: " + e.getMessage(), e);

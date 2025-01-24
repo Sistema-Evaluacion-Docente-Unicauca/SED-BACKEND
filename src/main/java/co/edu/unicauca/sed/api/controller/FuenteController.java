@@ -80,23 +80,23 @@ public class FuenteController {
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> saveFuente(
-        @RequestParam("informeFuente") MultipartFile informeFuente,
-        @RequestParam("observation") String observation,
-        @RequestParam("sources") String sourcesJson,
-        @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
-    try {
-        logger.debug("Archivo recibido: {}", informeFuente != null ? informeFuente.getOriginalFilename() : "null");
-        logger.debug("Observación: {}", observation);
-        logger.debug("JSON de fuentes: {}", sourcesJson);
+            @RequestParam("informeFuente") MultipartFile informeFuente,
+            @RequestParam("observation") String observation,
+            @RequestParam("sources") String sourcesJson,
+            @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
+        try {
+            logger.debug("Archivo recibido: {}", informeFuente != null ? informeFuente.getOriginalFilename() : "null");
+            logger.debug("Observación: {}", observation);
+            logger.debug("JSON de fuentes: {}", sourcesJson);
 
-        fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
-        logger.info("Fuente guardada exitosamente");
-        return ResponseEntity.ok("Archivos procesados correctamente");
-    } catch (Exception e) {
-        logger.debug("Error al procesar los archivos: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
+            fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
+            logger.info("Fuente guardada exitosamente");
+            return ResponseEntity.ok("Archivos procesados correctamente");
+        } catch (Exception e) {
+            logger.debug("Error al procesar los archivos: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
+        }
     }
-}
 
     /**
      * Elimina una fuente por su ID.
