@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "EXTENSIONDETALLE", schema = "SEDOCENTE")
+@Table(name = "EXTENSIONDETALLE")
 public class ExtensionDetalle {
 
     @Id

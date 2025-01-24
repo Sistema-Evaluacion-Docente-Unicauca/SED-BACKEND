@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "USUARIODETALLE", schema = "SEDOCENTE")
+@Table(name = "USUARIODETALLE")
 @Data
 public class UsuarioDetalle {
 
