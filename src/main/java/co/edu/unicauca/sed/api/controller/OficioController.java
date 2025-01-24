@@ -17,12 +17,12 @@ import co.edu.unicauca.sed.api.model.Oficio;
 import co.edu.unicauca.sed.api.service.OficioService;
 
 @Controller
-@RequestMapping("oficio")
+@RequestMapping("api/oficio")
 public class OficioController {
     @Autowired
     private OficioService oficioService;
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<Oficio> list = oficioService.findAll();
@@ -35,7 +35,7 @@ public class OficioController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Oficio resultado = this.oficioService.findByOid(oid);
         if (resultado != null) {
@@ -44,7 +44,7 @@ public class OficioController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Oficio oficio) {
         try {
             Oficio resultado = oficioService.save(oficio);
@@ -58,7 +58,7 @@ public class OficioController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Oficio oficio = null;
         try {

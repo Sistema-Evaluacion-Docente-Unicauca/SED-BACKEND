@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/extension-detalle")
+@RequestMapping("api/extension-detalle")
 public class ExtensionDetalleController {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtensionDetalleController.class);

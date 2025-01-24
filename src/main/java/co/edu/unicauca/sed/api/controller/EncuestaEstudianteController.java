@@ -17,13 +17,13 @@ import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
 import co.edu.unicauca.sed.api.service.EncuestaEstudianteService;
 
 @Controller
-@RequestMapping("encuestaEstudiante")
+@RequestMapping("api/encuesta-estudiante")
 public class EncuestaEstudianteController {
 
     @Autowired
     private EncuestaEstudianteService encuestaEstudianteService;
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<EncuestaEstudiante> list = (List<EncuestaEstudiante>) encuestaEstudianteService.findAll();
@@ -36,7 +36,7 @@ public class EncuestaEstudianteController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         EncuestaEstudiante encuestaEstudiante = encuestaEstudianteService.findByOid(oid);
         if (encuestaEstudiante != null) {
@@ -45,7 +45,7 @@ public class EncuestaEstudianteController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody EncuestaEstudiante encuestaEstudiante) {
         try {
             EncuestaEstudiante resultado = encuestaEstudianteService.save(encuestaEstudiante);
@@ -58,7 +58,7 @@ public class EncuestaEstudianteController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         EncuestaEstudiante encuestaEstudiante = null;
         try {

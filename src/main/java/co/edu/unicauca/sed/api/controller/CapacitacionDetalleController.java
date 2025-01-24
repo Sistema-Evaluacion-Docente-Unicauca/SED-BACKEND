@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/capacitacion-detalle")
+@RequestMapping("api/capacitacion-detalle")
 public class CapacitacionDetalleController {
 
     private static final Logger logger = LoggerFactory.getLogger(CapacitacionDetalleController.class);

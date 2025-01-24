@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("encuestaPregunta")
+@RequestMapping("api/encuesta-pregunta")
 public class EncuestaPreguntaController {
 
     @Autowired
     private EncuestaPreguntaService encuestaPreguntaService;
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<EncuestaPregunta> list = encuestaPreguntaService.findAll();
@@ -30,7 +30,7 @@ public class EncuestaPreguntaController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         EncuestaPregunta encuestaPregunta = encuestaPreguntaService.findByOid(oid);
         if (encuestaPregunta != null) {
@@ -39,7 +39,7 @@ public class EncuestaPreguntaController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody EncuestaPregunta encuestaPregunta,
             @RequestParam Integer oidEncuesta,
             @RequestParam Integer oidPregunta) {
@@ -54,7 +54,7 @@ public class EncuestaPreguntaController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         EncuestaPregunta encuestaPregunta = encuestaPreguntaService.findByOid(oid);
         if (encuestaPregunta == null) {

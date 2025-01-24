@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * Proporciona endpoints para realizar operaciones CRUD sobre las encuestas.
  */
 @Controller
-@RequestMapping("encuesta")
+@RequestMapping("api/encuesta")
 public class EncuestaController {
 
     private static final Logger logger = LoggerFactory.getLogger(EncuestaController.class);
@@ -33,7 +33,7 @@ public class EncuestaController {
      * @param ascendingOrder Indica si el orden es ascendente.
      * @return Página de encuestas.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -59,7 +59,7 @@ public class EncuestaController {
      * @param oid ID de la encuesta.
      * @return La encuesta encontrada o un mensaje de error si no existe.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         logger.info("Solicitud para buscar la encuesta con ID: {}", oid);
         Encuesta encuesta = encuestaService.findByOid(oid);
@@ -77,7 +77,7 @@ public class EncuestaController {
      * @param encuesta Objeto Encuesta a guardar.
      * @return La encuesta guardada o un mensaje de error si ocurre algún problema.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Encuesta encuesta) {
         try {
             Encuesta resultado = encuestaService.save(encuesta);
@@ -100,7 +100,7 @@ public class EncuestaController {
      * @return Confirmación de eliminación o un mensaje de error si ocurre un
      *         problema.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         logger.info("Solicitud para eliminar la encuesta con ID: {}", oid);
         Encuesta encuesta = null;

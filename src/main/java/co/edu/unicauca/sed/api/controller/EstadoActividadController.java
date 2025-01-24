@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/estado-actividad")
+@RequestMapping("api/estado-actividad")
 public class EstadoActividadController {
 
     private static final Logger logger = LoggerFactory.getLogger(EstadoActividadController.class);

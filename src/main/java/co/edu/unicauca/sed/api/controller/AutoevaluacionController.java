@@ -18,7 +18,7 @@ import java.util.List;
  * Proporciona endpoints para realizar operaciones CRUD sobre Autoevaluaciones.
  */
 @Controller
-@RequestMapping("autoevaluacion")
+@RequestMapping("api/autoevaluacion")
 public class AutoevaluacionController {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoevaluacionController.class);
@@ -31,7 +31,7 @@ public class AutoevaluacionController {
      *
      * @return Lista de autoevaluaciones o un error si ocurre algún problema.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<Autoevaluacion> list = service.findAll();
@@ -53,7 +53,7 @@ public class AutoevaluacionController {
      * @param oid ID de la autoevaluación a buscar.
      * @return La autoevaluación encontrada o un error 404 si no existe.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         Autoevaluacion autoevaluacion = service.findByOid(oid);
         if (autoevaluacion != null) {
@@ -70,7 +70,7 @@ public class AutoevaluacionController {
      * @param autoevaluacion Objeto Autoevaluacion a guardar.
      * @return La autoevaluación guardada o un error si ocurre algún problema.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Autoevaluacion autoevaluacion) {
         try {
             Autoevaluacion resultado = service.save(autoevaluacion);
@@ -91,7 +91,7 @@ public class AutoevaluacionController {
      * @param oid ID de la autoevaluación a eliminar.
      * @return Confirmación de eliminación o un error si ocurre un problema.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         logger.info("Solicitud recibida para eliminar la autoevaluación con ID: {}", oid);
         Autoevaluacion autoevaluacion = null;

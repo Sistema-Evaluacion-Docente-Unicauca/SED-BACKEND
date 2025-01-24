@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import co.edu.unicauca.sed.api.service.DocumentoService;
 
 @RestController
-@RequestMapping("documento")
+@RequestMapping("api/documento")
 public class DocumentoController {
     @Autowired
     private DocumentoService documentoService;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/otro-servicio-detalle")
+@RequestMapping("api/otro-servicio-detalle")
 public class OtroServicioDetalleController {
 
     private static final Logger logger = LoggerFactory.getLogger(OtroServicioDetalleController.class);

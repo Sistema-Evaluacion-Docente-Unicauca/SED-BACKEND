@@ -11,12 +11,12 @@ import co.edu.unicauca.sed.api.model.Resolucion;
 import co.edu.unicauca.sed.api.service.ResolucionService;
 
 @Controller
-@RequestMapping("resolucion")
+@RequestMapping("api/resolucion")
 public class ResolucionController {
     @Autowired
     private ResolucionService resolucionService;
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<Resolucion> list = resolucionService.findAll();
@@ -29,7 +29,7 @@ public class ResolucionController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Resolucion resolucion = this.resolucionService.findByOid(oid);
         if (resolucion != null) {
@@ -38,7 +38,7 @@ public class ResolucionController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Resolucion resolucion) {
         try {
             Resolucion resultado = resolucionService.save(resolucion);
@@ -53,7 +53,7 @@ public class ResolucionController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Resolucion resolucion = null;
         try {

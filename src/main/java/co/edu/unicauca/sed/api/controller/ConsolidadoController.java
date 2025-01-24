@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 @Controller
-@RequestMapping("consolidado")
+@RequestMapping("api/consolidado")
 public class ConsolidadoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConsolidadoController.class);
@@ -31,7 +31,7 @@ public class ConsolidadoController {
      * @param ascendingOrder Orden ascendente o descendente.
      * @return Página de Consolidado o mensaje de error.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -55,7 +55,7 @@ public class ConsolidadoController {
      * @param oid El ID del Consolidado.
      * @return El objeto Consolidado o un mensaje de error.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
             Consolidado resultado = this.consolidadoService.findByOid(oid);
@@ -75,7 +75,7 @@ public class ConsolidadoController {
      * @param consolidado El objeto Consolidado a guardar.
      * @return El objeto Consolidado guardado o un mensaje de error.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Consolidado consolidado) {
         try {
             Consolidado resultado = consolidadoService.save(consolidado);
@@ -97,7 +97,7 @@ public class ConsolidadoController {
      * @param consolidado    Datos actualizados para los consolidados.
      * @return Mensaje de éxito o error.
      */
-    @PutMapping("update/{oidConsolidado}")
+    @PutMapping("/{oidConsolidado}")
     public ResponseEntity<?> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
         try {
             consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
@@ -117,7 +117,7 @@ public class ConsolidadoController {
      * @param oid El ID del Consolidado a eliminar.
      * @return Mensaje de éxito o error.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         try {
             Consolidado consolidado = consolidadoService.findByOid(oid);

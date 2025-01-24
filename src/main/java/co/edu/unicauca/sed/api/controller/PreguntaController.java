@@ -12,13 +12,13 @@ import co.edu.unicauca.sed.api.model.Pregunta;
 import co.edu.unicauca.sed.api.service.PreguntaService;
 
 @Controller
-@RequestMapping("pregunta")
+@RequestMapping("api/pregunta")
 public class PreguntaController {
 
     @Autowired
     private PreguntaService preguntaService;
 
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<Pregunta> list = preguntaService.findAll();
@@ -31,16 +31,16 @@ public class PreguntaController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> findById(@PathVariable Integer oid) {
         Pregunta pregunta = preguntaService.findByOid(oid);
-        if (pregunta != null){
+        if (pregunta != null) {
             return ResponseEntity.ok().body(pregunta);
         }
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Pregunta pregunta) {
         try {
             Pregunta savedPregunta = preguntaService.save(pregunta);
@@ -67,7 +67,7 @@ public class PreguntaController {
         return ResponseEntity.internalServerError().body("Error: No se pudieron guardar las preguntas");
     }
 
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Pregunta pregunta = preguntaService.findByOid(oid);
         if (pregunta == null) {

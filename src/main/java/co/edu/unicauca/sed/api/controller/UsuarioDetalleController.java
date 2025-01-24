@@ -16,7 +16,7 @@ import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.service.UsuarioDetalleService;
 
 @Controller
-@RequestMapping("usuarioDetalle")
+@RequestMapping("api/usuario-detalle")
 public class UsuarioDetalleController {
 
     @Autowired
@@ -27,7 +27,7 @@ public class UsuarioDetalleController {
      *
      * @return List of all user details or 404 if none found.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll() {
         try {
             List<UsuarioDetalle> list = usuarioDetalleService.findAll();
@@ -46,7 +46,7 @@ public class UsuarioDetalleController {
      * @param oid The ID of the user detail.
      * @return The user detail if found, or 404 if not.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         UsuarioDetalle resultado = usuarioDetalleService.findByOid(oid);
         if (resultado != null) {
@@ -61,7 +61,7 @@ public class UsuarioDetalleController {
      * @param usuarioDetalle The user detail to save.
      * @return The saved user detail, or an error if something goes wrong.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody UsuarioDetalle usuarioDetalle) {
         try {
             UsuarioDetalle resultado = usuarioDetalleService.save(usuarioDetalle);
@@ -80,7 +80,7 @@ public class UsuarioDetalleController {
      * @param oid The ID of the user detail to delete.
      * @return Confirmation if deleted, or an error if conflicts exist.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         UsuarioDetalle usuarioDetalle = null;
         try {

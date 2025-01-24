@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * Proporciona endpoints para operaciones CRUD sobre los tipos de actividad.
  */
 @RestController
-@RequestMapping("/api/tipo-actividad")
+@RequestMapping("api/tipo-actividad")
 public class TipoActividadController {
 
     private static final Logger logger = LoggerFactory.getLogger(TipoActividadController.class);

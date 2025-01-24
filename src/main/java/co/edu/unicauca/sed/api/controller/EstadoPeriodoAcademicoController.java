@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/estado-periodo-academico")
+@RequestMapping("api/estado-periodo-academico")
 public class EstadoPeriodoAcademicoController {
 
     private static final Logger logger = LoggerFactory.getLogger(EstadoPeriodoAcademicoController.class);

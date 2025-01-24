@@ -21,7 +21,7 @@ import co.edu.unicauca.sed.api.service.ComentarioService;
  * Proporciona endpoints para operaciones CRUD y consulta de comentarios con paginación.
  */
 @Controller
-@RequestMapping("comentario")
+@RequestMapping("api/comentario")
 public class ComentarioController {
 
     @Autowired
@@ -35,7 +35,7 @@ public class ComentarioController {
      * @param ascendingOrder Indica si los comentarios deben ordenarse de forma ascendente (true) o descendente (false).
      * @return Página de comentarios o código 204 si no hay contenido.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -58,7 +58,7 @@ public class ComentarioController {
      * @param oid ID del comentario.
      * @return Comentario encontrado o código 404 si no existe.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Comentario resultado = this.comentarioService.findByOid(oid);
         if (resultado != null) {
@@ -73,7 +73,7 @@ public class ComentarioController {
      * @param comentario Objeto Comentario a guardar.
      * @return Comentario guardado o código 500 si ocurre un error.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Comentario comentario) {
         try {
             Comentario resultado = comentarioService.save(comentario);
@@ -94,7 +94,7 @@ public class ComentarioController {
      * @param oid ID del comentario a eliminar.
      * @return Código 200 si se elimina exitosamente, 404 si no se encuentra, o 409 si hay conflictos al eliminar.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Comentario comentario = null;
         try {

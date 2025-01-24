@@ -99,7 +99,7 @@ public class ActividadController {
      */
     @GetMapping("/buscarActividadesPorEvaluado")
     public ResponseEntity<?> listActivitiesByEvaluadoInActivePeriod(
-        /*Nombre actividad, Acto administrativo, VRI, tipo actividad */
+            /* Nombre actividad, Acto administrativo, VRI, tipo actividad */
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer idEvaluador,
@@ -184,7 +184,6 @@ public class ActividadController {
         }
     }
 
-
     /**
      * Guarda una nueva actividad en el sistema.
      *
@@ -231,7 +230,7 @@ public class ActividadController {
      * @param oid ID de la actividad a eliminar.
      * @return Respuesta de éxito o mensaje de error.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Actividad actividad = null;
         try {
