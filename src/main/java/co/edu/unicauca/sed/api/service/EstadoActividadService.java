@@ -1,51 +1,67 @@
 package co.edu.unicauca.sed.api.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import co.edu.unicauca.sed.api.model.EstadoActividad;
 import co.edu.unicauca.sed.api.repository.EstadoActividadRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class EstadoActividadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EstadoActividadService.class);
+
     @Autowired
-    private EstadoActividadRepository estadoActividadRepository;
+    private EstadoActividadRepository repository;
 
-    public List<EstadoActividad> findAll() {
-        List<EstadoActividad> list = new ArrayList<>();
-        this.estadoActividadRepository.findAll().forEach(list::add);
-        return list;
+    public EstadoActividad create(EstadoActividad estadoActividad) {
+        logger.info("Creando EstadoActividad: {}", estadoActividad);
+        estadoActividad.setNombre(estadoActividad.getNombre().toUpperCase());
+        return repository.save(estadoActividad);
     }
 
-    public EstadoActividad findByOid(Integer oid) {
-        Optional<EstadoActividad> resultado = this.estadoActividadRepository.findById(oid);
-
-        if (resultado.isPresent()) {
-            return resultado.get();
-        }
-
-        return null;
+    public Optional<EstadoActividad> findById(Integer id) {
+        logger.info("Buscando EstadoActividad con id: {}", id);
+        return repository.findById(id);
     }
 
-    public EstadoActividad save(EstadoActividad estadoActividad) {
-        EstadoActividad result = null;
+    public Page<EstadoActividad> findAll(Pageable pageable) {
+        logger.info("Listando EstadoActividad con paginación");
+        return repository.findAll(pageable);
+    }
+
+    public EstadoActividad update(Integer id, EstadoActividad estadoActividad) {
         try {
-            if (estadoActividad.getNombreEstado() != null) {
-                estadoActividad.setNombreEstado(estadoActividad.getNombreEstado().toUpperCase());
-            }
-            result = this.estadoActividadRepository.save(estadoActividad);
+            logger.info("Actualizando EstadoActividad con id: {}", id);
+            return repository.findById(id).map(existing -> {
+                existing.setNombre(estadoActividad.getNombre().toUpperCase());
+                return repository.save(existing);
+            }).orElseThrow(() -> {
+                logger.error("EstadoActividad no encontrado con id: {}", id);
+                return new RuntimeException("EstadoActividad no encontrado con id: " + id);
+            });
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            logger.error("Error actualizando EstadoActividad con id: {}", id, e);
+            throw new RuntimeException("Error actualizando EstadoActividad con id: " + id, e);
         }
-        return result;
     }
 
-    public void delete(Integer oid) {
-        this.estadoActividadRepository.deleteById(oid);
+    public void delete(Integer id) {
+        try {
+            logger.info("Eliminando EstadoActividad con id: {}", id);
+            if (!repository.existsById(id)) {
+                logger.error("EstadoActividad no encontrado para eliminar con id: {}", id);
+                throw new RuntimeException("EstadoActividad no encontrado para eliminar con id: " + id);
+            }
+            repository.deleteById(id);
+        } catch (Exception e) {
+            logger.error("Error eliminando EstadoActividad con id: {}", id, e);
+            throw new RuntimeException("Error eliminando EstadoActividad con id: " + id, e);
+        }
     }
 }

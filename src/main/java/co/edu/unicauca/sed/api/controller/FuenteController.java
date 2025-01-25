@@ -21,7 +21,7 @@ import co.edu.unicauca.sed.api.service.fuente.FuenteService;
  * Proporciona endpoints para operaciones CRUD y manejo de archivos asociados.
  */
 @Controller
-@RequestMapping("fuente")
+@RequestMapping("api/fuente")
 public class FuenteController {
 
     private static final Logger logger = LoggerFactory.getLogger(FuenteController.class);
@@ -34,7 +34,7 @@ public class FuenteController {
      *
      * @return Lista de todas las fuentes o un error en caso de falla.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -58,7 +58,7 @@ public class FuenteController {
      * @param oid El ID de la fuente.
      * @return La fuente si es encontrada, o un error 404 si no lo es.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Fuente resultado = fuenteService.findByOid(oid);
         if (resultado != null) {
@@ -78,25 +78,25 @@ public class FuenteController {
      * @param allFiles      Map opcional de archivos adicionales.
      * @return Mensaje de éxito o error en caso de problemas al procesar.
      */
-    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> saveFuente(
-        @RequestParam("informeFuente") MultipartFile informeFuente,
-        @RequestParam("observation") String observation,
-        @RequestParam("sources") String sourcesJson,
-        @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
-    try {
-        logger.debug("Archivo recibido: {}", informeFuente != null ? informeFuente.getOriginalFilename() : "null");
-        logger.debug("Observación: {}", observation);
-        logger.debug("JSON de fuentes: {}", sourcesJson);
+            @RequestParam("informeFuente") MultipartFile informeFuente,
+            @RequestParam("observation") String observation,
+            @RequestParam("sources") String sourcesJson,
+            @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
+        try {
+            logger.debug("Archivo recibido: {}", informeFuente != null ? informeFuente.getOriginalFilename() : "null");
+            logger.debug("Observación: {}", observation);
+            logger.debug("JSON de fuentes: {}", sourcesJson);
 
-        fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
-        logger.info("Fuente guardada exitosamente");
-        return ResponseEntity.ok("Archivos procesados correctamente");
-    } catch (Exception e) {
-        logger.debug("Error al procesar los archivos: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
+            fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
+            logger.info("Fuente guardada exitosamente");
+            return ResponseEntity.ok("Archivos procesados correctamente");
+        } catch (Exception e) {
+            logger.debug("Error al procesar los archivos: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error procesando los archivos");
+        }
     }
-}
 
     /**
      * Elimina una fuente por su ID.
@@ -104,7 +104,7 @@ public class FuenteController {
      * @param oid El ID de la fuente a eliminar.
      * @return Mensaje de confirmación si se elimina, o error en caso de conflictos.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         logger.info("Solicitud recibida para eliminar la fuente con ID: {}", oid);
         Fuente fuente = null;

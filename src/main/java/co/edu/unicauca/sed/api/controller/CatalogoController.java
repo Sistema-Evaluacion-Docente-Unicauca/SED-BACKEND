@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/catalogo")
+@RequestMapping("api/catalogo")
 public class CatalogoController {
 
     private final CatalogoService catalogoService;

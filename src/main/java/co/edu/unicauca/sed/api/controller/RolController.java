@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,13 +11,15 @@ import co.edu.unicauca.sed.api.service.RolService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Controlador para la gestión de roles.
  * Proporciona endpoints para realizar operaciones CRUD sobre los roles.
  */
 @Controller
-@RequestMapping("rol")
+@RestController
+@RequestMapping("api/roles")
 public class RolController {
 
     private static final Logger logger = LoggerFactory.getLogger(RolController.class);
@@ -26,111 +28,82 @@ public class RolController {
     private RolService rolService;
 
     /**
-     * Recupera todos los roles disponibles en el sistema.
+     * Crea un nuevo rol en el sistema.
      *
-     * @return Lista de roles o un error si ocurre algún problema.
+     * @param rol Datos del rol a crear.
+     * @return El rol creado con el estado HTTP 201 (CREATED).
      */
-    @GetMapping("all")
-    public ResponseEntity<?> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            Page<Rol> roles = rolService.findAll(PageRequest.of(page, size));
-            if (roles.hasContent()) {
-                return ResponseEntity.ok().body(roles);
-            } else {
-                return ResponseEntity.noContent().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error al obtener los roles: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    @PostMapping
+    public ResponseEntity<Rol> create(@RequestBody Rol rol) {
+        logger.info("Solicitud recibida para crear un rol: {}", rol);
+        return new ResponseEntity<>(rolService.save(rol), HttpStatus.CREATED);
     }
 
     /**
-     * Busca un rol específico por su ID.
+     * Recupera un rol por su ID.
      *
-     * @param oid El ID del rol.
+     * @param id ID del rol a buscar.
      * @return El rol encontrado o un error 404 si no se encuentra.
      */
-    @GetMapping("find/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Rol resultado = rolService.findByOid(oid);
-        if (resultado != null) {
-            logger.info("Rol con ID {} encontrado.", oid);
-            return ResponseEntity.ok().body(resultado);
-        } else {
-            logger.warn("Rol con ID {} no encontrado.", oid);
-            return ResponseEntity.notFound().build();
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<Rol> findById(@PathVariable Integer id) {
+        logger.info("Solicitud recibida para buscar un rol con id: {}", id);
+        return rolService.findByOid(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> {
+                    logger.error("Rol no encontrado con id: {}", id);
+                    return new RuntimeException("Rol no encontrado con id: " + id);
+                });
     }
 
     /**
-     * Guarda un nuevo rol en el sistema.
+     * Recupera todos los roles con paginación.
      *
-     * @param rol El objeto Rol a guardar.
-     * @return El rol guardado o un mensaje de error.
+     * @param pageable Parámetros de paginación.
+     * @return Página de roles.
      */
-    @PostMapping("save")
-    public ResponseEntity<?> save(@RequestBody Rol rol) {
-        try {
-            Rol resultado = rolService.save(rol);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            } else {
-                logger.error("Error al guardar el rol. Resultado nulo.");
-                return ResponseEntity.internalServerError().body("Error: Resultado nulo");
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar el rol: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    @GetMapping
+    public ResponseEntity<Page<Rol>> findAll(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        logger.info("Solicitud recibida para listar roles con paginación");
+        return ResponseEntity.ok(rolService.findAll(pageable));
     }
 
     /**
      * Actualiza un rol existente.
      *
-     * @param oid El ID del rol a actualizar.
+     * @param id  ID del rol a actualizar.
      * @param rol Datos actualizados del rol.
-     * @return Mensaje de éxito o error.
+     * @return El rol actualizado.
      */
-    @PutMapping("update/{oid}")
-    public ResponseEntity<?> update(@PathVariable Integer oid, @RequestBody Rol rol) {
-        try {
-            boolean resultado = rolService.update(oid, rol);
-            if (resultado) {
-                logger.info("Rol con ID {} actualizado exitosamente.", oid);
-                return ResponseEntity.ok("Rol actualizado correctamente.");
-            } else {
-                logger.warn("Rol con ID {} no encontrado.", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rol no encontrado.");
-            }
-        } catch (Exception e) {
-            logger.error("Error al actualizar el rol con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Rol> update(@PathVariable Integer id, @RequestBody Rol rol) {
+        logger.info("Solicitud recibida para actualizar un rol con id: {}", id);
+        return ResponseEntity.ok(rolService.update(id, rol));
     }
 
     /**
      * Elimina un rol por su ID.
      *
-     * @param oid El ID del rol a eliminar.
-     * @return Mensaje de confirmación si se elimina, o un error si ocurre un problema.
+     * @param id ID del rol a eliminar.
+     * @return Respuesta con estado HTTP 204 (No Content) si se elimina
+     *         exitosamente.
      */
-    @DeleteMapping("delete/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        try {
-            Rol rol = rolService.findByOid(oid);
-            if (rol == null) {
-                logger.warn("Rol con ID {} no encontrado.", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rol no encontrado");
-            }
-            rolService.delete(oid);
-            logger.info("Rol con ID {} eliminado exitosamente.", oid);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            logger.error("Error al eliminar el rol con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        logger.info("Solicitud recibida para eliminar un rol con id: {}", id);
+        rolService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Manejador de excepciones para errores en el controlador.
+     *
+     * @param ex Excepción ocurrida.
+     * @return Respuesta con el mensaje de error y estado HTTP 404 (Not Found).
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        logger.error("Manejando excepción: {}", ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }

@@ -29,7 +29,7 @@ public class DocenteEvaluacionMapper {
 
         return new DocenteEvaluacionDTO(
                 usuario.getNombres() + " " + usuario.getApellidos(),
-                usuario.getUsuarioDetalle().getIdentificacion(),
+                usuario.getIdentificacion(),
                 usuario.getUsuarioDetalle().getContratacion(),
                 porcentajeCompletado,
                 estadoConsolidado

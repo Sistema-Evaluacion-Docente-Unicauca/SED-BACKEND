@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import co.edu.unicauca.sed.api.dto.ActividadDTO;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -13,16 +13,18 @@ import java.util.stream.Collectors;
 @Service
 public class ActividadSortService {
 
+    public static final boolean DEFAULT_ASCENDING_ORDER = true;
+
     /**
      * Ordena una lista de actividades por el nombre del tipo de actividad.
      *
-     * @param actividades   Lista de actividades a ordenar.
+     * @param actividades    Lista de actividades en formato DTO (heredados de  ActividadBaseDTO).
      * @param ascendingOrder Indica si el orden debe ser ascendente (true) o descendente (false).
      * @return Lista de actividades ordenadas según el criterio especificado.
      */
-    public List<ActividadDTO> sortActivities(List<ActividadDTO> actividades, Boolean ascendingOrder) {
-        // Comparador por el nombre del tipo de actividad
-        Comparator<ActividadDTO> comparator = Comparator.comparing(actividad -> actividad.getTipoActividad().getNombre());
+    public List<ActividadBaseDTO> sortActivitiesByType(List<ActividadBaseDTO> actividades, Boolean ascendingOrder) {
+        // Crear un Comparator explícito para ActividadBaseDTO
+        Comparator<ActividadBaseDTO> comparator = Comparator.comparing(actividad -> actividad.getTipoActividad().getNombre());
 
         // Invertir el orden si no es ascendente
         if (ascendingOrder != null && !ascendingOrder) {

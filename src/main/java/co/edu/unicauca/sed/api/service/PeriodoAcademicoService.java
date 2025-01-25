@@ -5,7 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import co.edu.unicauca.sed.api.model.EstadoPeriodoAcademico;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
+import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;
 import co.edu.unicauca.sed.api.repository.PeriodoAcademicoRepository;
 
 @Service
@@ -13,7 +16,9 @@ public class PeriodoAcademicoService {
 
     @Autowired
     private PeriodoAcademicoRepository periodoAcademicoRepository;
-    private static final Integer ESTADO_ACTIVO = 1;
+
+    @Autowired
+    private EstadoPeriodoAcademicoRepository estadoPeriodoAcademicoRepository;
 
     /**
      * Recupera todos los períodos académicos disponibles en la base de datos.
@@ -43,16 +48,10 @@ public class PeriodoAcademicoService {
      * @throws IllegalArgumentException Si el ID del período académico ya existe.
      */
     public PeriodoAcademico save(PeriodoAcademico periodoAcademico) {
-        // Validar si el ID del período ya existe
-        if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo())) {
-            throw new IllegalArgumentException("El ID del período académico '" + periodoAcademico.getIdPeriodo() + "' ya existe.");
-        }
-
+        validatePeriodoAcademico(null, periodoAcademico); // Validaciones comunes
         try {
-            // Guardar el período académico
             return periodoAcademicoRepository.save(periodoAcademico);
         } catch (Exception e) {
-            // Manejar cualquier error que ocurra durante la operación de guardado
             throw new RuntimeException("Error al guardar el período académico: " + e.getMessage(), e);
         }
     }
@@ -67,10 +66,16 @@ public class PeriodoAcademicoService {
      *         período académico.
      */
     public boolean update(Integer oid, PeriodoAcademico periodoAcademico) {
-        if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo())
-                && !findByOid(oid).getIdPeriodo().equals(periodoAcademico.getIdPeriodo())) {
-            throw new IllegalArgumentException("El ID del período académico ya existe.");
-        }
+        Integer idEstadoPeriodoAcademico = periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico();
+        String errorMessage = "El EstadoPeriodoAcademico con OID " + idEstadoPeriodoAcademico + " no existe.";
+        EstadoPeriodoAcademico estado = estadoPeriodoAcademicoRepository.findById(idEstadoPeriodoAcademico).orElseThrow(() -> new IllegalArgumentException(errorMessage));
+
+        // Establecer el estado cargado en el objeto periodoAcademico
+        periodoAcademico.setEstadoPeriodoAcademico(estado);
+
+        // Resto de la lógica
+        validatePeriodoAcademico(oid, periodoAcademico);
+
         Optional<PeriodoAcademico> existingPeriodo = periodoAcademicoRepository.findById(oid);
         if (existingPeriodo.isPresent()) {
             periodoAcademico.setOidPeriodoAcademico(oid);
@@ -78,6 +83,36 @@ public class PeriodoAcademicoService {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * Valida las condiciones necesarias para guardar o actualizar un período
+     * académico.
+     *
+     * @param oid              El identificador del período académico (puede ser
+     *                         null para un nuevo registro).
+     * @param periodoAcademico El objeto PeriodoAcademico que se desea guardar o
+     *                         actualizar.
+     * @throws IllegalArgumentException Si se violan las reglas de validación.
+     */
+    private void validatePeriodoAcademico(Integer oid, PeriodoAcademico periodoAcademico) {
+        // Validar si el ID del período ya existe (para nuevos o actualizaciones con
+        // cambio de ID)
+        if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo()) && (oid == null || !findByOid(oid).getIdPeriodo().equals(periodoAcademico.getIdPeriodo()))) {
+            throw new IllegalArgumentException(
+                    "El ID del período académico '" + periodoAcademico.getIdPeriodo() + "' ya existe.");
+        }
+
+        // Validar si el estado es "ACTIVO"
+        EstadoPeriodoAcademico estadoPeriodoAcademico = estadoPeriodoAcademicoRepository.findById(periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico())
+                .orElseThrow(() -> new IllegalArgumentException("El EstadoPeriodoAcademico con OID " + periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico() + " no existe."));
+        if ("ACTIVO".equals(estadoPeriodoAcademico.getNombre())) {
+            Optional<PeriodoAcademico> periodoActivo = getPeriodoAcademicoActivo();
+            if (periodoActivo.isPresent()) {
+                throw new IllegalArgumentException(
+                        "Ya existe un período académico activo con ID: " + periodoActivo.get().getIdPeriodo());
+            }
         }
     }
 
@@ -98,7 +133,8 @@ public class PeriodoAcademicoService {
      * @return Un Optional que contiene el período académico activo si existe.
      */
     private Optional<PeriodoAcademico> getPeriodoAcademicoActivo() {
-        return periodoAcademicoRepository.findByEstado(ESTADO_ACTIVO);
+        String nombreEstadoActivo = "ACTIVO";
+        return periodoAcademicoRepository.findByEstadoPeriodoAcademicoNombre(nombreEstadoActivo);
     }
 
     /**

@@ -151,8 +151,7 @@ public class ConsolidadoService {
     public void delete(Integer oid) {
         consolidadoRepository.deleteById(oid);
     }
-
-    // Lógica de negocio específica
+    
     /**
      * Genera un listado de consolidado para un usuario evaluado en un período
      * académico.
@@ -191,6 +190,8 @@ public class ConsolidadoService {
                     .flatMap(List::stream)
                     .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
                     .sum();
+
+            totalAcumulado = Math.round(totalAcumulado);
 
             // Construcción del consolidado
             return construirConsolidado(evaluado, detalleUsuario, periodoAcademico, actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
@@ -244,7 +245,7 @@ public class ConsolidadoService {
         ConsolidadoDTO consolidado = new ConsolidadoDTO();
 
         consolidado.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
-        consolidado.setNumeroIdentificacion(detalleUsuario.getIdentificacion());
+        consolidado.setNumeroIdentificacion(evaluado.getIdentificacion());
         consolidado.setPeriodoAcademico(periodoAcademico.getIdPeriodo());
         consolidado.setFacultad(detalleUsuario.getFacultad());
         consolidado.setDepartamento(detalleUsuario.getDepartamento());
@@ -307,8 +308,7 @@ public class ConsolidadoService {
 
         Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
-        List<Proceso> procesos = procesoRepository
-                .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(idEvaluado, idPeriodoAcademico);
+        List<Proceso> procesos = procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(idEvaluado, idPeriodoAcademico);
 
         if (procesos.isEmpty()) {
             throw new IllegalArgumentException(

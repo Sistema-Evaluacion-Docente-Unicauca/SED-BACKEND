@@ -1,6 +1,5 @@
 package co.edu.unicauca.sed.api.service;
 
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -31,8 +30,7 @@ public class TipoActividadService {
      * @return La actividad si es encontrada, o null si no existe.
      */
     public TipoActividad findByOid(Integer oid) {
-        Optional<TipoActividad> resultado = this.tipoActividadRepository.findById(oid);
-        return resultado.orElse(null);
+        return tipoActividadRepository.findById(oid).orElse(null);
     }
 
     /**
@@ -44,8 +42,8 @@ public class TipoActividadService {
     public TipoActividad save(TipoActividad tipoActividad) {
         try {
             // Convertir los campos a mayúsculas
-            convertirCamposAMayusculas(tipoActividad);
-    
+            tipoActividad.setNombre(tipoActividad.getNombre().toUpperCase());
+            tipoActividad.setDescripcion(tipoActividad.getDescripcion().toUpperCase());
             return this.tipoActividadRepository.save(tipoActividad);
         } catch (Exception e) {
             throw new RuntimeException("Error al guardar el tipo de actividad: " + e.getMessage(), e);
@@ -53,23 +51,24 @@ public class TipoActividadService {
     }
 
     /**
-    * Actualiza un tipo de actividad existente.
-    *
-    * @param oid           El identificador de la actividad a actualizar.
-    * @param tipoActividad Datos actualizados de la actividad.
-    * @return true si la actualización fue exitosa, false si la actividad no se encontró.
-    */
-    public boolean update(Integer oid, TipoActividad tipoActividad) {
-        Optional<TipoActividad> existingTipoActividad = tipoActividadRepository.findById(oid);
-        if (existingTipoActividad.isPresent()) {
-            // Convertir los campos a mayúsculas
-            convertirCamposAMayusculas(tipoActividad);
+     * Actualiza un tipo de actividad existente.
+     *
+     * @param oid           El identificador del tipo de actividad a actualizar.
+     * @param tipoActividad Datos actualizados del tipo de actividad.
+     * @return El objeto actualizado si existe, o lanza una excepción si no se
+     *         encuentra.
+     */
+    public TipoActividad update(Integer oid, TipoActividad tipoActividad) {
+        return tipoActividadRepository.findById(oid).map(existingTipoActividad -> {
+            if (tipoActividad.getDescripcion() != null) {
+                tipoActividad.setDescripcion(tipoActividad.getDescripcion().toUpperCase());
+            }
+            if (tipoActividad.getNombre() != null) {
+                tipoActividad.setNombre(tipoActividad.getNombre().toUpperCase());
+            }
             tipoActividad.setOidTipoActividad(oid);
-            tipoActividadRepository.save(tipoActividad);
-            return true;
-        } else {
-            return false;
-        }
+            return tipoActividadRepository.save(tipoActividad);
+        }).orElseThrow(() -> new RuntimeException("TipoActividad con ID " + oid + " no encontrado."));
     }
 
     /**
@@ -79,19 +78,5 @@ public class TipoActividadService {
      */
     public void delete(Integer oid) {
         tipoActividadRepository.deleteById(oid);
-    }
-
-    /**
-     * Convierte los campos `descripcion` y `nombre` de un TipoActividad a mayúsculas.
-     *
-     * @param tipoActividad El objeto TipoActividad a procesar.
-     */
-    private void convertirCamposAMayusculas(TipoActividad tipoActividad) {
-        if (tipoActividad.getDescripcion() != null) {
-            tipoActividad.setDescripcion(tipoActividad.getDescripcion().toUpperCase());
-        }
-        if (tipoActividad.getNombre() != null) {
-            tipoActividad.setNombre(tipoActividad.getNombre().toUpperCase());
-        }
     }
 }

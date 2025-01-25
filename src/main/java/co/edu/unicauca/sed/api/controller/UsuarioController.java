@@ -16,12 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 /**
- * Controlador para gestionar las operaciones relacionadas con los usuarios en el sistema.
- * Incluye funcionalidades como la creación, actualización, eliminación y obtención de usuarios,
+ * Controlador para gestionar las operaciones relacionadas con los usuarios en
+ * el sistema.
+ * Incluye funcionalidades como la creación, actualización, eliminación y
+ * obtención de usuarios,
  * así como la evaluación de docentes.
  */
 @Controller
-@RequestMapping("usuario")
+@RequestMapping("api/usuarios")
 public class UsuarioController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
@@ -38,9 +40,10 @@ public class UsuarioController {
      *
      * @param page Número de página (opcional, por defecto 0).
      * @param size Tamaño de la página (opcional, por defecto 10).
-     * @return Lista paginada de usuarios o un mensaje de error si ocurre algún problema.
+     * @return Lista paginada de usuarios o un mensaje de error si ocurre algún
+     *         problema.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -55,7 +58,8 @@ public class UsuarioController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) Short estado) {
         try {
-            Page<Usuario> usuarios = usuarioService.findAll(identificacion, nombre, facultad, departamento, categoria, contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
+            Page<Usuario> usuarios = usuarioService.findAll(identificacion, nombre, facultad, departamento, categoria,
+                    contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
             if (usuarios.hasContent()) {
                 return ResponseEntity.ok().body(usuarios);
             } else {
@@ -72,9 +76,10 @@ public class UsuarioController {
      * Busca un usuario específico por su ID.
      * 
      * @param oid ID del usuario a buscar.
-     * @return Información del usuario encontrado o un mensaje de error si no existe.
+     * @return Información del usuario encontrado o un mensaje de error si no
+     *         existe.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
             Usuario resultado = usuarioService.findByOid(oid);
@@ -93,9 +98,10 @@ public class UsuarioController {
      * Guarda uno o varios usuarios en el sistema.
      * 
      * @param usuarios Lista de objetos Usuario a guardar.
-     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún  problema.
+     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún
+     *         problema.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody List<Usuario> usuarios) {
         try {
             List<Usuario> resultado = usuarioService.save(usuarios);
@@ -113,11 +119,13 @@ public class UsuarioController {
     /**
      * Actualiza un usuario existente en el sistema.
      * 
-     * @param idUsuario ID del usuario a actualizar.
-     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
-     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
+     * @param idUsuario          ID del usuario a actualizar.
+     * @param usuarioActualizado Objeto que contiene los datos actualizados del
+     *                           usuario.
+     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre
+     *         un problema.
      */
-    @PutMapping("update/{idUsuario}")
+    @PutMapping("/{idUsuario}")
     public ResponseEntity<?> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
         try {
             Usuario usuario = usuarioService.update(idUsuario, usuarioActualizado);
@@ -136,9 +144,10 @@ public class UsuarioController {
      * Elimina un usuario del sistema por su ID.
      * 
      * @param oid ID del usuario a eliminar.
-     * @return Respuesta de éxito o un mensaje de error si el usuario no existe o no puede ser eliminado.
+     * @return Respuesta de éxito o un mensaje de error si el usuario no existe o no
+     *         puede ser eliminado.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         try {
             Usuario usuario = usuarioService.findByOid(oid);
@@ -164,7 +173,7 @@ public class UsuarioController {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes o un mensaje de error.
      */
-    @GetMapping("obtenerEvaluacionDocente")
+    @GetMapping("/obtenerEvaluacionDocente")
     public ResponseEntity<?> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
@@ -172,7 +181,8 @@ public class UsuarioController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado, idPeriodoAcademico, departamento, PageRequest.of(page, size));
+            Page<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,
+                    idPeriodoAcademico, departamento, PageRequest.of(page, size));
 
             if (evaluaciones.hasContent()) {
                 return ResponseEntity.ok(evaluaciones);

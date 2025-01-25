@@ -18,7 +18,7 @@ import org.springframework.data.domain.Page;
  * académicos.
  */
 @Controller
-@RequestMapping("periodoAcademico")
+@RequestMapping("api/periodos-academicos")
 public class PeriodoAcademicoController {
 
     private static final Logger logger = LoggerFactory.getLogger(PeriodoAcademicoController.class);
@@ -33,7 +33,7 @@ public class PeriodoAcademicoController {
      * @param size Cantidad de elementos por página (por defecto 10).
      * @return Una página con los períodos académicos disponibles o un mensaje de error si no se encuentran.
      */
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -56,7 +56,7 @@ public class PeriodoAcademicoController {
      * @param oid El ID del período académico.
      * @return El período académico encontrado o un error 404 si no se encuentra.
      */
-    @GetMapping("find/{oid}")
+    @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
             PeriodoAcademico resultado = periodoAcademicoService.findByOid(oid);
@@ -78,7 +78,7 @@ public class PeriodoAcademicoController {
      * @param periodoAcademico El objeto PeriodoAcademico a guardar.
      * @return El período académico guardado o un mensaje de error.
      */
-    @PostMapping("save")
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody PeriodoAcademico periodoAcademico) {
         try {
             PeriodoAcademico resultado = periodoAcademicoService.save(periodoAcademico);
@@ -101,7 +101,7 @@ public class PeriodoAcademicoController {
      * @param periodoAcademico Datos actualizados del período académico.
      * @return Mensaje de éxito o error.
      */
-    @PutMapping("update/{oid}")
+    @PutMapping("/{oid}")
     public ResponseEntity<?> update(@PathVariable Integer oid, @RequestBody PeriodoAcademico periodoAcademico) {
         try {
             boolean updated = periodoAcademicoService.update(oid, periodoAcademico);
@@ -124,7 +124,7 @@ public class PeriodoAcademicoController {
      * @return Mensaje de confirmación si se elimina, o un error si ocurre un
      *         problema.
      */
-    @DeleteMapping("delete/{oid}")
+    @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         try {
             PeriodoAcademico periodoAcademico = periodoAcademicoService.findByOid(oid);

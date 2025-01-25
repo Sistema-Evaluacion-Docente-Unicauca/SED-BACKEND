@@ -1,5 +1,10 @@
 package co.edu.unicauca.sed.api.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,4 +21,12 @@ public class EstadoFuente {
 
     @Column(name = "NOMBREESTADO", nullable = false)
     private String nombreEstado;
+
+    @Column(name = "FECHACREACION", updatable = false, nullable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 }
