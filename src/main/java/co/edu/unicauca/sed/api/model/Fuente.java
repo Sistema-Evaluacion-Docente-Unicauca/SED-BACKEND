@@ -32,7 +32,7 @@ public class Fuente {
     @Column(name = "TIPOFUENTE", nullable = false)
     private String tipoFuente;
 
-    @Column(name = "CALIFICACION", nullable = false)
+    @Column(name = "CALIFICACION")
     private Float calificacion;
 
     @Column(name = "NOMBREDOCUMENTOFUENTE")

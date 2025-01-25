@@ -85,11 +85,8 @@ public class FuenteService {
      * @param archivo El archivo a subir.
      * @return La entidad Fuente guardada.
      */
-    public Fuente save(Fuente fuente, MultipartFile archivo) {
+    public Fuente save(Fuente fuente) {
         Fuente response = fuenteRepository.save(fuente);
-        if (response != null) {
-            documentoService.upload(response.getNombreDocumentoFuente(), archivo);
-        }
         return response;
     }
 

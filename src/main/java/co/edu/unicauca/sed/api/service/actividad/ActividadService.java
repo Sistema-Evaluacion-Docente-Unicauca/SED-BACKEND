@@ -46,6 +46,12 @@ public class ActividadService {
     @Autowired
     private EstadoActividadRepository estadoActividadRepository;
 
+    @Autowired
+    private FuenteRepository fuenteRepository;
+
+    @Autowired
+    private EstadoFuenteRepository estadoFuenteRepository;
+
     /**
      * Recupera todas las actividades junto con sus fuentes asociadas con
      * paginación.
@@ -124,6 +130,7 @@ public class ActividadService {
             if (actividadDTO.getDetalle() != null) {
                 actividadDetalleService.saveActivityDetail(savedActividad, actividadDTO.getDetalle());
             }
+            saveSource(savedActividad);
             return savedActividad;
         } catch (Exception e) {
             throw new RuntimeException("Error al guardar la actividad: " + e.getMessage(), e);
@@ -218,5 +225,32 @@ public class ActividadService {
         actividadExistente.setHoras(actividadDTO.getHoras());
         actividadExistente.setSemanas(actividadDTO.getSemanas());
         actividadExistente.setInformeEjecutivo(actividadDTO.getInformeEjecutivo());
+    }
+
+    private void saveSource(Actividad actividad) {
+        // Buscar el estado fuente "PENDIENTE"
+        EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
+                .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
+    
+        // Crear y guardar las fuentes
+        createAndSaveFuente(actividad, "1", estadoFuente);
+        createAndSaveFuente(actividad, "2", estadoFuente);
+    }
+
+    /**
+     * Método auxiliar para crear y guardar una fuente.
+     *
+     * @param actividad    La actividad asociada.
+     * @param tipoFuente   El tipo de la fuente (1 o 2).
+     * @param estadoFuente El estado de la fuente.
+     */
+    private void createAndSaveFuente(Actividad actividad, String tipoFuente, EstadoFuente estadoFuente) {
+        Fuente fuente = new Fuente();
+        fuente.setActividad(actividad);
+        fuente.setTipoFuente(tipoFuente);
+        fuente.setEstadoFuente(estadoFuente);
+        fuente.setCalificacion(null);
+        fuenteRepository.save(fuente);
+
     }
 }
