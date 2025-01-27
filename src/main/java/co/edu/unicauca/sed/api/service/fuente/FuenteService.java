@@ -118,6 +118,9 @@ public class FuenteService {
                 logger.info("No se encontraron fuentes tipo 1, no se procesarán archivos adicionales");
             }
             for (FuenteCreateDTO sourceDTO : sources) {
+                if (sourceDTO.getCalificacion() == null || String.valueOf(sourceDTO.getCalificacion()).isBlank()) {
+                    throw new IllegalStateException("Calificación es un campo requerido y no puede estar vacío.");
+                }                
                 if (observation != null) {
                     observation.toUpperCase();
                 }
