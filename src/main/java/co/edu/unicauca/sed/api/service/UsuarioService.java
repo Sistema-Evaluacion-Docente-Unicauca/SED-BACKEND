@@ -118,12 +118,12 @@ public class UsuarioService {
      * Procesa y persiste un UsuarioDetalle.
      */
     private UsuarioDetalle processUsuarioDetalle(UsuarioDetalle usuarioDetalle) {
-        usuarioDetalle.setFacultad(usuarioDetalle.getFacultad().toUpperCase());
-        usuarioDetalle.setDepartamento(usuarioDetalle.getDepartamento().toUpperCase());
-        usuarioDetalle.setCategoria(usuarioDetalle.getCategoria().toUpperCase());
-        usuarioDetalle.setContratacion(usuarioDetalle.getContratacion().toUpperCase());
-        usuarioDetalle.setDedicacion(usuarioDetalle.getDedicacion().toUpperCase());
-        usuarioDetalle.setEstudios(usuarioDetalle.getEstudios().toUpperCase());
+        usuarioDetalle.setFacultad(safeToUpperCase(usuarioDetalle.getFacultad()));
+        usuarioDetalle.setDepartamento(safeToUpperCase(usuarioDetalle.getDepartamento()));
+        usuarioDetalle.setCategoria(safeToUpperCase(usuarioDetalle.getCategoria()));
+        usuarioDetalle.setContratacion(safeToUpperCase(usuarioDetalle.getContratacion()));
+        usuarioDetalle.setDedicacion(safeToUpperCase(usuarioDetalle.getDedicacion()));
+        usuarioDetalle.setEstudios(safeToUpperCase(usuarioDetalle.getEstudios()));
 
         if (usuarioDetalle.getOidUsuarioDetalle() != null) {
             return usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
@@ -193,4 +193,7 @@ public class UsuarioService {
         usuario.setRoles(rolesPersistidos);
     }
 
+    private String safeToUpperCase(String value) {
+        return (value != null && !value.isBlank()) ? value.toUpperCase() : value;
+    }
 }
