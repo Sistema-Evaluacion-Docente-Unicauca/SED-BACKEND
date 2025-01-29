@@ -16,6 +16,7 @@ import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.util.Objects;
 
 @Service
 public class UsuarioService {
@@ -76,7 +77,7 @@ public class UsuarioService {
     public Usuario update(Integer id, Usuario usuarioActualizado) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
-        if(usuarioActualizado.getIdentificacion() != usuarioExistente.getIdentificacion()) {
+        if (!Objects.equals(usuarioActualizado.getIdentificacion(), usuarioExistente.getIdentificacion())) {
             validarUsuarioExistente(usuarioActualizado);
         }
         usuarioExistente.setNombres(usuarioActualizado.getNombres().toUpperCase());
