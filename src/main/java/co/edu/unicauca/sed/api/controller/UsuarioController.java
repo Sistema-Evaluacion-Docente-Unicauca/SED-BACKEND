@@ -56,7 +56,7 @@ public class UsuarioController {
             @RequestParam(required = false) String dedicacion,
             @RequestParam(required = false) String estudios,
             @RequestParam(required = false) String rol,
-            @RequestParam(required = false) Short estado) {
+            @RequestParam(required = false) String estado) {
         try {
             Page<Usuario> usuarios = usuarioService.findAll(identificacion, nombre, facultad, departamento, categoria,
                     contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));

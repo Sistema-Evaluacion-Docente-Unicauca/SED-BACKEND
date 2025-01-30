@@ -38,7 +38,7 @@ public class UsuarioService {
      */
     public Page<Usuario> findAll(String identificacion, String nombre, String facultad, String departamento,
             String categoria, String contratacion, String dedicacion, String estudios,
-            String rol, Short estado, Pageable pageable) {
+            String rol, String estado, Pageable pageable) {
         return usuarioRepository.findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
                 categoria, contratacion, dedicacion, estudios, rol, estado), pageable);
     }

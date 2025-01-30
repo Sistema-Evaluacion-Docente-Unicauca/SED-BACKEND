@@ -8,7 +8,7 @@ public class UsuarioSpecification {
 
     public static Specification<Usuario> byFilters(
             String identificacion, String nombre, String facultad, String departamento, String categoria,
-            String contratacion, String dedicacion, String estudios, String rol, Short estado) {
+            String contratacion, String dedicacion, String estudios, String rol, String estado) {
 
         Specification<Usuario> spec = Specification.where(null);
 
@@ -62,7 +62,12 @@ public class UsuarioSpecification {
         }
 
         if (estado != null) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("estadoUsuario").get("nombre"), estado));
+            spec = spec.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.like(
+                    criteriaBuilder.upper(root.get("estadoUsuario").get("nombre")), 
+                    "%" + estado.toUpperCase() + "%"
+                )
+            );
         }
 
         return spec;
