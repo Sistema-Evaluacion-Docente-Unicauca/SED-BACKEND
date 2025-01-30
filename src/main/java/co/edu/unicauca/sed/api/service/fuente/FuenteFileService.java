@@ -29,12 +29,12 @@ public class FuenteFileService {
      *
      * @param optionalFuente Fuente existente opcional.
      * @param informeFuente  Nuevo archivo fuente.
-     * @param academicPeriod Identificador del período académico.
-     * @param evaluatedName  Nombre del evaluado.
+     * @param periodoAcademico Identificador del período académico.
+     * @param nombreEvaluado  Nombre del evaluado.
      * @return La ruta del archivo guardado.
      */
     public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente,
-            String academicPeriod, String evaluatedName) {
+            String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) {
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");
@@ -56,8 +56,7 @@ public class FuenteFileService {
 
             // Siempre guarda el archivo en caso de que sea la primera vez o si es un
             // archivo nuevo
-            Path savedFile = fileService.saveFile(informeFuente, academicPeriod, evaluatedName, "fuente");
-            logger.info("Archivo fuente guardado en: {}", savedFile.toString());
+            Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, "fuente");
             return savedFile;
 
         } catch (Exception e) {
@@ -67,8 +66,8 @@ public class FuenteFileService {
     }
 
     public Path handleExecutiveReport(Optional<Fuente> optionalFuente, FuenteCreateDTO sourceDTO,
-            Map<String, MultipartFile> informeEjecutivoFiles, String academicPeriod,
-            String evaluatedName) {
+            Map<String, MultipartFile> informeEjecutivoFiles, String periodoAcademico,
+            String nombreEvaluado, String contratacion, String departamento) {
         try {
             // Si no hay informe ejecutivo en la nueva solicitud
             if (sourceDTO.getInformeEjecutivo() == null || sourceDTO.getInformeEjecutivo().isEmpty()) {
@@ -103,16 +102,14 @@ public class FuenteFileService {
                 String existingExecutiveReportName = existingSource.getNombreDocumentoInforme();
 
                 // Eliminar el archivo previo si es diferente
-                if (existingExecutiveReportName != null
-                        && !sourceDTO.getInformeEjecutivo().equals(existingExecutiveReportName)) {
+                if (existingExecutiveReportName != null && !sourceDTO.getInformeEjecutivo().equals(existingExecutiveReportName)) {
                     fileService.deleteFile(existingSource.getRutaDocumentoInforme());
                     logger.info("Informe ejecutivo previo eliminado: {}", existingExecutiveReportName);
                 }
             }
 
             // Guardar el nuevo informe ejecutivo
-            Path savedFile = fileService.saveFile(matchedFile.get(), academicPeriod, evaluatedName, "informe");
-            logger.info("Informe ejecutivo guardado en: {}", savedFile.toString());
+            Path savedFile = fileService.saveFile(matchedFile.get(), periodoAcademico, nombreEvaluado, contratacion, departamento, "informe");
             return savedFile;
 
         } catch (Exception e) {
@@ -127,7 +124,7 @@ public class FuenteFileService {
      * @param activity La actividad relacionada.
      * @return El identificador del período académico.
      */
-    public String getAcademicPeriod(Actividad activity) {
+    public String getPeriodoAcademico(Actividad activity) {
         return activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
     }
 
@@ -137,8 +134,21 @@ public class FuenteFileService {
      * @param activity La actividad relacionada.
      * @return El nombre del evaluado formateado.
      */
-    public String getEvaluatedName(Actividad activity) {
+    public String getNombreEvaluado(Actividad activity) {
         return (activity.getProceso().getEvaluado().getNombres() + "_" +
                 activity.getProceso().getEvaluado().getApellidos()).replaceAll("\\s+", "_");
+    }
+
+    /*
+     * 
+     */
+    public String getDepartamento(Actividad actividad) {
+        String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
+        return departamento;
+    }
+
+    public String getContratacion(Actividad actividad) {
+        String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
+        return contratacion;
     }
 }

@@ -129,7 +129,10 @@ public class ExcelService {
             // Guardar el archivo usando FileService
             return fileService.saveFile(
                     workbookToMultipartFile(workbook, nombreDocumento),
+                    
                     consolidadoDTO.getPeriodoAcademico(),
+                    consolidadoDTO.getTipoContratacion(),
+                    consolidadoDTO.getDepartamento(),
                     "Consolidados");
         }
     }

@@ -21,8 +21,8 @@ public class FileService {
     @Value("${document.upload-dir}")
     private String uploadDir;
 
-    public Path saveFile(MultipartFile file, String academicPeriod, String evaluatedName) throws IOException {
-        return saveFile(file, academicPeriod, evaluatedName, null);
+    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) throws IOException {
+        return saveFile(file, periodoAcademico, nombreEvaluado, contratacion, departamento, null);
     }
 
     /**
@@ -30,17 +30,17 @@ public class FileService {
      * tipos de archivo.
      *
      * @param file           Archivo a guardar.
-     * @param academicPeriod Periodo académico asociado.
-     * @param evaluatedName  Nombre del evaluado asociado.
+     * @param periodoAcademico Periodo académico asociado.
+     * @param nombreEvaluado  Nombre del evaluado asociado.
      * @param prefix         Prefijo a agregar al nombre del archivo (ej. "fuente",
      *                       "informe").
      * @return Ruta del archivo guardado.
      * @throws IOException Si ocurre un error al guardar.
      */
-    public Path saveFile(MultipartFile file, String academicPeriod, String evaluatedName, String prefix)
+    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String prefix)
             throws IOException {
         // Construir la ruta dinámica utilizando uploadDir
-        Path directoryPath = Paths.get(uploadDir, academicPeriod, evaluatedName);
+        Path directoryPath = Paths.get(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado);
         Files.createDirectories(directoryPath); // Crea los directorios si no existen
 
         // Generar el nombre del archivo con prefijo solo si se proporciona

@@ -1,7 +1,9 @@
 package co.edu.unicauca.sed.api.dto.actividad;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DocenciaDetalleDTO {
 
     private Integer oidDocenciaDetalle;

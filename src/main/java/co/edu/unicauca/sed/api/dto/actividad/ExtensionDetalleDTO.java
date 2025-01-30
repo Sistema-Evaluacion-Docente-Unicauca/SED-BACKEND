@@ -5,7 +5,9 @@ import java.util.List;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.model.TipoActividad;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExtensionDetalleDTO extends ActividadBaseDTO {
 
     private Integer oidExtensionDetalle;

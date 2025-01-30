@@ -48,8 +48,10 @@ public class FuenteBusinessService {
         public void processSource(FuenteCreateDTO sourceDTO, MultipartFile informeFuente, String observation, Map<String, MultipartFile> informeEjecutivoFiles) {
         try {
             Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
-            String academicPeriod = fileService.getAcademicPeriod(activity);
-            String evaluatedName = fileService.getEvaluatedName(activity);
+            String periodoAcademico = fileService.getPeriodoAcademico(activity);
+            String nombreEvaluado = fileService.getNombreEvaluado(activity);
+            String contratacion = fileService.getContratacion(activity);
+            String departamento = fileService.getDepartamento(activity);
 
             // Garantizar que el repositorio no devuelva null
             Optional<Fuente> optionalFuente = Optional.ofNullable(
@@ -62,10 +64,10 @@ public class FuenteBusinessService {
             Path executiveReportPath = null;
 
             if ("2".equals(sourceDTO.getTipoFuente())) {
-                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, academicPeriod, evaluatedName);
+                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else if ("1".equals(sourceDTO.getTipoFuente())) {
-                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, academicPeriod, evaluatedName);
-                executiveReportPath = fileService.handleExecutiveReport(optionalFuente, sourceDTO, informeEjecutivoFiles, academicPeriod, evaluatedName);
+                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
+                executiveReportPath = fileService.handleExecutiveReport(optionalFuente, sourceDTO, informeEjecutivoFiles, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else {
                 logger.warn("Tipo de fuente desconocido: {}", sourceDTO.getTipoFuente());
                 throw new IllegalArgumentException("Tipo de fuente desconocido: " + sourceDTO.getTipoFuente());
@@ -79,8 +81,6 @@ public class FuenteBusinessService {
 
             // Guardar la fuente
             fuenteRepository.save(source);
-            logger.info("Fuente guardada exitosamente: tipo={}, actividad={}", sourceDTO.getTipoFuente(), sourceDTO.getOidActividad());
-
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", sourceDTO, e);
             throw new RuntimeException("Error inesperado al procesar la fuente: " + e.getMessage(), e);
