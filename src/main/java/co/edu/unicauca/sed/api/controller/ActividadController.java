@@ -213,7 +213,7 @@ public class ActividadController {
      * @param actividadDTO DTO con los datos actualizados de la actividad.
      * @return Actividad actualizada o mensaje de error.
      */
-    @PutMapping
+    @PutMapping("/{idActividad}")
     public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
         logger.info("Intentando actualizar actividad con ID: {}", idActividad);
         try {
