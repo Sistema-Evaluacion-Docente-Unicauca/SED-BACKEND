@@ -153,7 +153,7 @@ public class ActividadDetalleService {
     }
 
     private void updateDocenciaDetalle(Actividad actividad, DocenciaDetalleDTO detalleDTO) {
-        DocenciaDetalle detalleExistente = docenciaDetalleRepository.findById(actividad.getOidActividad())
+        DocenciaDetalle detalleExistente = docenciaDetalleRepository.findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de docencia no encontrado."));
 
         detalleExistente.setCodigo(detalleDTO.getCodigo());
@@ -170,9 +170,8 @@ public class ActividadDetalleService {
     }
 
     private void updateTrabajoDocenciaDetalle(Actividad actividad, TrabajoDocenciaDetalleDTO detalleDTO) {
-        TrabajoDocenciaDetalle detalleExistente = trabajoDocenciaDetalleRepository.findById(actividad.getOidActividad())
+        TrabajoDocenciaDetalle detalleExistente = trabajoDocenciaDetalleRepository.findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de trabajo de docencia no encontrado."));
-
         detalleExistente.setActoAdministrativo(detalleDTO.getActoAdministrativo());
         trabajoDocenciaDetalleRepository.save(detalleExistente);
     }
@@ -187,7 +186,7 @@ public class ActividadDetalleService {
 
     private void updateProyectoInvestigacionDetalle(Actividad actividad, ProyectoInvestigacionDetalleDTO detalleDTO) {
         ProyectoInvestigacionDetalle detalleExistente = proyectoInvestigacionDetalleRepository
-                .findById(actividad.getOidActividad())
+                .findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de proyecto de investigación no encontrado."));
 
         detalleExistente.setVri(detalleDTO.getVri());
@@ -227,7 +226,7 @@ public class ActividadDetalleService {
     }
 
     private void updateCapacitacionDetalle(Actividad actividad, CapacitacionDetalleDTO detalleDTO) {
-        CapacitacionDetalle detalleExistente = capacitacionDetalleRepository.findById(actividad.getOidActividad())
+        CapacitacionDetalle detalleExistente = capacitacionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de capacitación no encontrado."));
         detalleExistente.setActoAdministrativo(detalleDTO.getActoAdministrativo());
         detalleExistente.setDetalle(detalleDTO.getDetalle());
@@ -235,7 +234,7 @@ public class ActividadDetalleService {
     }
 
     private void updateOtroServicioDetalle(Actividad actividad, OtroServicioDetalleDTO detalleDTO) {
-        OtroServicioDetalle detalleExistente = otroServicioDetalleRepository.findById(actividad.getOidActividad())
+        OtroServicioDetalle detalleExistente = otroServicioDetalleRepository.findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de otro servicio no encontrado."));
         detalleExistente.setActoAdministrativo(detalleDTO.getActoAdministrativo());
         detalleExistente.setDetalle(detalleDTO.getDetalle());
@@ -243,7 +242,7 @@ public class ActividadDetalleService {
     }
 
     private void updateExtensionDetalle(Actividad actividad, ExtensionDetalleDTO detalleDTO) {
-        ExtensionDetalle detalleExistente = extensionDetalleRepository.findById(actividad.getOidActividad())
+        ExtensionDetalle detalleExistente = extensionDetalleRepository.findByActividadOidActividad(actividad.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("Detalle de extensión no encontrado."));
         detalleExistente.setActoAdministrativo(detalleDTO.getActoAdministrativo());
         detalleExistente.setNombreProyecto(detalleDTO.getNombreProyecto());
