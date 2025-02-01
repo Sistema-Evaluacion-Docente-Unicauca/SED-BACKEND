@@ -5,60 +5,60 @@ import java.util.Map;
 
 public class CatalogoDTO {
 
-    private List<Map<String, Object>> facultades;
-    private List<Map<String, Object>> departamentos;
-    private List<Map<String, Object>> categorias;
-    private List<Map<String, Object>> contrataciones;
-    private List<Map<String, Object>> dedicaciones;
-    private List<Map<String, Object>> estudios;
+    private List<Map<String, String>> facultades;
+    private List<Map<String, String>> departamentos;
+    private List<Map<String, String>> categorias;
+    private List<Map<String, String>> contrataciones;
+    private List<Map<String, String>> dedicaciones;
+    private List<Map<String, String>> estudios;
     private List<Map<String, Object>> roles;
     private List<Map<String, Object>> tipoActividades;
 
-    public List<Map<String, Object>> getFacultades() {
+    public List<Map<String, String>> getFacultades() {
         return facultades;
     }
 
-    public void setFacultades(List<Map<String, Object>> facultades) {
+    public void setFacultades(List<Map<String, String>> facultades) {
         this.facultades = facultades;
     }
 
-    public List<Map<String, Object>> getDepartamentos() {
+    public List<Map<String, String>> getDepartamentos() {
         return departamentos;
     }
 
-    public void setDepartamentos(List<Map<String, Object>> departamentos) {
+    public void setDepartamentos(List<Map<String, String>> departamentos) {
         this.departamentos = departamentos;
     }
 
-    public List<Map<String, Object>> getCategorias() {
+    public List<Map<String, String>> getCategorias() {
         return categorias;
     }
 
-    public void setCategorias(List<Map<String, Object>> categorias) {
+    public void setCategorias(List<Map<String, String>> categorias) {
         this.categorias = categorias;
     }
 
-    public List<Map<String, Object>> getContrataciones() {
+    public List<Map<String, String>> getContrataciones() {
         return contrataciones;
     }
 
-    public void setContrataciones(List<Map<String, Object>> contrataciones) {
+    public void setContrataciones(List<Map<String, String>> contrataciones) {
         this.contrataciones = contrataciones;
     }
 
-    public List<Map<String, Object>> getDedicaciones() {
+    public List<Map<String, String>> getDedicaciones() {
         return dedicaciones;
     }
 
-    public void setDedicaciones(List<Map<String, Object>> dedicaciones) {
+    public void setDedicaciones(List<Map<String, String>> dedicaciones) {
         this.dedicaciones = dedicaciones;
     }
 
-    public List<Map<String, Object>> getEstudios() {
+    public List<Map<String, String>> getEstudios() {
         return estudios;
     }
 
-    public void setEstudios(List<Map<String, Object>> estudios) {
+    public void setEstudios(List<Map<String, String>> estudios) {
         this.estudios = estudios;
     }
 

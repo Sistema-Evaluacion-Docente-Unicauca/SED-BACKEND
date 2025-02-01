@@ -1,14 +1,15 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.dto.CatalogoDTO;
+import co.edu.unicauca.sed.api.enums.*;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class CatalogoService {
@@ -26,55 +27,18 @@ public class CatalogoService {
     public CatalogoDTO obtenerCatalogo() {
         CatalogoDTO catalogoDTO = new CatalogoDTO();
 
-        // Facultades
-        catalogoDTO.setFacultades(
-            usuarioDetalleRepository.findDistinctFacultad().stream()
-                .filter(Objects::nonNull)
-                .map(facultad -> Map.<String, Object>of("codigo", facultad, "nombre", facultad))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setFacultades(FacultadEnum.getSelectOptions());
 
-        // Departamentos
-        catalogoDTO.setDepartamentos(
-            usuarioDetalleRepository.findDistinctDepartamento().stream()
-                .filter(Objects::nonNull)
-                .map(departamento -> Map.<String, Object>of("codigo", departamento, "nombre", departamento))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setDepartamentos(DepartamentoEnum.getSelectOptions());
 
-        // Categorías
-        catalogoDTO.setCategorias(
-            usuarioDetalleRepository.findDistinctCategoria().stream()
-                .filter(Objects::nonNull)
-                .map(categoria -> Map.<String, Object>of("codigo", categoria, "nombre", categoria))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setCategorias(CategoriaEnum.getSelectOptions());
 
-        // Contrataciones
-        catalogoDTO.setContrataciones(
-            usuarioDetalleRepository.findDistinctContratacion().stream()
-                .filter(Objects::nonNull)
-                .map(contratacion -> Map.<String, Object>of("codigo", contratacion, "nombre", contratacion))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setContrataciones(ContratacionEnum.getSelectOptions());
 
-        // Dedicaciones
-        catalogoDTO.setDedicaciones(
-            usuarioDetalleRepository.findDistinctDedicacion().stream()
-                .filter(Objects::nonNull)
-                .map(dedicacion -> Map.<String, Object>of("codigo", dedicacion, "nombre", dedicacion))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setDedicaciones(DedicacionEnum.getSelectOptions());
 
-        // Estudios
-        catalogoDTO.setEstudios(
-            usuarioDetalleRepository.findDistinctEstudios().stream()
-                .filter(Objects::nonNull)
-                .map(estudio -> Map.<String, Object>of("codigo", estudio, "nombre", estudio))
-                .collect(Collectors.toList())
-        );
+        catalogoDTO.setEstudios(EstudiosEnum.getSelectOptions());
 
-        // Roles
         catalogoDTO.setRoles(
             rolRepository.findAll().stream()
                 .filter(Objects::nonNull)
@@ -82,7 +46,6 @@ public class CatalogoService {
                 .collect(Collectors.toList())
         );
 
-        // Tipo de Actividades
         catalogoDTO.setTipoActividades(
             tipoActividadRepository.findAll().stream()
                 .filter(Objects::nonNull)
