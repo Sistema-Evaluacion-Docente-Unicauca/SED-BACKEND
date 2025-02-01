@@ -10,9 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
+import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
-import co.edu.unicauca.sed.api.service.DocumentoService;
 import co.edu.unicauca.sed.api.service.FileService;
 import java.util.Map;
 import org.springframework.data.domain.Page;
@@ -27,9 +29,6 @@ public class FuenteService {
     private FuenteRepository fuenteRepository;
 
     @Autowired
-    private DocumentoService documentoService;
-
-    @Autowired
     private FileService fileService;
 
     @Autowired
@@ -37,6 +36,9 @@ public class FuenteService {
 
     @Autowired
     private FuenteIntegrationService integrationService;
+
+    @Autowired
+    private EstadoFuenteRepository estadoFuenteRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(FuenteService.class);
 
@@ -161,5 +163,31 @@ public class FuenteService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
         }
+    }
+
+    public void saveSource(Actividad actividad) {
+        EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
+                .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
+    
+        // Crear y guardar las fuentes
+        createAndSaveFuente(actividad, "1", estadoFuente);
+        createAndSaveFuente(actividad, "2", estadoFuente);
+    }
+
+    /**
+     * Método auxiliar para crear y guardar una fuente.
+     *
+     * @param actividad    La actividad asociada.
+     * @param tipoFuente   El tipo de la fuente (1 o 2).
+     * @param estadoFuente El estado de la fuente.
+     */
+    private void createAndSaveFuente(Actividad actividad, String tipoFuente, EstadoFuente estadoFuente) {
+        Fuente fuente = new Fuente();
+        fuente.setActividad(actividad);
+        fuente.setTipoFuente(tipoFuente);
+        fuente.setEstadoFuente(estadoFuente);
+        fuente.setCalificacion(null);
+        fuenteRepository.save(fuente);
+
     }
 }

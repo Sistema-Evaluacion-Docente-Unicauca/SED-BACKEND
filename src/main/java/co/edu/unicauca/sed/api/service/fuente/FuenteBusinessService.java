@@ -6,10 +6,11 @@ import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.EstadoFuenteService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadService;
+import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
@@ -28,7 +29,8 @@ public class FuenteBusinessService {
     private FuenteRepository fuenteRepository;
 
     @Autowired
-    private ActividadService actividadService;
+    @Lazy
+    private ActividadRepository actividadRepository;
 
     @Autowired
     private FuenteFileService fileService;
@@ -47,15 +49,16 @@ public class FuenteBusinessService {
      */
         public void processSource(FuenteCreateDTO sourceDTO, MultipartFile informeFuente, String observation, Map<String, MultipartFile> informeEjecutivoFiles) {
         try {
-            Actividad activity = actividadService.findByOid(sourceDTO.getOidActividad());
-            String periodoAcademico = fileService.getPeriodoAcademico(activity);
-            String nombreEvaluado = fileService.getNombreEvaluado(activity);
-            String contratacion = fileService.getContratacion(activity);
-            String departamento = fileService.getDepartamento(activity);
+            Actividad actividad = actividadRepository.findById(sourceDTO.getOidActividad())
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + sourceDTO.getOidActividad()));
+            String periodoAcademico = fileService.getPeriodoAcademico(actividad);
+            String nombreEvaluado = fileService.getNombreEvaluado(actividad);
+            String contratacion = fileService.getContratacion(actividad);
+            String departamento = fileService.getDepartamento(actividad);
 
             // Garantizar que el repositorio no devuelva null
             Optional<Fuente> optionalFuente = Optional.ofNullable(
-                    fuenteRepository.findByActividadAndTipoFuente(activity, sourceDTO.getTipoFuente())
+                    fuenteRepository.findByActividadAndTipoFuente(actividad, sourceDTO.getTipoFuente())
             ).orElse(Optional.empty());
 
             Fuente source = optionalFuente.orElse(new Fuente());
@@ -77,7 +80,7 @@ public class FuenteBusinessService {
             EstadoFuente stateSource = determineStateSource(source);
 
             // Asignar valores a la fuente
-            assignSourceValues(source, sourceDTO, commonFilePath, observation, stateSource, activity, executiveReportPath);
+            assignSourceValues(source, sourceDTO, commonFilePath, observation, stateSource, actividad, executiveReportPath);
 
             // Guardar la fuente
             fuenteRepository.save(source);
@@ -121,7 +124,7 @@ public class FuenteBusinessService {
      * @param executiveReportPath Ruta del informe ejecutivo.
      */
     private void assignSourceValues(Fuente source, FuenteCreateDTO sourceDTO, Path commonFilePath,
-            String observation, EstadoFuente stateSource, Actividad activity, Path executiveReportPath) {
+            String observation, EstadoFuente stateSource, Actividad actividad, Path executiveReportPath) {
         try {
             // Asignar valores básicos
             source.setTipoFuente(sourceDTO.getTipoFuente());
@@ -129,7 +132,7 @@ public class FuenteBusinessService {
             source.setNombreDocumentoFuente(commonFilePath != null ? commonFilePath.getFileName().toString() : source.getNombreDocumentoFuente());
             source.setRutaDocumentoFuente(commonFilePath != null ? commonFilePath.toString() : source.getRutaDocumentoFuente());
             source.setObservacion(observation);
-            source.setActividad(activity);
+            source.setActividad(actividad);
             source.setEstadoFuente(stateSource);
 
             // Asignar valores del informe ejecutivo

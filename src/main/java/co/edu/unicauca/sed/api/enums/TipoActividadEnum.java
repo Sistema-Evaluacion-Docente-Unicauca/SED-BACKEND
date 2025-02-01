@@ -52,4 +52,8 @@ public enum TipoActividadEnum {
     public static TipoActividadEnum fromOid(int oid) {
         return OID_MAP.getOrDefault(oid, null);
     }
+
+    public String getNombre() {
+        return nombre;
+    }
 }

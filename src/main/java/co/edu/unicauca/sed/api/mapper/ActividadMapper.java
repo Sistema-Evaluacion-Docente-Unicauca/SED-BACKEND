@@ -65,4 +65,17 @@ public class ActividadMapper {
 
         return actividad;
     }
+
+    /**
+     * Actualiza los campos básicos de la actividad.
+     *
+     * @param actividadExistente La actividad existente.
+     * @param actividadDTO       DTO con los datos actualizados.
+     */
+    public void actualizarCamposBasicos(Actividad actividadExistente, ActividadBaseDTO actividadDTO) {
+        actividadExistente.setNombreActividad(actividadDTO.getNombreActividad());
+        actividadExistente.setHoras(actividadDTO.getHoras());
+        actividadExistente.setSemanas(actividadDTO.getSemanas());
+        actividadExistente.setInformeEjecutivo(actividadDTO.getInformeEjecutivo());
+    }
 }

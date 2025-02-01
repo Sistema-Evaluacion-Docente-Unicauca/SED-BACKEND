@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import co.edu.unicauca.sed.api.model.EstadoPeriodoAcademico;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;

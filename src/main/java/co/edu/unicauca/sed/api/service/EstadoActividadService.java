@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.EstadoActividad;
 import co.edu.unicauca.sed.api.repository.EstadoActividadRepository;
 import org.slf4j.Logger;
@@ -63,5 +64,17 @@ public class EstadoActividadService {
             logger.error("Error eliminando EstadoActividad con id: {}", id, e);
             throw new RuntimeException("Error eliminando EstadoActividad con id: " + id, e);
         }
+    }
+
+        /**
+     * Asigna el estado de la actividad si es válido.
+     *
+     * @param actividad          La actividad a actualizar.
+     * @param oidEstadoActividad El ID del estado de actividad.
+     */
+    public void asignarEstadoActividad(Actividad actividad, Integer oidEstadoActividad) {
+        EstadoActividad estadoExistente = repository.findById(oidEstadoActividad)
+                .orElseThrow(() -> new IllegalArgumentException("Estado de actividad no válido."));
+        actividad.setEstadoActividad(estadoExistente);
     }
 }

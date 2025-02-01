@@ -143,8 +143,6 @@ public class ActividadQueryService {
         final String ATTRIBUTE_SOURCES = "fuentes";
         final String ATTRIBUTE_SOURCE_TYPE = "tipoFuente";
         final String ATTRIBUTE_SOURCE_STATUS = "estadoFuente";
-        final String ATTRIBUTE_PERIOD_STATUS = "estado";
-        final Boolean DEFAULT_ACTIVE_PERIOD = true;
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Actividad> query = cb.createQuery(Actividad.class);
