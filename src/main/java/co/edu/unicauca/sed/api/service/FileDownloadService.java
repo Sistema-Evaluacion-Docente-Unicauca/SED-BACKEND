@@ -1,6 +1,10 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.*;
@@ -14,6 +18,9 @@ public class FileDownloadService {
 
     @Value("${DOCUMENT_UPLOAD_DIR}")
     private String documentUploadDir;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     public InputStream createZipStream(String periodo, String departamento, String tipoContrato, Integer oidUsuario) throws IOException {
         Path basePath = Paths.get(documentUploadDir);
@@ -40,7 +47,6 @@ public class FileDownloadService {
             throw new FileNotFoundException("No se encontró la ruta: " + basePath);
         }
 
-        // 🔹 Definir `finalBasePath` para evitar el error en la expresión lambda
         final Path finalBasePath = basePath;
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -64,8 +70,8 @@ public class FileDownloadService {
     }
 
     private Usuario getUsuarioById(Integer oidUsuario) {
-        // Aquí iría la consulta a la base de datos para obtener el usuario
-        return new Usuario(oidUsuario);
+        return usuarioRepository.findById(oidUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario con ID " + oidUsuario + " no encontrado"));
     }
 
     private String formatUsuarioFolder(Usuario usuario) {
