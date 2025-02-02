@@ -27,14 +27,6 @@ public class ComentarioController {
     @Autowired
     private ComentarioService comentarioService;
 
-    /**
-     * Recupera todos los comentarios con paginación y ordenamiento.
-     *
-     * @param page           Número de página (por defecto 0).
-     * @param size           Tamaño de página (por defecto 10).
-     * @param ascendingOrder Indica si los comentarios deben ordenarse de forma ascendente (true) o descendente (false).
-     * @return Página de comentarios o código 204 si no hay contenido.
-     */
     @GetMapping
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -52,12 +44,6 @@ public class ComentarioController {
         }
     }
 
-    /**
-     * Recupera un comentario específico por su ID.
-     *
-     * @param oid ID del comentario.
-     * @return Comentario encontrado o código 404 si no existe.
-     */
     @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Comentario resultado = this.comentarioService.findByOid(oid);
@@ -67,12 +53,6 @@ public class ComentarioController {
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Guarda un nuevo comentario o actualiza uno existente.
-     *
-     * @param comentario Objeto Comentario a guardar.
-     * @return Comentario guardado o código 500 si ocurre un error.
-     */
     @PostMapping
     public ResponseEntity<?> save(@RequestBody Comentario comentario) {
         try {
@@ -88,12 +68,6 @@ public class ComentarioController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    /**
-     * Elimina un comentario por su ID.
-     *
-     * @param oid ID del comentario a eliminar.
-     * @return Código 200 si se elimina exitosamente, 404 si no se encuentra, o 409 si hay conflictos al eliminar.
-     */
     @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         Comentario comentario = null;

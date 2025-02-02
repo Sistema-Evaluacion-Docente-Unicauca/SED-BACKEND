@@ -10,10 +10,10 @@ import co.edu.unicauca.sed.api.model.Rol;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
-import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
+import co.edu.unicauca.sed.api.utils.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Objects;
@@ -28,10 +28,13 @@ public class UsuarioService {
     private UsuarioDetalleRepository usuarioDetalleRepository;
 
     @Autowired
-    private RolRepository rolRepository;
+    private EstadoUsuarioRepository estadoUsuarioRepository;
 
     @Autowired
-    private EstadoUsuarioRepository estadoUsuarioRepository;
+    private RolService rolService;
+
+    @Autowired
+    private StringUtils stringUtils;
 
     /**
      * Encuentra usuarios filtrados y paginados.
@@ -101,7 +104,7 @@ public class UsuarioService {
         }
 
         // Actualizar roles
-        List<Rol> rolesActualizados = processRoles(usuarioActualizado.getRoles());
+        List<Rol> rolesActualizados = rolService.processRoles(usuarioActualizado.getRoles());
         usuarioExistente.setRoles(rolesActualizados);
 
         // Guardar cambios
@@ -119,12 +122,12 @@ public class UsuarioService {
      * Procesa y persiste un UsuarioDetalle.
      */
     private UsuarioDetalle processUsuarioDetalle(UsuarioDetalle usuarioDetalle) {
-        usuarioDetalle.setFacultad(safeToUpperCase(usuarioDetalle.getFacultad()));
-        usuarioDetalle.setDepartamento(safeToUpperCase(usuarioDetalle.getDepartamento()));
-        usuarioDetalle.setCategoria(safeToUpperCase(usuarioDetalle.getCategoria()));
-        usuarioDetalle.setContratacion(safeToUpperCase(usuarioDetalle.getContratacion()));
-        usuarioDetalle.setDedicacion(safeToUpperCase(usuarioDetalle.getDedicacion()));
-        usuarioDetalle.setEstudios(safeToUpperCase(usuarioDetalle.getEstudios()));
+        usuarioDetalle.setFacultad(stringUtils.safeToUpperCase(usuarioDetalle.getFacultad()));
+        usuarioDetalle.setDepartamento(stringUtils.safeToUpperCase(usuarioDetalle.getDepartamento()));
+        usuarioDetalle.setCategoria(stringUtils.safeToUpperCase(usuarioDetalle.getCategoria()));
+        usuarioDetalle.setContratacion(stringUtils.safeToUpperCase(usuarioDetalle.getContratacion()));
+        usuarioDetalle.setDedicacion(stringUtils.safeToUpperCase(usuarioDetalle.getDedicacion()));
+        usuarioDetalle.setEstudios(stringUtils.safeToUpperCase(usuarioDetalle.getEstudios()));
 
         if (usuarioDetalle.getOidUsuarioDetalle() != null) {
             return usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
@@ -133,23 +136,6 @@ public class UsuarioService {
         } else {
             return usuarioDetalleRepository.save(usuarioDetalle);
         }
-    }
-
-    /**
-     * Procesa y persiste una lista de roles.
-     */
-    private List<Rol> processRoles(List<Rol> roles) {
-        List<Rol> rolesPersistidos = new ArrayList<>();
-        for (Rol rol : roles) {
-            if (rol.getOid() != null) {
-                Rol rolExistente = rolRepository.findById(rol.getOid())
-                        .orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
-                rolesPersistidos.add(rolExistente);
-            } else {
-                rolesPersistidos.add(rolRepository.save(rol));
-            }
-        }
-        return rolesPersistidos;
     }
 
     /**
@@ -190,11 +176,7 @@ public class UsuarioService {
     }
 
     private void procesarRoles(Usuario usuario) {
-        List<Rol> rolesPersistidos = processRoles(usuario.getRoles());
+        List<Rol> rolesPersistidos = rolService.processRoles(usuario.getRoles());
         usuario.setRoles(rolesPersistidos);
-    }
-
-    private String safeToUpperCase(String value) {
-        return (value != null && !value.isBlank()) ? value.toUpperCase() : value;
     }
 }

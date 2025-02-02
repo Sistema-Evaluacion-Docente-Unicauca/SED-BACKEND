@@ -17,12 +17,6 @@ public class CatalogoController {
         this.catalogoService = catalogoService;
     }
 
-    /**
-     * Endpoint para obtener los valores únicos de facultad, departamento,
-     * categoría, contratación, dedicación, estudios.
-     *
-     * @return Un objeto CatalogoDTO con los valores únicos.
-     */
     @GetMapping("/obtenerCatalogo")
     public ResponseEntity<CatalogoDTO> obtenerCatalogo() {
         CatalogoDTO catalogo = catalogoService.obtenerCatalogo();

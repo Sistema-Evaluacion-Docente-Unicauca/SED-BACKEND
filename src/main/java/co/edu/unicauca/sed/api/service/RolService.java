@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,5 +81,22 @@ public class RolService {
     public void delete(Integer oid) {
         logger.info("Eliminando rol con ID: {}", oid);
         rolRepository.deleteById(oid);
+    }
+
+        /**
+     * Procesa y persiste una lista de roles.
+     */
+    public List<Rol> processRoles(List<Rol> roles) {
+        List<Rol> rolesPersistidos = new ArrayList<>();
+        for (Rol rol : roles) {
+            if (rol.getOid() != null) {
+                Rol rolExistente = rolRepository.findById(rol.getOid())
+                        .orElseThrow(() -> new RuntimeException("Rol no encontrado con OID: " + rol.getOid()));
+                rolesPersistidos.add(rolExistente);
+            } else {
+                rolesPersistidos.add(rolRepository.save(rol));
+            }
+        }
+        return rolesPersistidos;
     }
 }

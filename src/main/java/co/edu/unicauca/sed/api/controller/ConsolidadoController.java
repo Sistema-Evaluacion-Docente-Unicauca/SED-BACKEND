@@ -49,12 +49,6 @@ public class ConsolidadoController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Recupera un Consolidado por su OID.
-     *
-     * @param oid El ID del Consolidado.
-     * @return El objeto Consolidado o un mensaje de error.
-     */
     @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         try {
@@ -69,12 +63,6 @@ public class ConsolidadoController {
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Guarda un nuevo Consolidado.
-     *
-     * @param consolidado El objeto Consolidado a guardar.
-     * @return El objeto Consolidado guardado o un mensaje de error.
-     */
     @PostMapping
     public ResponseEntity<?> save(@RequestBody Consolidado consolidado) {
         try {
@@ -90,13 +78,6 @@ public class ConsolidadoController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    /**
-     * Actualiza todos los consolidados asociados al evaluado.
-     *
-     * @param oidConsolidado ID del Consolidado base para identificar al evaluado y sus procesos asociados.
-     * @param consolidado    Datos actualizados para los consolidados.
-     * @return Mensaje de éxito o error.
-     */
     @PutMapping("/{oidConsolidado}")
     public ResponseEntity<?> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
         try {
@@ -111,12 +92,6 @@ public class ConsolidadoController {
         }
     }
 
-    /**
-     * Elimina un Consolidado por su OID.
-     *
-     * @param oid El ID del Consolidado a eliminar.
-     * @return Mensaje de éxito o error.
-     */
     @DeleteMapping("/{oid}")
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         try {
@@ -140,13 +115,6 @@ public class ConsolidadoController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Genera un consolidado para un evaluado en un período académico.
-     *
-     * @param evaluadoId       ID del evaluado.
-     * @param periodoAcademico (Opcional) ID del período académico.
-     * @return Consolidado generado o un mensaje de error.
-     */
     @GetMapping("/generarConsolidado")
     public ResponseEntity<Object> generarConsolidado(
             @RequestParam Integer idEvaluado,
@@ -163,14 +131,6 @@ public class ConsolidadoController {
         }
     }
 
-    /**
-     * Aprueba un consolidado, lo guarda en la base de datos y genera un archivo Excel.
-     *
-     * @param idEvaluado         ID del evaluado.
-     * @param idPeriodoAcademico (Opcional) ID del período académico.
-     * @param nota               (Opcional) Nota asociada al consolidado.
-     * @return Mensaje de éxito o error.
-     */
     @PostMapping("/aprobarConsolidado")
     public ResponseEntity<?> aprobarConsolidado(
             @RequestParam Integer idEvaluado,
