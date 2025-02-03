@@ -1,8 +1,11 @@
 package co.edu.unicauca.sed.api.specification;
 
-import co.edu.unicauca.sed.api.model.Usuario;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
+import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.model.EstadoUsuario;
 
 public class UsuarioSpecification {
 
@@ -53,13 +56,14 @@ public class UsuarioSpecification {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
         }
 
-        if (estado != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                criteriaBuilder.like(
-                    criteriaBuilder.upper(root.get("estadoUsuario").get("nombre")), 
+        if (StringUtils.hasText(estado)) {
+            spec = spec.and((root, query, criteriaBuilder) -> {
+                Join<Usuario, EstadoUsuario> estadoUsuarioJoin = root.join("estadoUsuario", JoinType.LEFT);
+                return criteriaBuilder.like(
+                    criteriaBuilder.upper(estadoUsuarioJoin.get("nombre")),
                     "%" + estado.toUpperCase() + "%"
-                )
-            );
+                );
+            });
         }
 
         return spec;
