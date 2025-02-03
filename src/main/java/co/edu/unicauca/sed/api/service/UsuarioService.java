@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import co.edu.unicauca.sed.api.model.EstadoUsuario;
 import co.edu.unicauca.sed.api.model.Rol;
 import co.edu.unicauca.sed.api.model.Usuario;
-import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
@@ -25,16 +24,13 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private UsuarioDetalleRepository usuarioDetalleRepository;
-
-    @Autowired
     private EstadoUsuarioRepository estadoUsuarioRepository;
 
     @Autowired
     private RolService rolService;
 
     @Autowired
-    private StringUtils stringUtils;
+    private UsuarioDetalleService usuarioDetalleService;
 
     /**
      * Encuentra usuarios filtrados y paginados.
@@ -65,7 +61,7 @@ public class UsuarioService {
             usuario.setNombres(usuario.getNombres().toUpperCase());
             usuario.setApellidos(usuario.getApellidos().toUpperCase());
             generarUsername(usuario);
-            procesarUsuarioDetalle(usuario);
+            usuarioDetalleService.procesarUsuarioDetalle(usuario);
             procesarEstadoUsuario(usuario);
             procesarRoles(usuario);
             usuariosGuardados.add(usuarioRepository.save(usuario));
@@ -88,20 +84,13 @@ public class UsuarioService {
         usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
 
         // Actualizar EstadoUsuario
-        if (usuarioActualizado.getEstadoUsuario() != null
-                && usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario() != null) {
-            EstadoUsuario estadoUsuario = estadoUsuarioRepository
-                    .findById(usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario())
-                    .orElseThrow(() -> new RuntimeException("EstadoUsuario no encontrado con OID: "
-                            + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
+        if (usuarioActualizado.getEstadoUsuario() != null && usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario() != null) {
+            EstadoUsuario estadoUsuario = estadoUsuarioRepository.findById(usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario())
+                    .orElseThrow(() -> new RuntimeException("EstadoUsuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
             usuarioExistente.setEstadoUsuario(estadoUsuario);
         }
 
-        // Actualizar UsuarioDetalle
-        if (usuarioActualizado.getUsuarioDetalle() != null) {
-            UsuarioDetalle usuarioDetalle = processUsuarioDetalle(usuarioActualizado.getUsuarioDetalle());
-            usuarioExistente.setUsuarioDetalle(usuarioDetalle);
-        }
+        usuarioDetalleService.procesarUsuarioDetalle(usuarioActualizado);
 
         // Actualizar roles
         List<Rol> rolesActualizados = rolService.processRoles(usuarioActualizado.getRoles());
@@ -116,26 +105,6 @@ public class UsuarioService {
      */
     public void delete(Integer oid) {
         usuarioRepository.deleteById(oid);
-    }
-
-    /**
-     * Procesa y persiste un UsuarioDetalle.
-     */
-    private UsuarioDetalle processUsuarioDetalle(UsuarioDetalle usuarioDetalle) {
-        usuarioDetalle.setFacultad(stringUtils.safeToUpperCase(usuarioDetalle.getFacultad()));
-        usuarioDetalle.setDepartamento(stringUtils.safeToUpperCase(usuarioDetalle.getDepartamento()));
-        usuarioDetalle.setCategoria(stringUtils.safeToUpperCase(usuarioDetalle.getCategoria()));
-        usuarioDetalle.setContratacion(stringUtils.safeToUpperCase(usuarioDetalle.getContratacion()));
-        usuarioDetalle.setDedicacion(stringUtils.safeToUpperCase(usuarioDetalle.getDedicacion()));
-        usuarioDetalle.setEstudios(stringUtils.safeToUpperCase(usuarioDetalle.getEstudios()));
-
-        if (usuarioDetalle.getOidUsuarioDetalle() != null) {
-            return usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
-                    .orElseThrow(() -> new RuntimeException(
-                            "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));
-        } else {
-            return usuarioDetalleRepository.save(usuarioDetalle);
-        }
     }
 
     /**
@@ -157,26 +126,28 @@ public class UsuarioService {
         }
     }
 
-    private void procesarUsuarioDetalle(Usuario usuario) {
-        if (usuario.getUsuarioDetalle() != null) {
-            UsuarioDetalle usuarioDetalle = usuario.getUsuarioDetalle();
-            usuarioDetalle = processUsuarioDetalle(usuarioDetalle);
-            usuario.setUsuarioDetalle(usuarioDetalle);
-        }
-    }
-
     private void procesarEstadoUsuario(Usuario usuario) {
         if (usuario.getEstadoUsuario() != null && usuario.getEstadoUsuario().getOidEstadoUsuario() != null) {
             EstadoUsuario estadoUsuario = estadoUsuarioRepository
                     .findById(usuario.getEstadoUsuario().getOidEstadoUsuario())
-                    .orElseThrow(() -> new RuntimeException("EstadoUsuario no encontrado con OID: "
+                    .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: "
                             + usuario.getEstadoUsuario().getOidEstadoUsuario()));
             usuario.setEstadoUsuario(estadoUsuario);
         }
     }
 
     private void procesarRoles(Usuario usuario) {
-        List<Rol> rolesPersistidos = rolService.processRoles(usuario.getRoles());
-        usuario.setRoles(rolesPersistidos);
-    }
+        List<Rol> rolesAsignados = rolService.processRoles(usuario.getRoles());
+    
+        boolean usuarioTieneRolJefeDepartamento = rolesAsignados.stream()
+                .anyMatch(rol -> "JEFE DE DEPARTAMENTO".equalsIgnoreCase(rol.getNombre()));
+    
+        boolean existeOtroJefeDepartamento = usuarioRepository.existsByRolesNombre("JEFE DE DEPARTAMENTO");
+    
+        if (usuarioTieneRolJefeDepartamento && existeOtroJefeDepartamento) {
+            throw new RuntimeException("Ya existe un Jefe de Departamento registrado en el sistema. No se permite más de uno.");
+        }
+    
+        usuario.setRoles(rolesAsignados);
+    }    
 }
