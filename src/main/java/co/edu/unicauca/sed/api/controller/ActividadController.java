@@ -163,8 +163,7 @@ public class ActividadController {
             @RequestParam(defaultValue = "10") int size) {
         try {
             // Configurar la paginación
-            Pageable pageable = PageRequest.of(page, size,
-                    orden != null && orden ? Sort.by("nombre").ascending() : Sort.by("nombre").descending());
+            Pageable pageable = PageRequest.of(page, size,orden != null && orden ? Sort.by("nombre").ascending() : Sort.by("nombre").descending());
 
             // Delegar al servicio la búsqueda de actividades
             Page<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(

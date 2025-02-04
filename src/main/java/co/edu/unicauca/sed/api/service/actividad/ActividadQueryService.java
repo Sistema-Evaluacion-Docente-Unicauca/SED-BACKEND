@@ -1,7 +1,6 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -150,7 +149,6 @@ public class ActividadQueryService {
 
         List<Predicate> predicates = new ArrayList<>();
 
-        // Filtros por evaluador, evaluado, código, tipo y otros parámetros
         if (userEvaluatorId != null) {
             predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get(ATTRIBUTE_USER_ID),userEvaluatorId));
         }
@@ -164,14 +162,13 @@ public class ActividadQueryService {
         }
 
         if (activityType != null && !activityType.isEmpty()) {
-            predicates.add(cb.like(root.join("tipoActividad").get(ATTRIBUTE_NAME), "%" + activityType + "%"));
+            predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
         }
 
         if (evaluatorName != null && !evaluatorName.isEmpty()) {
             predicates.add(cb.like(cb.concat(
                     root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get("nombres"),
-                    root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get("apellidos")),
-                    "%" + evaluatorName + "%"));
+                    root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get("apellidos")), "%" + evaluatorName + "%"));
         }
 
         // Filtro combinado por fuente y estado de fuente
@@ -181,7 +178,7 @@ public class ActividadQueryService {
                 predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_TYPE), sourceType));
             }
             if (sourceStatus != null) {
-                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("nombreEstado"), sourceStatus));
+                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("oidEstadoFuente"), sourceStatus));
             }
         }
         /*
