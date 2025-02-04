@@ -13,6 +13,9 @@ public class CatalogoDTO {
     private List<Map<String, String>> estudios;
     private List<Map<String, Object>> roles;
     private List<Map<String, Object>> tipoActividades;
+    private List<Map<String, Object>> estadoActividad;
+    private List<Map<String, Object>> estadoUsuario;
+    private List<Map<String, Object>> estadoFuente;
 
     public List<Map<String, String>> getFacultades() {
         return facultades;

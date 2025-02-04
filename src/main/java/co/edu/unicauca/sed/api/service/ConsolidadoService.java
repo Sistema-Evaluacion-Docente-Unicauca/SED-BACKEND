@@ -54,16 +54,6 @@ public class ConsolidadoService {
     @Autowired
     private ExcelService excelService;
 
-    /**
-     * Encuentra todos los consolidados con soporte de paginación y ordenamiento.
-     *
-     * @param pageable       Objeto para definir la paginación (tamaño de página y
-     *                       número de página).
-     * @param ascendingOrder Define si el orden es ascendente (true) o descendente
-     *                       (false).
-     * @return Página de consolidados que coinciden con los criterios especificados.
-     * @throws Exception En caso de error al realizar la consulta.
-     */
     public Page<Consolidado> findAll(Pageable pageable, Boolean ascendingOrder) {
         try {
             boolean order = (ascendingOrder != null) ? ascendingOrder : true;

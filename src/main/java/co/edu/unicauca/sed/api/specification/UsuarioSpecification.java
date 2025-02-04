@@ -53,15 +53,15 @@ public class UsuarioSpecification {
         }
 
         if (StringUtils.hasText(rol)) {
-            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("nombre"), rol));
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("oid"), rol));
         }
 
         if (StringUtils.hasText(estado)) {
             spec = spec.and((root, query, criteriaBuilder) -> {
                 Join<Usuario, EstadoUsuario> estadoUsuarioJoin = root.join("estadoUsuario", JoinType.LEFT);
-                return criteriaBuilder.like(
-                    criteriaBuilder.upper(estadoUsuarioJoin.get("nombre")),
-                    "%" + estado.toUpperCase() + "%"
+                return criteriaBuilder.equal(
+                    estadoUsuarioJoin.get("oidEstadoUsuario"), 
+                    Integer.parseInt(estado)
                 );
             });
         }
