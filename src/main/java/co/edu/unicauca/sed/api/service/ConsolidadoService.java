@@ -175,12 +175,13 @@ public class ConsolidadoService {
 
             // Agrupación y transformación de actividades
             Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
-                    .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre())) // Ordenar por tipo de actividad
+                    .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
                     .collect(Collectors.groupingBy(
                             actividad -> actividad.getTipoActividad().getNombre(),
                             Collectors.mapping(
                                     actividad -> transformacionService.transformarActividad(actividad, totalHoras),
                                     Collectors.toList())));
+
             double totalPorcentaje = actividadesPorTipo.values().stream()
                     .flatMap(List::stream)
                     .mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
@@ -262,13 +263,13 @@ public class ConsolidadoService {
                 .mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
 
         int fuentesCompletadas = actividadesPorTipo.values().stream().flatMap(List::stream).flatMap(map -> {
-            Object fuentes = map.get("fuentes"); // Obtener el valor asociado a "fuentes"
-            if (fuentes instanceof List<?>) { // Validar que sea una lista
+            Object fuentes = map.get("fuentes");
+            if (fuentes instanceof List<?>) {
                 @SuppressWarnings("unchecked")
-                List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes; // Cambiar a FuenteDTO
-                return fuentesList.stream(); // Stream<FuenteDTO>
+                List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes;
+                return fuentesList.stream();
             }
-            return Stream.empty(); // Si no es una lista, devuelve un stream vacío
+            return Stream.empty();
         }).mapToInt(fuente -> {
             // Validar y contar las fuentes con estado "Diligenciado"
             if ("Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) {

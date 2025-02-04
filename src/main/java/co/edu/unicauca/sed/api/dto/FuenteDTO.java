@@ -1,9 +1,7 @@
 package co.edu.unicauca.sed.api.dto;
 
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FuenteDTO {
 
     private Integer oidFuente;

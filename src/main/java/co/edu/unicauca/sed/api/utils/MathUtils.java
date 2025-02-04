@@ -47,9 +47,9 @@ public class MathUtils {
    */
   public static float calcularPorcentajeCompletado(int total, int completados) {
     if (total <= 0) {
-      return 0.0f; // Si el total es 0 o negativo, el porcentaje es 0.
+      return 0.0f;
     }
     float porcentaje = (completados / (float) total) * 100;
-    return Math.round(porcentaje * 100.0f) / 100.0f; // Redondeo a 2 decimales.
+    return Math.round(porcentaje * 100.0f) / 100.0f;
   }
 }
