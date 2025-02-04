@@ -1,8 +1,10 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,12 @@ public class ActividadTransformacionService {
         double promedio = calculoService.calcularPromedio(actividad.getFuentes());
         double acumulado = calculoService.calcularAcumulado(promedio, porcentaje);
 
-        int totalFuentes = actividad.getFuentes().size();
+        int totalFuentes = Optional.ofNullable(actividad.getFuentes())
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(fuente -> fuente.getCalificacion() != null)
+                .mapToInt(f -> 1)
+                .sum();
 
         return Map.of(
                 "oidActividad", actividad.getOidActividad(),

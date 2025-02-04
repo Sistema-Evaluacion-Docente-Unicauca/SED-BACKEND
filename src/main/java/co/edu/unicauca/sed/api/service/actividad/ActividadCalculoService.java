@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.utils.MathUtils;
+import co.edu.unicauca.sed.api.model.Actividad;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class ActividadCalculoService {
      * @param actividades Lista de actividades.
      * @return Total de horas.
      */
-    public float calcularTotalHoras(List<co.edu.unicauca.sed.api.model.Actividad> actividades) {
+    public float calcularTotalHoras(List<Actividad> actividades) {
         return (float) actividades.stream()
                 .mapToDouble(actividad -> actividad.getHoras())
                 .sum();
@@ -40,10 +41,13 @@ public class ActividadCalculoService {
      * @return Promedio redondeado a 2 decimales.
      */
     public double calcularPromedio(List<Fuente> fuentes) {
-        return MathUtils.redondearDecimal(fuentes.stream()
-                .mapToDouble(Fuente::getCalificacion)
-                .average()
-                .orElse(0), 2).doubleValue();
+        return MathUtils.redondearDecimal(
+                fuentes.stream()
+                    .filter(f -> f.getCalificacion() != null)
+                    .mapToDouble(Fuente::getCalificacion)
+                    .average()
+                    .orElse(0),
+                2).doubleValue();
     }
 
     /**

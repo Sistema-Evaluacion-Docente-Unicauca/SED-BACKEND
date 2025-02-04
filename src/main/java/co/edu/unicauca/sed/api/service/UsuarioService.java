@@ -9,10 +9,8 @@ import co.edu.unicauca.sed.api.model.EstadoUsuario;
 import co.edu.unicauca.sed.api.model.Rol;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
-import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
-import co.edu.unicauca.sed.api.utils.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Objects;
@@ -149,5 +147,5 @@ public class UsuarioService {
         }
     
         usuario.setRoles(rolesAsignados);
-    }    
+    } 
 }
