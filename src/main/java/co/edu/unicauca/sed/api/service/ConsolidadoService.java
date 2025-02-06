@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -97,25 +96,14 @@ public class ConsolidadoService {
     @Transactional
     public void updateAllFromConsolidado(Integer oidConsolidado, Consolidado datosActualizar) {
         // Obtener el consolidado base
-        Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado)
-                .orElseThrow(() -> {
-                    return new IllegalArgumentException("Consolidado no encontrado");
-                });
+        Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado).orElseThrow(() -> new IllegalArgumentException("Consolidado no encontrado"));
 
-        // Obtener el evaluado a través del proceso del consolidado base
-        Proceso procesoBase = consolidadoBase.getProceso();
-        if (procesoBase == null) {
-            throw new IllegalStateException("Proceso no asociado al consolidado base.");
-        }
+        Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso()).orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
 
-        Usuario evaluado = procesoBase.getEvaluado();
-        if (evaluado == null) {
-            throw new IllegalStateException("Evaluado no asociado al proceso base.");
-        }
+        Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado()).orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
 
-        // Obtener todos los procesos asociados al evaluado
+        // Obtener los consolidados asociados al evaluado en una sola consulta
         List<Proceso> procesosEvaluado = procesoRepository.findByEvaluado(evaluado);
-
         if (procesosEvaluado.isEmpty()) {
             throw new IllegalArgumentException("No hay procesos asociados al evaluado.");
         }
@@ -160,26 +148,21 @@ public class ConsolidadoService {
             PeriodoAcademico periodoAcademico = obtenerPeriodoAcademico(procesosEvaluados);
             UsuarioDetalle detalleUsuario = evaluado.getUsuarioDetalle();
             List<Actividad> actividades = obtenerActividades(procesosEvaluados);
-            // Cálculo de totales
+
             float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-            // Agrupación y transformación de actividades
             Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
                     .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
-                    .collect(Collectors.groupingBy(
-                            actividad -> actividad.getTipoActividad().getNombre(),
-                            Collectors.mapping(
-                                    actividad -> transformacionService.transformarActividad(actividad, totalHoras),
+                    .collect(Collectors.groupingBy(actividad -> actividad.getTipoActividad().getNombre(),
+                            Collectors.mapping(actividad -> transformacionService.transformarActividad(actividad, totalHoras),
                                     Collectors.toList())));
 
             double totalPorcentaje = actividadesPorTipo.values().stream()
-                    .flatMap(List::stream)
-                    .mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
+                    .flatMap(List::stream).mapToDouble(actividad -> ((Number) actividad.get("porcentaje")).doubleValue())
                     .sum();
 
             double totalAcumulado = actividadesPorTipo.values().stream()
-                    .flatMap(List::stream)
-                    .mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
+                    .flatMap(List::stream).mapToDouble(actividad -> ((Number) actividad.get("acumulado")).doubleValue())
                     .sum();
 
             totalAcumulado = Math.round(totalAcumulado);
@@ -196,8 +179,7 @@ public class ConsolidadoService {
      * Obtiene un usuario evaluado por su ID.
      */
     private Usuario obtenerEvaluado(Integer idEvaluado) {
-        return usuarioRepository.findById(idEvaluado)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario con ID " + idEvaluado + " no encontrado."));
+        return usuarioRepository.findById(idEvaluado).orElseThrow(() -> new IllegalArgumentException("Usuario con ID " + idEvaluado + " no encontrado."));
     }
 
     /**
@@ -222,20 +204,19 @@ public class ConsolidadoService {
      * Obtiene todas las actividades de los procesos evaluados.
      */
     private List<Actividad> obtenerActividades(List<Proceso> procesosEvaluados) {
-        return procesosEvaluados.stream()
-                .flatMap(proceso -> proceso.getActividades().stream())
-                .collect(Collectors.toList());
+        return procesosEvaluados.stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
     }
-
+    
     /**
-     * Construye el DTO del consolidado.
+     * Builds the DTO for the consolidated report.
      */
     public ConsolidadoDTO construirConsolidado(Usuario evaluado, UsuarioDetalle detalleUsuario,
             PeriodoAcademico periodoAcademico, Map<String, List<Map<String, Object>>> actividadesPorTipo,
             float totalHoras, double totalPorcentaje, double totalAcumulado) {
+
         ConsolidadoDTO consolidado = new ConsolidadoDTO();
 
-        consolidado.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
+        consolidado.setNombreDocente(String.format("%s %s", evaluado.getNombres(), evaluado.getApellidos()));
         consolidado.setNumeroIdentificacion(evaluado.getIdentificacion());
         consolidado.setPeriodoAcademico(periodoAcademico.getIdPeriodo());
         consolidado.setFacultad(detalleUsuario.getFacultad());
@@ -248,27 +229,10 @@ public class ConsolidadoService {
         consolidado.setTotalPorcentaje(totalPorcentaje);
         consolidado.setTotalAcumulado(totalAcumulado);
 
-        // Calcular `totalFuentes` y `fuentesCompletadas`
-        int totalFuentes = actividadesPorTipo.values().stream().flatMap(List::stream)
-                .mapToInt(actividad -> (int) actividad.get("totalFuentes")).sum();
+        // Calculate total sources and completed sources
+        int totalFuentes = calcularTotalFuentes(actividadesPorTipo);
+        int fuentesCompletadas = calcularFuentesCompletadas(actividadesPorTipo);
 
-        int fuentesCompletadas = actividadesPorTipo.values().stream().flatMap(List::stream).flatMap(map -> {
-            Object fuentes = map.get("fuentes");
-            if (fuentes instanceof List<?>) {
-                @SuppressWarnings("unchecked")
-                List<FuenteDTO> fuentesList = (List<FuenteDTO>) fuentes;
-                return fuentesList.stream();
-            }
-            return Stream.empty();
-        }).mapToInt(fuente -> {
-            // Validar y contar las fuentes con estado "Diligenciado"
-            if ("Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) {
-                return 1;
-            }
-            return 0;
-        }).sum();
-
-        // Calcular porcentaje completado
         float porcentajeCompletado = MathUtils.calcularPorcentajeCompletado(totalFuentes, fuentesCompletadas);
         consolidado.setPorcentajeEvaluacionCompletado(porcentajeCompletado);
 
@@ -276,56 +240,94 @@ public class ConsolidadoService {
     }
 
     /**
-     * Aprueba y guarda el consolidado en la base de datos.
-     *
-     * @param idEvaluado         ID del evaluado.
-     * @param idPeriodoAcademico ID del período académico.
-     * @param nota               Nota opcional.
-     * @throws IOException Si ocurre un error en el guardado del Excel.
+     * Calculates the total number of sources from the activities map.
      */
+    private int calcularTotalFuentes(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
+        return actividadesPorTipo.values().stream()
+                .flatMap(List::stream)
+                .mapToInt(actividad -> (int) actividad.getOrDefault("totalFuentes", 0))
+                .sum();
+    }
+
+    /**
+     * Calculates the number of completed sources from the activities map.
+     */
+    private int calcularFuentesCompletadas(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
+        return (int) actividadesPorTipo.values().stream()
+                .flatMap(List::stream)
+                .map(map -> map.get("fuentes")) // Extraer el objeto "fuentes"
+                .filter(Objects::nonNull) // Evitar nulos
+                .filter(List.class::isInstance) // Asegurar que es una lista
+                .map(list -> (List<?>) list) // Convertir a lista sin suprimir warnings
+                .flatMap(Collection::stream) // Convertir la lista en Stream
+                .filter(FuenteDTO.class::isInstance) // Filtrar solo elementos FuenteDTO
+                .map(fuente -> (FuenteDTO) fuente) // Convertirlos a FuenteDTO
+                .filter(fuente -> "Diligenciado".equalsIgnoreCase(fuente.getEstadoFuente())) // Filtrar los completados
+                .count();
+    }
+
     public void aprobarConsolidado(Integer idEvaluado, Integer idPeriodoAcademico, String nota) throws IOException {
         ConsolidadoDTO consolidadoDTO = generarConsolidado(idEvaluado, idPeriodoAcademico);
-
+    
         if (idPeriodoAcademico == null) {
             idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         }
-
+    
         if (nota != null) {
             nota = nota.toUpperCase();
         }
-
-        String nombreDocumento = "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-"
-                + consolidadoDTO.getNombreDocente().replace(" ", "_");
-
+    
+        String nombreDocumento = generarNombreDocumento(consolidadoDTO);
         Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
-
-        List<Proceso> procesos = procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(idEvaluado, idPeriodoAcademico);
-
+    
+        List<Proceso> procesos = obtenerProcesosDelEvaluado(idEvaluado, idPeriodoAcademico);
+        actualizarConsolidados(procesos, nombreDocumento, excelPath.toString(), nota);
+    }
+    
+    /**
+     * Generates the document name for the consolidated report.
+     */
+    private String generarNombreDocumento(ConsolidadoDTO consolidadoDTO) {
+        return "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-" +
+                consolidadoDTO.getNombreDocente().replace(" ", "_") + ".xlsx";
+    }
+    
+    /**
+     * Retrieves the list of processes associated with the evaluated user and academic period.
+     */
+    private List<Proceso> obtenerProcesosDelEvaluado(Integer idEvaluado, Integer idPeriodoAcademico) {
+        List<Proceso> procesos = procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
+                idEvaluado, idPeriodoAcademico);
+    
         if (procesos.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "No se encontraron procesos para el evaluado en el período académico especificado.");
+            throw new IllegalArgumentException("No se encontraron procesos para el evaluado en el período académico especificado.");
         }
-
+        return procesos;
+    }
+    
+    /**
+     * Updates or creates consolidated records for the given processes.
+     */
+    private void actualizarConsolidados(List<Proceso> procesos, String nombreDocumento, String rutaDocumento, String nota) {
         for (Proceso proceso : procesos) {
-            // Buscar si existe un consolidado asociado al proceso
-            Optional<Consolidado> consolidadoExistente = consolidadoRepository.findByProceso(proceso);
-
-            Consolidado consolidado;
-
-            if (consolidadoExistente.isPresent()) {
-                consolidado = consolidadoExistente.get();
-            } else {
-                consolidado = new Consolidado();
-                consolidado.setProceso(proceso);
-            }
-
-            consolidado.setNombredocumento(nombreDocumento + ".xlsx");
-            consolidado.setRutaDocumento(excelPath.toString());
+            Consolidado consolidado = consolidadoRepository.findByProceso(proceso)
+                    .orElseGet(() -> crearNuevoConsolidado(proceso));
+    
+            consolidado.setNombredocumento(nombreDocumento);
+            consolidado.setRutaDocumento(rutaDocumento);
             consolidado.setNota(nota);
             consolidado.setFechaActualizacion(LocalDateTime.now());
-
+    
             consolidadoRepository.save(consolidado);
         }
     }
-
+    
+    /**
+     * Creates a new consolidated entity for a given process.
+     */
+    private Consolidado crearNuevoConsolidado(Proceso proceso) {
+        Consolidado consolidado = new Consolidado();
+        consolidado.setProceso(proceso);
+        return consolidado;
+    }    
 }

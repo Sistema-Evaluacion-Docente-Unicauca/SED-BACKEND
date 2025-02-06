@@ -8,10 +8,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ExcelService {
@@ -19,150 +22,145 @@ public class ExcelService {
     @Autowired
     private FileService fileService;
 
-    public Path generarExcelConsolidado(ConsolidadoDTO consolidadoDTO, String nombreDocumento, String nota)
-            throws IOException {
-        nota = (nota == null) ? "" : nota;
+    public Path generarExcelConsolidado(ConsolidadoDTO consolidadoDTO, String nombreDocumento, String nota) throws IOException {
+        nota = Optional.ofNullable(nota).orElse("");
+
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Consolidado");
 
-            // Llenar datos principales del consolidado
             int currentRow = llenarDatosPrincipales(sheet, consolidadoDTO);
-
-            // Crear encabezados para las actividades
             crearEncabezados(sheet, currentRow++);
 
-            // Llenar actividades en el Excel y calcular sumas
             double totalHS = 0;
             double totalPorcentaje = 0;
-            double totalAcumula = 0;
+            double totalAcumulado = 0;
 
             for (var entry : consolidadoDTO.getActividades().entrySet()) {
-                String tipoActividad = entry.getKey();
-                List<?> actividades = entry.getValue();
+                currentRow = agregarTituloTipoActividad(sheet, workbook, currentRow, entry.getKey());
 
-                // Título del tipo de actividad
-                Row tipoActividadRow = sheet.createRow(currentRow++);
-                Cell cell = tipoActividadRow.createCell(0);
-                cell.setCellValue(tipoActividad);
-                cell.setCellStyle(crearEstiloTitulo(workbook));
-
-                // Llenar actividades del tipo
-                for (Object actividadObj : actividades) {
-                    if (actividadObj instanceof java.util.Map) {
+                for (Object actividadObj : entry.getValue()) {
+                    if (actividadObj instanceof Map) {
                         @SuppressWarnings("unchecked")
-                        java.util.Map<String, Object> actividad = (java.util.Map<String, Object>) actividadObj;
+                        Map<String, Object> actividad = (Map<String, Object>) actividadObj;
 
-                        Row row = sheet.createRow(currentRow++);
-                        double hs = (double) ((Float) actividad.get("horas")).floatValue();
-                        double porcentaje = (double) ((Float) actividad.get("porcentaje")).floatValue();
-                        double acumula = (double) actividad.get("acumulado");
-
-                        row.createCell(0).setCellValue((String) actividad.get("nombre"));
-                        row.createCell(1).setCellValue((Float) actividad.get("horas"));
-                        row.createCell(2).setCellValue((Float) actividad.get("porcentaje"));
-                        row.createCell(5).setCellValue((Double) actividad.get("promedio"));
-                        row.createCell(6).setCellValue((Double) actividad.get("acumulado"));
-
-                        // Procesar fuentes
-                        List<FuenteDTO> fuentes = (List<FuenteDTO>) actividad.get("fuentes");
-                        if (fuentes != null && !fuentes.isEmpty()) {
-                            if (fuentes.size() >= 1) {
-                                row.createCell(3).setCellValue(fuentes.get(0).getCalificacion());
-                            }
-                            if (fuentes.size() >= 2) {
-                                row.createCell(4).setCellValue(fuentes.get(1).getCalificacion());
-                            }
-                        }
-                        // Sumar totales
-                        totalHS += hs;
-                        totalPorcentaje += porcentaje;
-                        totalAcumula += acumula;
+                        TotalesActividad totales = procesarActividad(sheet, currentRow++, actividad);
+                        totalHS += totales.horas;
+                        totalPorcentaje += totales.porcentaje;
+                        totalAcumulado += totales.acumulado;
                     }
                 }
             }
 
-            // Agregar fila de totales
-            Row totalRow = sheet.createRow(currentRow++);
-            Cell totalTitleCell = totalRow.createCell(0);
-            totalTitleCell.setCellValue("TOTALES:");
+            currentRow = agregarTotales(sheet, workbook, currentRow, totalHS, totalPorcentaje, totalAcumulado);
 
-            Cell hsCell = totalRow.createCell(1);
-            hsCell.setCellValue(totalHS);
-
-            Cell porcentajeCell = totalRow.createCell(2);
-            porcentajeCell.setCellValue(totalPorcentaje);
-
-            Cell acumulaCell = totalRow.createCell(6);
-            acumulaCell.setCellValue(totalAcumula);
-
-            // Aplicar estilo al total
-            CellStyle totalStyle = crearEstiloTitulo(workbook);
-            totalTitleCell.setCellStyle(totalStyle);
-            hsCell.setCellStyle(totalStyle);
-            porcentajeCell.setCellStyle(totalStyle);
-            acumulaCell.setCellStyle(totalStyle);
-
-            // Agregar nota después del total
-            if (nota != null && !nota.isEmpty()) {
-                Row notaRow = sheet.createRow(currentRow++);
-                Cell notaCell = notaRow.createCell(0);
-                notaCell.setCellValue("Nota: " + nota);
-
-                // Combinar celdas para que la nota abarque toda la tabla
-                sheet.addMergedRegion(new CellRangeAddress(
-                        notaRow.getRowNum(), // Fila inicial
-                        notaRow.getRowNum(), // Fila final
-                        0, // Columna inicial
-                        6 // Columna final
-                ));
-
-                // Estilo para la nota
-                CellStyle notaStyle = workbook.createCellStyle();
-                Font notaFont = workbook.createFont();
-                notaFont.setItalic(true);
-                notaStyle.setFont(notaFont);
-                notaStyle.setWrapText(true);
-                notaCell.setCellStyle(notaStyle);
+            if (!nota.isEmpty()) {
+                agregarNota(sheet, workbook, currentRow++, nota);
             }
 
-            // Guardar el archivo usando FileService
-            return fileService.saveFile(
-                    workbookToMultipartFile(workbook, nombreDocumento),
-                    
-                    consolidadoDTO.getPeriodoAcademico(),
-                    consolidadoDTO.getTipoContratacion(),
-                    consolidadoDTO.getDepartamento(),
-                    "Consolidados");
+            return guardarArchivoExcel(workbook, nombreDocumento, consolidadoDTO);
         }
     }
 
-    private int llenarDatosPrincipales(Sheet sheet, ConsolidadoDTO consolidadoDTO) {
-        int currentRow = 0;
-
-        Row docenteRow = sheet.createRow(currentRow++);
-        docenteRow.createCell(0).setCellValue("Nombre del Docente:");
-        docenteRow.createCell(1).setCellValue(consolidadoDTO.getNombreDocente());
-
-        Row identificacionRow = sheet.createRow(currentRow++);
-        identificacionRow.createCell(0).setCellValue("Número de Identificación:");
-        identificacionRow.createCell(1).setCellValue(consolidadoDTO.getNumeroIdentificacion());
-
-        Row periodoRow = sheet.createRow(currentRow++);
-        periodoRow.createCell(0).setCellValue("Periodo Académico:");
-        periodoRow.createCell(1).setCellValue(consolidadoDTO.getPeriodoAcademico());
-
-        return currentRow;
+    private int agregarTituloTipoActividad(Sheet sheet, Workbook workbook, int rowIndex, String tipoActividad) {
+        Row row = sheet.createRow(rowIndex++);
+        Cell cell = row.createCell(0);
+        cell.setCellValue(tipoActividad);
+        cell.setCellStyle(crearEstiloTitulo(workbook));
+        return rowIndex;
     }
 
-    private void crearEncabezados(Sheet sheet, int rowNumber) {
-        Row headerRow = sheet.createRow(rowNumber);
-        headerRow.createCell(0).setCellValue("ACTIVIDAD");
-        headerRow.createCell(1).setCellValue("HS");
-        headerRow.createCell(2).setCellValue("%");
-        headerRow.createCell(3).setCellValue("Fuente 1");
-        headerRow.createCell(4).setCellValue("Fuente 2");
-        headerRow.createCell(5).setCellValue("Promedio");
-        headerRow.createCell(6).setCellValue("Acumula");
+    private TotalesActividad procesarActividad(Sheet sheet, int rowIndex, Map<String, Object> actividad) {
+        Row row = sheet.createRow(rowIndex);
+
+        String nombre = (String) actividad.get("nombre");
+        float horas = Optional.ofNullable((Float) actividad.get("horas")).orElse(0.0f);
+        float porcentaje = Optional.ofNullable((Float) actividad.get("porcentaje")).orElse(0.0f);
+        double promedio = Optional.ofNullable((Double) actividad.get("promedio")).orElse(0.0);
+        double acumulado = Optional.ofNullable((Double) actividad.get("acumulado")).orElse(0.0);
+
+        row.createCell(0).setCellValue(nombre);
+        row.createCell(1).setCellValue(horas);
+        row.createCell(2).setCellValue(porcentaje);
+        row.createCell(5).setCellValue(promedio);
+        row.createCell(6).setCellValue(acumulado);
+
+        List<FuenteDTO> fuentes = (List<FuenteDTO>) actividad.get("fuentes");
+        Cell fuente1Cell = row.createCell(3);
+        Cell fuente2Cell = row.createCell(4);
+
+        setCellValueSafe(fuente1Cell, getSafeCalificacion(fuentes, 0));
+        setCellValueSafe(fuente2Cell, getSafeCalificacion(fuentes, 1));
+
+
+        return new TotalesActividad(horas, porcentaje, acumulado);
+    }
+
+    private void setCellValueSafe(Cell cell, Float value) {
+        if (value != null) {
+            cell.setCellValue(value);
+        }
+    }    
+
+    private Float getSafeCalificacion(List<FuenteDTO> fuentes, int index) {
+        if (fuentes != null && fuentes.size() > index && fuentes.get(index) != null) {
+            return fuentes.get(index).getCalificacion(); // Retorna null si la calificación es null
+        }
+        return null;
+    }
+    
+    private int agregarTotales(Sheet sheet, Workbook workbook, int rowIndex, double totalHS, double totalPorcentaje, double totalAcumulado) {
+        Row totalRow = sheet.createRow(rowIndex);
+        CellStyle totalStyle = crearEstiloTitulo(workbook);
+
+        totalRow.createCell(0).setCellValue("TOTALES:");
+        totalRow.createCell(1).setCellValue(totalHS);
+        totalRow.createCell(2).setCellValue(totalPorcentaje);
+        totalRow.createCell(6).setCellValue(totalAcumulado);
+
+        for (int i = 0; i <= 6; i++) {
+            if (totalRow.getCell(i) != null) {
+                totalRow.getCell(i).setCellStyle(totalStyle);
+            }
+        }
+        return rowIndex + 1;
+    }
+
+    private void agregarNota(Sheet sheet, Workbook workbook, int rowIndex, String nota) {
+        Row notaRow = sheet.createRow(rowIndex);
+        Cell notaCell = notaRow.createCell(0);
+        notaCell.setCellValue("Nota: " + nota);
+
+        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, 6));
+
+        CellStyle notaStyle = workbook.createCellStyle();
+        Font notaFont = workbook.createFont();
+        notaFont.setItalic(true);
+        notaStyle.setFont(notaFont);
+        notaStyle.setWrapText(true);
+        notaCell.setCellStyle(notaStyle);
+    }
+
+    private Path guardarArchivoExcel(Workbook workbook, String nombreDocumento, ConsolidadoDTO consolidadoDTO) throws IOException {
+        MultipartFile multipartFile = workbookToMultipartFile(workbook, nombreDocumento);
+        return fileService.saveFile(
+                multipartFile,
+                consolidadoDTO.getPeriodoAcademico(),
+                consolidadoDTO.getTipoContratacion(),
+                consolidadoDTO.getDepartamento(),
+                "Consolidados"
+        );
+    }
+
+    private MultipartFile workbookToMultipartFile(Workbook workbook, String nombreDocumento) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            workbook.write(bos);
+            return new MockMultipartFile(
+                    "file",
+                    nombreDocumento + ".xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    bos.toByteArray()
+            );
+        }
     }
 
     private CellStyle crearEstiloTitulo(Workbook workbook) {
@@ -173,54 +171,55 @@ public class ExcelService {
         return style;
     }
 
-    private MultipartFile workbookToMultipartFile(Workbook workbook, String nombreDocumento) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        workbook.write(bos);
-        workbook.close();
-        byte[] content = bos.toByteArray();
+    private static class TotalesActividad {
+        double horas, porcentaje, acumulado;
 
-        return new MultipartFile() {
-            @Override
-            public String getName() {
-                return "file";
-            }
+        TotalesActividad(double horas, double porcentaje, double acumulado) {
+            this.horas = horas;
+            this.porcentaje = porcentaje;
+            this.acumulado = acumulado;
+        }
+    }
 
-            @Override
-            public String getOriginalFilename() {
-                return nombreDocumento + ".xlsx";
-            }
+    private int llenarDatosPrincipales(Sheet sheet, ConsolidadoDTO consolidadoDTO) {
+        int currentRow = 0;
+    
+        // Crear un estilo para los títulos
+        CellStyle titleStyle = crearEstiloTitulo(sheet.getWorkbook());
+    
+        // Datos principales
+        currentRow = agregarFila(sheet, currentRow, "Nombre del Docente:", consolidadoDTO.getNombreDocente(), titleStyle);
+        currentRow = agregarFila(sheet, currentRow, "Número de Identificación:", consolidadoDTO.getNumeroIdentificacion(), titleStyle);
+        currentRow = agregarFila(sheet, currentRow, "Periodo Académico:", consolidadoDTO.getPeriodoAcademico(), titleStyle);
+        
+        return currentRow;
+    }
+    
+    /**
+     * Agrega una fila con una etiqueta y su respectivo valor en el Excel.
+     */
+    private int agregarFila(Sheet sheet, int rowIndex, String etiqueta, String valor, CellStyle titleStyle) {
+        Row row = sheet.createRow(rowIndex++);
+        Cell etiquetaCell = row.createCell(0);
+        Cell valorCell = row.createCell(1);
+    
+        etiquetaCell.setCellValue(etiqueta);
+        etiquetaCell.setCellStyle(titleStyle);
+        valorCell.setCellValue(Optional.ofNullable(valor).orElse(""));
+    
+        return rowIndex;
+    }
 
-            @Override
-            public String getContentType() {
-                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return content.length == 0;
-            }
-
-            @Override
-            public long getSize() {
-                return content.length;
-            }
-
-            @Override
-            public byte[] getBytes() {
-                return content;
-            }
-
-            @Override
-            public java.io.InputStream getInputStream() {
-                return new java.io.ByteArrayInputStream(content);
-            }
-
-            @Override
-            public void transferTo(java.io.File dest) throws IOException {
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(dest)) {
-                    fos.write(content);
-                }
-            }
-        };
+    private void crearEncabezados(Sheet sheet, int rowNumber) {
+        Row headerRow = sheet.createRow(rowNumber);
+        CellStyle headerStyle = crearEstiloTitulo(sheet.getWorkbook());
+    
+        String[] headers = {"ACTIVIDAD", "HS", "%", "Fuente 1", "Fuente 2", "Promedio", "Acumula"};
+    
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
     }
 }

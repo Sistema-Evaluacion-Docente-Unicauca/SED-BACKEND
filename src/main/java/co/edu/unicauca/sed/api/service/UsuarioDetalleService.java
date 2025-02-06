@@ -11,7 +11,6 @@ import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.utils.StringUtils;
-import co.edu.unicauca.sed.api.model.UsuarioDetalle;
 
 @Service
 public class UsuarioDetalleService {
