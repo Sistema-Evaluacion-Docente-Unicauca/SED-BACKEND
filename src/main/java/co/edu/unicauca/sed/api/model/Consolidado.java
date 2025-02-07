@@ -8,11 +8,14 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "CONSOLIDADO")
 @Data
+@NoArgsConstructor
 public class Consolidado {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "consolidadoSeq")
     @SequenceGenerator(name = "consolidadoSeq", sequenceName = "SEQ_OIDCONSOLIDADO", allocationSize = 1)
@@ -40,4 +43,13 @@ public class Consolidado {
     @Column(name = "FECHAACTUALIZACION")
     @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
+
+    /**
+     * Constructor para inicializar Consolidado con un proceso.
+     *
+     * @param proceso Proceso asociado al consolidado.
+     */
+    public Consolidado(Proceso proceso) {
+        this.proceso = proceso;
+    }
 }

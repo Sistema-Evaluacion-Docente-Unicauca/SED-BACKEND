@@ -32,4 +32,8 @@ public class ConsolidadoDTO {
     private Float porcentajeEvaluacionCompletado;
     private Double totalPorcentaje;
     private Double totalAcumulado;
+    private int currentPage;
+    private int pageSize;
+    private int totalItems;
+    private int totalPages;
 }

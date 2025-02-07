@@ -7,12 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 @Controller
 @RequestMapping("api/consolidado")
@@ -115,33 +117,56 @@ public class ConsolidadoController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/generarConsolidado")
-    public ResponseEntity<Object> generarConsolidado(
+    /**
+     * Endpoint para obtener solo la información general del consolidado sin actividades.
+     */
+    @GetMapping("/informacion-general")
+    public ResponseEntity<ConsolidadoDTO> obtenerInformacionGeneral(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico) {
         try {
-            ConsolidadoDTO consolidado = consolidadoService.generarConsolidado(idEvaluado, periodoAcademico);
+            ConsolidadoDTO consolidado = consolidadoService.generarInformacionGeneral(idEvaluado, periodoAcademico);
             return ResponseEntity.ok(consolidado);
         } catch (IllegalArgumentException e) {
-            logger.warn("Error al generar el consolidado: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            logger.warn("Error al obtener la información general: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
-            logger.error("Error al generar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            logger.error("Error inesperado en obtenerInformaciónGeneral: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @PostMapping("/aprobarConsolidado")
-    public ResponseEntity<?> aprobarConsolidado(
+    /**
+     * Endpoint para obtener solo las actividades del consolidado paginadas.
+     */
+    @GetMapping("/actividades")
+    public ResponseEntity<ActividadPaginadaDTO> obtenerActividadesPaginadas(
             @RequestParam Integer idEvaluado,
-            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) Integer periodoAcademico,
+            Pageable pageable) {
+        try {
+            ActividadPaginadaDTO actividades = consolidadoService.obtenerActividadesPaginadas(idEvaluado, periodoAcademico, pageable);
+            return ResponseEntity.ok(actividades);
+        } catch (Exception e) {
+            logger.error("Error al obtener actividades paginadas: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    /**
+     * Endpoint para aprobar el consolidado y generar el Excel.
+     */
+    @PostMapping("/aprobar")
+    public ResponseEntity<String> aprobarConsolidado(
+            @RequestParam Integer idEvaluado,
+            @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nota) {
         try {
-            consolidadoService.aprobarConsolidado(idEvaluado, idPeriodoAcademico, nota);
+            consolidadoService.aprobarConsolidado(idEvaluado, periodoAcademico, nota);
             return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
         } catch (Exception e) {
-            logger.error("Error al aprobar el consolidado para el evaluado con ID {}: {}", idEvaluado, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al aprobar el consolidado: " + e.getMessage());
+            logger.error("Error al aprobar el consolidado: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 }
