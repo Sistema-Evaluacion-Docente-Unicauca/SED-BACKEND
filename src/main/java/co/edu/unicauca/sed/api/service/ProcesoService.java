@@ -1,6 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -75,5 +76,18 @@ public class ProcesoService {
 
     public void delete(Integer oid) {
         this.procesoRepository.deleteById(oid);
+    }
+
+    /**
+     * Obtiene los procesos del evaluado en un período académico.
+     */
+    public List<Proceso> obtenerProcesosDelEvaluado(Integer idEvaluado, Integer idPeriodoAcademico) {
+        List<Proceso> procesos = procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
+                idEvaluado, idPeriodoAcademico);
+
+        if (procesos.isEmpty()) {
+            throw new IllegalArgumentException("No se encontraron procesos para el evaluado en el período académico especificado.");
+        }
+        return procesos;
     }
 }

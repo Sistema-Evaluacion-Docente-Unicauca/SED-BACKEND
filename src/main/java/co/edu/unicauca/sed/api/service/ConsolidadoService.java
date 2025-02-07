@@ -1,13 +1,11 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
-import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
-import co.edu.unicauca.sed.api.utils.MathUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +36,7 @@ public class ConsolidadoService {
     @Autowired private PeriodoAcademicoService periodoAcademicoService;
     @Autowired private ExcelService excelService;
     @Autowired private ConsolidadoRepository consolidadoRepository;
+    @Autowired private ProcesoService procesoService;
 
     public Page<Consolidado> findAll(Pageable pageable, Boolean ascendingOrder) {
         try {
@@ -51,53 +50,28 @@ public class ConsolidadoService {
         }
     }
 
-    /**
-     * Encuentra un consolidado por su ID.
-     *
-     * @param oid ID del consolidado.
-     * @return Consolidado encontrado o null si no existe.
-     */
     public Consolidado findByOid(Integer oid) {
         return consolidadoRepository.findById(oid).orElse(null);
     }
 
-    /**
-     * Guarda un consolidado.
-     *
-     * @param consolidado Consolidado a guardar.
-     * @return Consolidado guardado.
-     */
     public Consolidado save(Consolidado consolidado) {
         return consolidadoRepository.save(consolidado);
     }
 
-    /**
-     * Actualiza todos los consolidados asociados al evaluado de un consolidado
-     * específico.
-     *
-     * @param oidConsolidado ID del consolidado base para identificar los procesos
-     *                       asociados.
-     * @param consolidado    Datos actualizados para los consolidados.
-     */
     @Transactional
     public void updateAllFromConsolidado(Integer oidConsolidado, Consolidado datosActualizar) {
-        // Obtener el consolidado base
-        Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado)
-                .orElseThrow(() -> new IllegalArgumentException("Consolidado no encontrado"));
+        
+        Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado).orElseThrow(() -> new IllegalArgumentException("Consolidado no encontrado"));
 
-        Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso())
-                .orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
+        Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso()).orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
 
-        Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado())
-                .orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
+        Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado()).orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
 
-        // Obtener los consolidados asociados al evaluado en una sola consulta
         List<Proceso> procesosEvaluado = procesoRepository.findByEvaluado(evaluado);
         if (procesosEvaluado.isEmpty()) {
             throw new IllegalArgumentException("No hay procesos asociados al evaluado.");
         }
 
-        // Iterar sobre los procesos y actualizar los consolidados asociados
         for (Proceso proceso : procesosEvaluado) {
             Optional<Consolidado> consolidadoOpt = consolidadoRepository.findByProceso(proceso);
             if (consolidadoOpt.isPresent()) {
@@ -119,7 +93,6 @@ public class ConsolidadoService {
         consolidadoRepository.deleteById(oid);
     }
     
-
     /**
      * Contenedor de datos comunes para el consolidado.
      */
@@ -136,8 +109,7 @@ public class ConsolidadoService {
      * Obtiene los datos base del consolidado sin actividades.
      */
     private BaseConsolidadoData obtenerBaseConsolidado(Integer idEvaluado, Integer idPeriodoAcademico) {
-        Usuario evaluado = usuarioRepository.findById(idEvaluado)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario con ID " + idEvaluado + " no encontrado."));
+        Usuario evaluado = usuarioRepository.findById(idEvaluado).orElseThrow(() -> new IllegalArgumentException("Usuario con ID " + idEvaluado + " no encontrado."));
 
         idPeriodoAcademico = (idPeriodoAcademico != null) 
                 ? idPeriodoAcademico 
@@ -158,23 +130,29 @@ public class ConsolidadoService {
         );
     }
 
-    /**
-     * Obtiene los procesos del evaluado en un período académico.
-     */
-    private List<Proceso> obtenerProcesosDelEvaluado(Integer idEvaluado, Integer idPeriodoAcademico) {
-        List<Proceso> procesos = procesoRepository.findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
-                idEvaluado, idPeriodoAcademico);
-
-        if (procesos.isEmpty()) {
-            throw new IllegalArgumentException("No se encontraron procesos para el evaluado en el período académico especificado.");
-        }
-        return procesos;
-    }
-
     public ConsolidadoDTO generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
-        return construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(), null, 0, 0, 0);
+    
+        List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+    
+        float totalHoras = calculoService.calcularTotalHoras(actividades);
+    
+        Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
+    
+        double totalPorcentaje = calcularTotalPorcentaje(actividadesPorTipo);
+        double totalAcumulado = calcularTotalAcumulado(actividadesPorTipo);
+    
+        return construirConsolidado(
+                baseData.getEvaluado(),
+                baseData.getDetalleUsuario(),
+                baseData.getPeriodoAcademico(),
+                null,  // No enviamos actividades en este endpoint
+                totalHoras,  
+                totalPorcentaje,  
+                totalAcumulado
+        );
     }
+    
 
     public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico, Pageable pageable) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
@@ -203,14 +181,13 @@ public class ConsolidadoService {
         String nombreDocumento = generarNombreDocumento(consolidadoDTO);
         Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
-        List<Proceso> procesos = obtenerProcesosDelEvaluado(idEvaluado, idPeriodoAcademico);
+        List<Proceso> procesos = procesoService.obtenerProcesosDelEvaluado(idEvaluado, idPeriodoAcademico);
         actualizarConsolidados(procesos, nombreDocumento, excelPath.toString(), nota);
     }
 
     private void actualizarConsolidados(List<Proceso> procesos, String nombreDocumento, String rutaDocumento, String nota) {
         for (Proceso proceso : procesos) {
-            Consolidado consolidado = consolidadoRepository.findByProceso(proceso)
-                    .orElseGet(() -> new Consolidado(proceso));
+            Consolidado consolidado = consolidadoRepository.findByProceso(proceso).orElseGet(() -> new Consolidado(proceso));
 
             consolidado.setNombredocumento(nombreDocumento);
             consolidado.setRutaDocumento(rutaDocumento);
@@ -230,12 +207,7 @@ public class ConsolidadoService {
         List<Actividad> actividades = actividadPage.getContent();
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
-                .collect(Collectors.groupingBy(
-                        actividad -> actividad.getTipoActividad().getNombre(),
-                        Collectors.mapping(
-                                actividad -> transformacionService.transformarActividad(actividad, totalHoras),
-                                Collectors.toList())));
+        Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
 
         ActividadPaginadaDTO actividadPaginadaDTO = new ActividadPaginadaDTO();
         actividadPaginadaDTO.setActividades(actividadesPorTipo);
@@ -248,24 +220,14 @@ public class ConsolidadoService {
     }
 
     private String generarNombreDocumento(ConsolidadoDTO consolidadoDTO) {
-        return "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-" +
-                consolidadoDTO.getNombreDocente().replace(" ", "_") + ".xlsx";
+        return "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-" + consolidadoDTO.getNombreDocente().replace(" ", "_") + ".xlsx";
     }
 
-
-    /**
-     * Construye el ConsolidadoDTO con actividades paginadas.
-     */
     private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData, Page<Actividad> actividadPage) {
         List<Actividad> actividades = actividadPage.getContent();
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = actividades.stream()
-                .collect(Collectors.groupingBy(
-                        actividad -> actividad.getTipoActividad().getNombre(),
-                        Collectors.mapping(
-                                actividad -> transformacionService.transformarActividad(actividad, totalHoras),
-                                Collectors.toList())));
+        Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
 
         ConsolidadoDTO consolidado = construirConsolidado(
                 baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
@@ -280,9 +242,6 @@ public class ConsolidadoService {
         return consolidado;
     }
 
-    /**
-     * Construye el DTO del consolidado.
-     */
     private ConsolidadoDTO construirConsolidado(
             Usuario evaluado, UsuarioDetalle detalleUsuario, PeriodoAcademico periodoAcademico,
             Map<String, List<Map<String, Object>>> actividadesPorTipo, float totalHoras,
@@ -305,26 +264,24 @@ public class ConsolidadoService {
         return consolidado;
     }
 
-
-
-    /**
-     * Calcula el total de porcentaje de todas las actividades.
-     */
     private double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
         return actividadesPorTipo.values().stream()
-                .flatMap(List::stream) // Convertir todas las actividades a un solo flujo
+                .flatMap(List::stream) 
                 .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue())
                 .sum();
     }
 
-    /**
-     * Calcula el total acumulado de todas las actividades.
-     */
     private double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
         return actividadesPorTipo.values().stream()
-                .flatMap(List::stream) // Convertir todas las actividades a un solo flujo
+                .flatMap(List::stream) 
                 .mapToDouble(actividad -> ((Number) actividad.getOrDefault("acumulado", 0)).doubleValue())
                 .sum();
     }
 
+    private Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
+        return actividades.stream()
+            .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
+            .collect(Collectors.groupingBy(actividad -> actividad.getTipoActividad().getNombre(),
+                Collectors.mapping(actividad -> transformacionService.transformarActividad(actividad, totalHoras),Collectors.toList())));
+    }
 }
