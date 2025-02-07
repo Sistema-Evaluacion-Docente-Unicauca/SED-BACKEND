@@ -74,69 +74,69 @@ public class ActividadService {
     }
 
     public ActividadBaseDTO findDTOByOid(Integer oid) {
-        Actividad actividad = actividadRepository.findById(oid)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
+        Actividad actividad = actividadRepository.findById(oid).orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
         return actividadDTOService.convertActividadToDTO(actividad);
     }
 
     @Transactional
-public Actividad save(ActividadBaseDTO actividadDTO) {
-    try {
-        Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
-        asignarPeriodoAcademicoActivo(actividad);
-        if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
-            actividad.getProceso().setNombreProceso("ACTIVIDAD");
-        }
-        actividad.getProceso().setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
-        actividad.getProceso().setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
-        guardarProceso(actividad);
+    public Actividad save(ActividadBaseDTO actividadDTO) {
+        try {
+            Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
+            asignarPeriodoAcademicoActivo(actividad);
+            if (actividad.getProceso().getNombreProceso() == null
+                    || actividad.getProceso().getNombreProceso().isEmpty()) {
+                actividad.getProceso().setNombreProceso("ACTIVIDAD");
+            }
+            actividad.getProceso().setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
+            actividad.getProceso().setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
+            guardarProceso(actividad);
 
-        if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
-            String nombreActividad = actividadDetalleService.generarNombreActividad(actividadDTO);
-            actividad.setNombreActividad(nombreActividad);
-        }
-
-        Actividad savedActividad = actividadRepository.save(actividad);
-
-        if (actividadDTO.getDetalle() != null) {
-            Object detalleConvertido = actividadDetalleService.convertirDetalleADTO(actividadDTO);
-            actividadDTO.setDetalle(detalleConvertido);
-
-            // Obtener el TipoActividadEnum desde el OID
-            TipoActividadEnum tipoActividadEnum = TipoActividadEnum.fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
-
-            if (tipoActividadEnum == null) {
-                throw new IllegalArgumentException("No se encontró un tipo de actividad válido para OID: " 
-                    + actividadDTO.getTipoActividad().getOidTipoActividad());
+            if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
+                String nombreActividad = actividadDetalleService.generarNombreActividad(actividadDTO);
+                actividad.setNombreActividad(nombreActividad);
             }
 
-            Class<?> entityClass = tipoActividadEnum.getEntityClass();
+            Actividad savedActividad = actividadRepository.save(actividad);
 
-            if (entityClass == null) {
-                throw new IllegalArgumentException("No se encontró la entidad para el DTO: " 
-                    + detalleConvertido.getClass().getSimpleName() 
-                    + ". Asegúrate de que el DTO esté registrado en TipoActividadEnum.");
+            if (actividadDTO.getDetalle() != null) {
+                Object detalleConvertido = actividadDetalleService.convertirDetalleADTO(actividadDTO);
+                actividadDTO.setDetalle(detalleConvertido);
+
+                // Obtener el TipoActividadEnum desde el OID
+                TipoActividadEnum tipoActividadEnum = TipoActividadEnum.fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
+
+                if (tipoActividadEnum == null) {
+                    throw new IllegalArgumentException("No se encontró un tipo de actividad válido para OID: "
+                            + actividadDTO.getTipoActividad().getOidTipoActividad());
+                }
+
+                Class<?> entityClass = tipoActividadEnum.getEntityClass();
+
+                if (entityClass == null) {
+                    throw new IllegalArgumentException("No se encontró la entidad para el DTO: "
+                            + detalleConvertido.getClass().getSimpleName()
+                            + ". Asegúrate de que el DTO esté registrado en TipoActividadEnum.");
+                }
+
+                actividadDetalleService.saveDetalle(savedActividad, detalleConvertido, entityClass);
             }
 
-            actividadDetalleService.saveDetalle(savedActividad, detalleConvertido, entityClass);
+            fuenteService.saveSource(savedActividad);
+            return savedActividad;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al guardar la actividad: " + e.getMessage(), e);
         }
-
-        fuenteService.saveSource(savedActividad);
-        return savedActividad;
-    } catch (Exception e) {
-        throw new RuntimeException("Error al guardar la actividad: " + e.getMessage(), e);
     }
-}
 
     @Transactional
     public Actividad update(Integer idActividad, ActividadBaseDTO actividadDTO) {
         Actividad actividadExistente = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new IllegalArgumentException("Actividad con ID " + idActividad + " no encontrada."));
-    
+
         // Verificar si el tipo de actividad ha cambiado
         boolean tipoActividadCambio = !actividadExistente.getTipoActividad().getOidTipoActividad()
                 .equals(actividadDTO.getTipoActividad().getOidTipoActividad());
-    
+
         if (tipoActividadCambio) {
             actividadDetalleService.cambiarTipoActividad(actividadExistente, actividadDTO.getTipoActividad().getOidTipoActividad());
         }
@@ -147,31 +147,31 @@ public Actividad save(ActividadBaseDTO actividadDTO) {
         }
         actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
         estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
-    
+
         // Manejo de detalle de la actividad
         if (actividadDTO.getDetalle() != null) {
             TipoActividadEnum tipoActividadEnum = TipoActividadEnum.fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
-    
+
             if (tipoActividadEnum == null) {
                 throw new IllegalArgumentException("No se encontró un tipo de actividad válido para OID: " + actividadDTO.getTipoActividad().getOidTipoActividad());
             }
-    
+
             Class<?> entityClass = tipoActividadEnum.getEntityClass();
-    
+
             if (entityClass == null) {
                 throw new IllegalArgumentException("No se encontró la entidad para el tipo de actividad: " + tipoActividadEnum.name());
             }
-    
+
             if (tipoActividadCambio) {
                 actividadDetalleService.saveDetalle(actividadExistente, actividadDTO.getDetalle(), entityClass);
             } else {
                 actividadDetalleService.updateDetalle(actividadExistente, actividadDTO.getDetalle(), entityClass);
             }
         }
-    
+
         return actividadRepository.save(actividadExistente);
     }
-    
+
     public void delete(Integer oid) {
         actividadRepository.deleteById(oid);
     }
