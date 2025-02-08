@@ -111,12 +111,11 @@ public class ActividadController {
             @RequestParam(required = false) String tipoFuente,
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(required = false) Boolean orden,
-            @RequestParam(required = false) Boolean estadoPeriodo) {
+            @RequestParam(required = false) Integer idPeriodo) {
         try {
             Page<ActividadBaseDTO> activities = actividadQueryService.findActivitiesByEvaluado(
                     idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador,
-                    roles, tipoFuente, estadoFuente, orden, estadoPeriodo,
-                    PageRequest.of(page, size));
+                    roles, tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
             if (activities.hasContent()) {
                 return ResponseEntity.ok(activities);
             } else {
@@ -158,19 +157,14 @@ public class ActividadController {
             @RequestParam(required = false) String tipoFuente,
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(required = false) Boolean orden,
-            @RequestParam(required = false) Boolean estadoPeriodo,
+            @RequestParam(required = false) Integer idPeriodo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            // Configurar la paginación
-            Pageable pageable = PageRequest.of(page, size,orden != null && orden ? Sort.by("nombre").ascending() : Sort.by("nombre").descending());
-
-            // Delegar al servicio la búsqueda de actividades
             Page<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(
                     idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles,
-                    tipoFuente, estadoFuente, orden, estadoPeriodo, pageable);
+                    tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
 
-            // Verificar si hay resultados
             if (activities.hasContent()) {
                 return ResponseEntity.ok(activities);
             } else {

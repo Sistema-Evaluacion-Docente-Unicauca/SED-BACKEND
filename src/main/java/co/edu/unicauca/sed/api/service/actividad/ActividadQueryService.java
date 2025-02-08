@@ -2,6 +2,8 @@ package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 /**
  * Servicio para realizar consultas avanzadas sobre actividades utilizando
@@ -23,176 +26,108 @@ public class ActividadQueryService {
 
     @PersistenceContext
     private EntityManager entityManager;
-
+    
     @Autowired
     private ActividadDTOService actividadDTOService;
+    @Autowired
+    private PeriodoAcademicoService periodoAcademicoService;
+    @Autowired
+    private ActividadRepository actividadRepository;
 
     // Orden predeterminada de clasificación
     private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
-    /**
-     * Recupera las actividades relacionadas con un evaluado en períodos académicos
-     * activos con paginación.
-     *
-     * @param evaluatorUserId ID del usuario evaluador.
-     * @param evaluatedUserId ID del usuario evaluado.
-     * @param activityCode    Código de la actividad.
-     * @param activityType    Tipo de actividad.
-     * @param evaluatorName   Nombre del evaluador.
-     * @param roles           Lista de roles.
-     * @param sourceType      Tipo de fuente.
-     * @param sourceStatus    Estado de la fuente.
-     * @param order           Orden de los resultados (ascendente/descendente).
-     * @param isActivePeriod  Indica si los períodos deben ser activos.
-     * @param pageable        Configuración de paginación.
-     * @return Página de actividades como DTO.
-     */
-    public Page<ActividadBaseDTO> findActivitiesByEvaluado(Integer evaluatorUserId, Integer evaluatedUserId,
+    public Page<ActividadBaseDTO> findActivitiesByEvaluado(
+            Integer evaluatorUserId, Integer evaluatedUserId,
             String activityCode, String activityType, String evaluatorName, List<String> roles,
-            String sourceType, String sourceStatus, Boolean order, Boolean isActivePeriod, Pageable pageable) {
-
-        // Consultar actividades aplicando los filtros
-        List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode,
-                activityType, evaluatorName, roles, sourceType, sourceStatus, order, isActivePeriod);
-
-        // Aplicar paginación manual a la lista de actividades
-        int start = Math.toIntExact(pageable.getOffset());
-        int end = Math.min((start + pageable.getPageSize()), activities.size());
-        List<Actividad> paginatedActivities = (start > end) ? List.of() : activities.subList(start, end);
-
-        // Convertir las actividades a DTOs según su tipo
-        List<ActividadBaseDTO> activityDTOs = paginatedActivities.stream()
-                .map(actividadDTOService::convertActividadToDTO)
-                .collect(Collectors.toList());
-
-        // Retornar un objeto Page
-        return new PageImpl<>(activityDTOs, pageable, activities.size());
-    }
-
-    /**
-     * Recupera las actividades relacionadas con un evaluador con paginación.
-     *
-     * @param evaluatorUserId ID del usuario evaluador.
-     * @param evaluatedUserId ID del usuario evaluado.
-     * @param activityCode    Código de la actividad.
-     * @param activityType    Tipo de actividad.
-     * @param evaluatorName   Nombre del evaluador.
-     * @param roles           Lista de roles.
-     * @param sourceType      Tipo de fuente.
-     * @param sourceStatus    Estado de la fuente.
-     * @param ascendingOrder  Orden de los resultados (ascendente/descendente).
-     * @param activePeriod    Indica si los períodos deben ser activos.
-     * @param pageable        Configuración de paginación.
-     * @return Página de actividades como DTO con información del evaluador.
-     */
-    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId,
-            String activityCode, String activityType,
-            String evaluatorName, List<String> roles,
-            String sourceType, String sourceStatus,
-            Boolean ascendingOrder, Boolean activePeriod,
+            String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
             Pageable pageable) {
 
-        boolean isActivePeriod = (activePeriod != null) ? activePeriod : DEFAULT_ASCENDING_ORDER;
+        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
+                evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
 
-        // Consultar actividades aplicando los filtros
-        List<Actividad> activities = findActivitiesWithFilters(evaluatorUserId, evaluatedUserId, activityCode,
-                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, isActivePeriod);
+        Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
 
-        // Aplicar paginación manual a la lista de actividades
-        int start = Math.toIntExact(pageable.getOffset());
-        int end = Math.min((start + pageable.getPageSize()), activities.size());
-        List<Actividad> paginatedActivities = activities.subList(start, end);
+        List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream().map(actividadDTOService::convertActividadToDTO).collect(Collectors.toList());
 
-        // Convertir las actividades a DTOs
-        List<ActividadDTOEvaluador> activityDTOs = paginatedActivities.stream()
+        return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
+    }
+
+    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId,
+            String activityCode, String activityType, String evaluatorName, List<String> roles, String sourceType,
+            String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
+
+        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
+                evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+
+        Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
+
+        List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
                 .map(activity -> (sourceType != null || sourceStatus != null)
                         ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
                         : actividadDTOService.convertToDTOWithEvaluado(activity))
                 .collect(Collectors.toList());
 
-        // Retornar un objeto Page
-        return new PageImpl<>(activityDTOs, pageable, activities.size());
+        return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
     }
 
-    /**
-     * Aplica filtros dinámicos sobre las actividades utilizando Criteria API.
-     *
-     * @param userEvaluatorId ID del evaluador.
-     * @param userEvaluatedId ID del evaluado.
-     * @param activityCode    Código de la actividad.
-     * @param activityType    Tipo de actividad.
-     * @param evaluatorName   Nombre del evaluador.
-     * @param roles           Lista de roles del evaluador.
-     * @param sourceType      Tipo de fuente.
-     * @param sourceStatus    Estado de la fuente.
-     * @param ascendingOrder  Orden de los resultados (ascendente/descendente).
-     * @param isActivePeriod  Indica si los períodos deben ser activos.
-     * @return Lista de actividades filtradas.
-     */
-    public List<Actividad> findActivitiesWithFilters(Integer userEvaluatorId, Integer userEvaluatedId,
-            String activityCode, String activityType, String evaluatorName,
-            List<String> roles, String sourceType, String sourceStatus,
-            Boolean ascendingOrder, Boolean isActivePeriod) {
+    public Specification<Actividad> filtrarActividades(
+            Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType, String evaluatorName,
+            List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico) {
 
-        final String ATTRIBUTE_PROCESS = "proceso";
-        final String ATTRIBUTE_EVALUATOR = "evaluador";
-        final String ATTRIBUTE_EVALUATED = "evaluado";
-        final String ATTRIBUTE_USER_ID = "oidUsuario";
-        final String ATTRIBUTE_NAME = "nombreActividad";
-        final String ATTRIBUTE_SOURCES = "fuentes";
-        final String ATTRIBUTE_SOURCE_TYPE = "tipoFuente";
-        final String ATTRIBUTE_SOURCE_STATUS = "estadoFuente";
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Actividad> query = cb.createQuery(Actividad.class);
-        Root<Actividad> root = query.from(Actividad.class);
+            Integer finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
 
-        List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"), finalIdPeriodoAcademico));
 
-        if (userEvaluatorId != null) {
-            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get(ATTRIBUTE_USER_ID),userEvaluatorId));
-        }
-
-        if (userEvaluatedId != null) {
-            predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATED).get(ATTRIBUTE_USER_ID),userEvaluatedId));
-        }
-
-        if (activityCode != null && !activityCode.isEmpty()) {
-            predicates.add(cb.like(root.get("nombreActividad"), "%" + activityCode + "%"));
-        }
-
-        if (activityType != null && !activityType.isEmpty()) {
-            predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
-        }
-
-        if (evaluatorName != null && !evaluatorName.isEmpty()) {
-            predicates.add(cb.like(cb.concat(
-                    root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get("nombres"),
-                    root.join(ATTRIBUTE_PROCESS).join(ATTRIBUTE_EVALUATOR).get("apellidos")), "%" + evaluatorName + "%"));
-        }
-
-        // Filtro combinado por fuente y estado de fuente
-        if (sourceType != null || sourceStatus != null) {
-            Join<Object, Object> sourceJoin = root.join(ATTRIBUTE_SOURCES, JoinType.INNER);
-            if (sourceType != null) {
-                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_TYPE), sourceType));
+            if (userEvaluatorId != null) {
+                predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
             }
-            if (sourceStatus != null) {
-                predicates.add(cb.equal(sourceJoin.get(ATTRIBUTE_SOURCE_STATUS).get("oidEstadoFuente"), sourceStatus));
+
+            if (userEvaluatedId != null) {
+                predicates.add(cb.equal(root.join("proceso").join("evaluado").get("oidUsuario"), userEvaluatedId));
             }
+
+            if (activityCode != null && !activityCode.isEmpty()) {
+                predicates.add(cb.like(root.get("nombreActividad"), "%" + activityCode + "%"));
+            }
+
+            if (activityType != null && !activityType.isEmpty()) {
+                predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
+            }
+
+            if (evaluatorName != null && !evaluatorName.isEmpty()) {
+                predicates.add(cb.like(cb.concat(
+                        root.join("proceso").join("evaluador").get("nombres"),
+                        root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
+            }
+
+            if (sourceType != null || sourceStatus != null) {
+                Join<Object, Object> sourceJoin = root.join("fuentes", JoinType.INNER);
+                if (sourceType != null) {
+                    predicates.add(cb.equal(sourceJoin.get("tipoFuente"), sourceType));
+                }
+                if (sourceStatus != null) {
+                    predicates.add(cb.equal(sourceJoin.get("estadoFuente").get("oidEstadoFuente"), sourceStatus));
+                }
+            }
+
+            query.distinct(true);
+
+            aplicarOrdenacion(query, cb, root, ascendingOrder);
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private void aplicarOrdenacion(CriteriaQuery<?> query, CriteriaBuilder cb, Root<Actividad> root, Boolean ascendingOrder) {
+        boolean isAscending = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
+        if (isAscending) {
+            query.orderBy(cb.asc(root.get("nombreActividad")));
+        } else {
+            query.orderBy(cb.desc(root.get("nombreActividad")));
         }
-        /*
-        // Filtro por período académico activo
-        boolean periodStatus = (isActivePeriod != null) ? isActivePeriod : DEFAULT_ACTIVE_PERIOD;
-        predicates.add(cb.equal(root.join(ATTRIBUTE_PROCESS).join("oidPeriodoAcademico").get(ATTRIBUTE_PERIOD_STATUS),periodStatus ? 1 : 2));
-         */
-
-        // Aplicar filtros y ordenar resultados
-        query.where(predicates.toArray(new Predicate[0]));
-        query.orderBy(ascendingOrder != null && ascendingOrder
-                ? cb.asc(root.get(ATTRIBUTE_NAME))
-                : cb.desc(root.get(ATTRIBUTE_NAME)));
-
-        return entityManager.createQuery(query).getResultList();
     }
 }
