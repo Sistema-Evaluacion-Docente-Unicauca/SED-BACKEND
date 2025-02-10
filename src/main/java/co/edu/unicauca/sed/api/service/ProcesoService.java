@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
@@ -89,5 +91,12 @@ public class ProcesoService {
             throw new IllegalArgumentException("No se encontraron procesos para el evaluado en el período académico especificado.");
         }
         return procesos;
+    }
+
+    public void guardarProceso(Actividad actividad) {
+        if (actividad.getProceso() != null) {
+            Proceso savedProceso = procesoRepository.save(actividad.getProceso());
+            actividad.setProceso(savedProceso);
+        }
     }
 }

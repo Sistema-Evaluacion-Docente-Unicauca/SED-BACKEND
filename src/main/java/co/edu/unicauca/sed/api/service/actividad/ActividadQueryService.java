@@ -1,12 +1,16 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
+import co.edu.unicauca.sed.api.controller.ActividadController;
 import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -24,9 +28,10 @@ import org.springframework.data.jpa.domain.Specification;
 @Service
 public class ActividadQueryService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ActividadController.class);
+
     @PersistenceContext
     private EntityManager entityManager;
-    
     @Autowired
     private ActividadDTOService actividadDTOService;
     @Autowired
@@ -43,24 +48,58 @@ public class ActividadQueryService {
             String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
             Pageable pageable) {
 
-        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
-                evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+        logger.info(
+                "🔵 [FIND_BY_EVALUADO] Buscando actividades para evaluado con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
+                evaluatorUserId, evaluatedUserId, activityCode);
 
-        Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
+        try {
+            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
+                    activityType,
+                    evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
 
-        List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream().map(actividadDTOService::convertActividadToDTO).collect(Collectors.toList());
+            // Obtener actividades desde el repositorio
+            Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
 
-        return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
+            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades para los parámetros dados.",
+                    activitiesPage.getTotalElements());
+
+            List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
+                    .map(actividadDTOService::convertActividadToDTO)
+                    .collect(Collectors.toList());
+
+            // Retornar actividades paginadas
+            return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
+        } catch (IllegalStateException e) {
+            logger.warn("⚠️ [WARN] No se encontró un período académico activo.");
+            throw e; // No envolver en RuntimeException para que lo capture GlobalExceptionHandler
+        } catch (Exception e) {
+            logger.error("❌ [ERROR] Error en findActivitiesByEvaluado: {}", e.getMessage(), e);
+            throw new RuntimeException("Error inesperado al obtener actividades para evaluado.", e);
+        }        
     }
 
-    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(Integer evaluatorUserId, Integer evaluatedUserId,
+    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(
+            Integer evaluatorUserId, Integer evaluatedUserId,
             String activityCode, String activityType, String evaluatorName, List<String> roles, String sourceType,
             String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
 
+        logger.info(
+                "🔵 [FIND_BY_EVALUADOR] Buscando actividades para evaluador con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
+                evaluatorUserId, evaluatedUserId, activityCode);
+
         Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
                 evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
 
+        // Obtener actividades desde el repositorio
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
+
+        if (activitiesPage == null) {
+            logger.warn("⚠️ [FIND_BY_EVALUADO] La consulta devolvió NULL, revisa los filtros y el repositorio.");
+            throw new RuntimeException("La consulta a la base de datos devolvió NULL, verifica la configuración.");
+        }
+
+        logger.info("✅ [FIND_BY_EVALUADOR] Se encontraron {} actividades para los parámetros dados.",
+                activitiesPage.getTotalElements());
 
         List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
                 .map(activity -> (sourceType != null || sourceStatus != null)
@@ -68,19 +107,28 @@ public class ActividadQueryService {
                         : actividadDTOService.convertToDTOWithEvaluado(activity))
                 .collect(Collectors.toList());
 
+        // Retornar actividades paginadas
         return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
     }
 
     public Specification<Actividad> filtrarActividades(
-            Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType, String evaluatorName,
-            List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico) {
+            Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType,
+            String evaluatorName,
+            List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder,
+            Integer idPeriodoAcademico) {
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            Integer finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
-
-            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"), finalIdPeriodoAcademico));
+            Integer finalIdPeriodoAcademico;
+            try {
+                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            } catch (IllegalStateException e) {
+                logger.warn("⚠️ [PERIODO] No se encontró un período académico activo antes de ejecutar la consulta.");
+                throw new EntityNotFoundException("No se encontró un período académico activo.");
+            }
+            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"),
+                    finalIdPeriodoAcademico));
 
             if (userEvaluatorId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
@@ -95,7 +143,8 @@ public class ActividadQueryService {
             }
 
             if (activityType != null && !activityType.isEmpty()) {
-                predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
+                predicates.add(
+                        cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
             }
 
             if (evaluatorName != null && !evaluatorName.isEmpty()) {
@@ -122,7 +171,8 @@ public class ActividadQueryService {
         };
     }
 
-    private void aplicarOrdenacion(CriteriaQuery<?> query, CriteriaBuilder cb, Root<Actividad> root, Boolean ascendingOrder) {
+    private void aplicarOrdenacion(CriteriaQuery<?> query, CriteriaBuilder cb, Root<Actividad> root,
+            Boolean ascendingOrder) {
         boolean isAscending = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
         if (isAscending) {
             query.orderBy(cb.asc(root.get("nombreActividad")));

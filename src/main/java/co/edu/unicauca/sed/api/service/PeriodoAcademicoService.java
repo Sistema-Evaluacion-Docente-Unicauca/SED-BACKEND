@@ -9,6 +9,7 @@ import co.edu.unicauca.sed.api.model.EstadoPeriodoAcademico;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;
 import co.edu.unicauca.sed.api.repository.PeriodoAcademicoRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class PeriodoAcademicoService {
@@ -67,7 +68,8 @@ public class PeriodoAcademicoService {
     public boolean update(Integer oid, PeriodoAcademico periodoAcademico) {
         Integer idEstadoPeriodoAcademico = periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico();
         String errorMessage = "El EstadoPeriodoAcademico con OID " + idEstadoPeriodoAcademico + " no existe.";
-        EstadoPeriodoAcademico estado = estadoPeriodoAcademicoRepository.findById(idEstadoPeriodoAcademico).orElseThrow(() -> new IllegalArgumentException(errorMessage));
+        EstadoPeriodoAcademico estado = estadoPeriodoAcademicoRepository.findById(idEstadoPeriodoAcademico)
+                .orElseThrow(() -> new IllegalArgumentException(errorMessage));
 
         // Establecer el estado cargado en el objeto periodoAcademico
         periodoAcademico.setEstadoPeriodoAcademico(estado);
@@ -98,14 +100,17 @@ public class PeriodoAcademicoService {
     private void validatePeriodoAcademico(Integer oid, PeriodoAcademico periodoAcademico) {
         // Validar si el ID del período ya existe (para nuevos o actualizaciones con
         // cambio de ID)
-        if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo()) && (oid == null || !findByOid(oid).getIdPeriodo().equals(periodoAcademico.getIdPeriodo()))) {
+        if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo())
+                && (oid == null || !findByOid(oid).getIdPeriodo().equals(periodoAcademico.getIdPeriodo()))) {
             throw new IllegalArgumentException(
                     "El ID del período académico '" + periodoAcademico.getIdPeriodo() + "' ya existe.");
         }
 
         // Validar si el estado es "ACTIVO"
-        EstadoPeriodoAcademico estadoPeriodoAcademico = estadoPeriodoAcademicoRepository.findById(periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico())
-                .orElseThrow(() -> new IllegalArgumentException("El EstadoPeriodoAcademico con OID " + periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico() + " no existe."));
+        EstadoPeriodoAcademico estadoPeriodoAcademico = estadoPeriodoAcademicoRepository
+                .findById(periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico())
+                .orElseThrow(() -> new IllegalArgumentException("El EstadoPeriodoAcademico con OID "
+                        + periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico() + " no existe."));
         if ("ACTIVO".equals(estadoPeriodoAcademico.getNombre())) {
             Optional<PeriodoAcademico> periodoActivo = getPeriodoAcademicoActivo();
             if (periodoActivo.isPresent()) {
@@ -145,6 +150,8 @@ public class PeriodoAcademicoService {
     public Integer obtenerPeriodoAcademicoActivo() {
         return getPeriodoAcademicoActivo()
                 .map(PeriodoAcademico::getOidPeriodoAcademico)
-                .orElseThrow(() -> new IllegalStateException("No se encontró un período académico activo."));
+                .orElseThrow(() -> {
+                    return new EntityNotFoundException("No se encontró un período académico activo.");
+                });
     }
 }
