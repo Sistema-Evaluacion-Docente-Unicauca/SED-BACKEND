@@ -6,6 +6,7 @@ import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +167,7 @@ public class ConsolidadoService {
         return construirActividadPaginadaDTO(actividadPage);
     }
 
-    public void aprobarConsolidado(Integer idEvaluado, Integer idPeriodoAcademico, String nota) throws IOException {
+    public void aprobarConsolidado(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico, String nota) throws IOException {
 
         if (idPeriodoAcademico == null) {
             idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
@@ -181,21 +182,41 @@ public class ConsolidadoService {
         String nombreDocumento = generarNombreDocumento(consolidadoDTO);
         Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
-        List<Proceso> procesos = procesoService.obtenerProcesosDelEvaluado(idEvaluado, idPeriodoAcademico);
-        actualizarConsolidados(procesos, nombreDocumento, excelPath.toString(), nota);
+        // **Verificar si evaluador, evaluado y periodo académico existen antes de crear el proceso**
+        usuarioRepository.findById(idEvaluador).orElseThrow(() -> {
+            logger.warn("⚠️ [ERROR] No se encontró el evaluador con ID: {}", idEvaluador);
+            throw new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador);
+        });
+
+        usuarioRepository.findById(idEvaluado).orElseThrow(() -> {
+            logger.warn("⚠️ [ERROR] No se encontró el evaluado con ID: {}", idEvaluado);
+            throw new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado);
+        });
+
+        Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, "CONSOLIDADO GENERADO");
+
+        if (procesoExistente == null) {
+            // **Si no existe, crear un nuevo proceso**
+            procesoExistente = crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
+            logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}", procesoExistente.getOidProceso());
+        }
+
+        Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
+        if (consolidadoExistente == null) {
+            // **Si no existe, crear un nuevo consolidado**
+            consolidadoExistente = new Consolidado(procesoExistente);
+            logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
+        }
+        guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
     }
 
-    private void actualizarConsolidados(List<Proceso> procesos, String nombreDocumento, String rutaDocumento, String nota) {
-        for (Proceso proceso : procesos) {
-            Consolidado consolidado = consolidadoRepository.findByProceso(proceso).orElseGet(() -> new Consolidado(proceso));
+    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento, String rutaDocumento, String nota) {
+        consolidadoExistente.setNombredocumento(nombreDocumento);
+        consolidadoExistente.setRutaDocumento(rutaDocumento);
+        consolidadoExistente.setNota(nota);
+        consolidadoExistente.setFechaActualizacion(LocalDateTime.now());
 
-            consolidado.setNombredocumento(nombreDocumento);
-            consolidado.setRutaDocumento(rutaDocumento);
-            consolidado.setNota(nota);
-            consolidado.setFechaActualizacion(LocalDateTime.now());
-
-            consolidadoRepository.save(consolidado);
-        }
+        consolidadoRepository.save(consolidadoExistente);
     }
 
     private Page<Actividad> obtenerActividadesPaginadas(List<Proceso> procesos, Pageable pageable) {
@@ -283,5 +304,15 @@ public class ConsolidadoService {
             .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
             .collect(Collectors.groupingBy(actividad -> actividad.getTipoActividad().getNombre(),
                 Collectors.mapping(actividad -> transformacionService.transformarActividad(actividad, totalHoras),Collectors.toList())));
+    }
+
+    public Proceso crearNuevoProceso(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico){
+        Proceso proceso = new Proceso();
+        proceso.setEvaluador(new Usuario(idEvaluador));
+        proceso.setEvaluado(new Usuario(idEvaluado));
+        proceso.setOidPeriodoAcademico(new PeriodoAcademico());
+        proceso.getOidPeriodoAcademico().setOidPeriodoAcademico(idPeriodoAcademico);
+        proceso.setNombreProceso("Consolidado Generado");
+        return procesoService.save(proceso);
     }
 }

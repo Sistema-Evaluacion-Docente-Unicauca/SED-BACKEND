@@ -6,10 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
+import jakarta.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -157,16 +161,23 @@ public class ConsolidadoController {
      * Endpoint para aprobar el consolidado y generar el Excel.
      */
     @PostMapping("/aprobar")
-    public ResponseEntity<String> aprobarConsolidado(
+    public ResponseEntity<ApiResponse<Void>> aprobarConsolidado(
             @RequestParam Integer idEvaluado,
+            @RequestParam Integer idEvaluador,
             @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nota) {
         try {
-            consolidadoService.aprobarConsolidado(idEvaluado, periodoAcademico, nota);
-            return ResponseEntity.ok("Consolidado aprobado y archivo generado correctamente.");
+            consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico, nota);
+            ApiResponse<Void> response = new ApiResponse<>(200, "Consolidado aprobado y archivo generado correctamente.", null);
+            return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            logger.warn("⚠️ [ERROR] Recurso no encontrado: {}", e.getMessage());
+            ApiResponse<Void> errorResponse = new ApiResponse<>(404, e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
-            logger.error("Error al aprobar el consolidado: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            logger.error("❌ [ERROR] Error al aprobar el consolidado: {}", e.getMessage(), e);
+            ApiResponse<Void> errorResponse = new ApiResponse<>(500, "Error interno: " + e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }

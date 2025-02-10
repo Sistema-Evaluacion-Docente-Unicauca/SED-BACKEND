@@ -230,5 +230,5 @@ public class ActividadService {
             logger.error("❌ [ERROR] Error al asignar periodo académico activo: {}", e.getMessage(), e);
             throw new RuntimeException("Error al asignar periodo académico: " + e.getMessage(), e);
         }
-    }    
+    }
 }

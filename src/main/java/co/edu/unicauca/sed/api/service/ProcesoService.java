@@ -8,7 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.model.Proceso;
+import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
 import org.springframework.data.domain.Page;
@@ -24,7 +26,7 @@ public class ProcesoService {
     private PeriodoAcademicoService periodoAcademicoService;
 
     public Page<Proceso> findAll(Integer evaluadorId, Integer evaluadoId, Integer idPeriodo, String nombreProceso,
-        LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, int page, int size) {
+            LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, int page, int size) {
 
         if (idPeriodo == null) {
             idPeriodo = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
@@ -32,8 +34,9 @@ public class ProcesoService {
         Pageable pageable = PageRequest.of(page, size);
 
         return procesoRepository.findAll(
-            ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,fechaActualizacion), pageable
-        );
+                ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,
+                        fechaActualizacion),
+                pageable);
     }
 
     public Proceso findByOid(Integer oid) {
@@ -88,7 +91,8 @@ public class ProcesoService {
                 idEvaluado, idPeriodoAcademico);
 
         if (procesos.isEmpty()) {
-            throw new IllegalArgumentException("No se encontraron procesos para el evaluado en el período académico especificado.");
+            throw new IllegalArgumentException(
+                    "No se encontraron procesos para el evaluado en el período académico especificado.");
         }
         return procesos;
     }
@@ -98,5 +102,14 @@ public class ProcesoService {
             Proceso savedProceso = procesoRepository.save(actividad.getProceso());
             actividad.setProceso(savedProceso);
         }
+    }
+
+    public Proceso buscarProcesoExistente(Integer idEvaluador, Integer idEvaluado, Integer idPeriodoAcademico,
+            String nombreProceso) {
+        return procesoRepository.findByEvaluadorAndEvaluadoAndOidPeriodoAcademicoAndNombreProceso(
+                new Usuario(idEvaluador),
+                new Usuario(idEvaluado),
+                new PeriodoAcademico(idPeriodoAcademico),
+                nombreProceso).orElse(null);
     }
 }

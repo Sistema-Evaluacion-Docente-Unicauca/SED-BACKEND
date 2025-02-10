@@ -22,6 +22,14 @@ import lombok.Data;
 @Table(name = "PERIODOACADEMICO")
 @Data
 public class PeriodoAcademico {
+
+    public PeriodoAcademico() {
+    }
+
+    public PeriodoAcademico(Integer idPeriodoAcademico) {
+        this.oidPeriodoAcademico = idPeriodoAcademico;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "periacadSeq")
     @SequenceGenerator(name = "periacadSeq", sequenceName = "SEQ_OIDPERIODOACADEMICO", allocationSize = 1)
