@@ -7,13 +7,15 @@ import lombok.Data;
  */
 @Data
 public class DocenteEvaluacionDTO {
+    private Integer oidUsuario;
     private String nombreDocente;
     private String identificacion;
     private String contratacion;
     private Float porcentajeEvaluacionCompletado;
     private String estadoConsolidado;
 
-    public DocenteEvaluacionDTO(String nombreDocente, String identificacion, String contratacion, float porcentajeEvaluacionCompletado, String estadoConsolidado) {
+    public DocenteEvaluacionDTO(Integer oidUsuario, String nombreDocente, String identificacion, String contratacion, float porcentajeEvaluacionCompletado, String estadoConsolidado) {
+        this.oidUsuario = oidUsuario;
         this.nombreDocente = nombreDocente;
         this.identificacion = identificacion;
         this.contratacion = contratacion;

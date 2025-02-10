@@ -28,6 +28,7 @@ public class DocenteEvaluacionMapper {
         String estadoConsolidado = porcentajeCompletado == 100 ? "Completo" : "En progreso";
 
         return new DocenteEvaluacionDTO(
+                usuario.getOidUsuario(),
                 usuario.getNombres() + " " + usuario.getApellidos(),
                 usuario.getIdentificacion(),
                 usuario.getUsuarioDetalle().getContratacion(),

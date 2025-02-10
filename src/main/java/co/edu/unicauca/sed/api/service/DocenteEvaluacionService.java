@@ -62,8 +62,7 @@ public class DocenteEvaluacionService {
                             .collect(Collectors.toList());
 
                     return DocenteEvaluacionMapper.toDto(evaluado, actividades);
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
