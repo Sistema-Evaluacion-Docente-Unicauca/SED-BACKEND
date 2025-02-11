@@ -60,13 +60,11 @@ public class ActividadController {
             return ResponseEntity.ok(response);
         } catch (EntityNotFoundException e) {
             logger.warn("⚠️ [FIND_BY_ID] Actividad con ID {} no encontrada.", oid);
-            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(404,
-                    "Actividad con ID " + oid + " no encontrada.", null);
+            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(404, "Actividad con ID " + oid + " no encontrada.", null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al buscar actividad con ID {}: {}", oid, e.getMessage(), e);
-            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(500,
-                    "Error interno al buscar la actividad.", null);
+            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(500, "Error interno al buscar la actividad.", null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

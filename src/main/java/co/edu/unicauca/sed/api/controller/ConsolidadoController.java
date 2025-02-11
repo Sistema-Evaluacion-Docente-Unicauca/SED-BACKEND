@@ -147,9 +147,13 @@ public class ConsolidadoController {
     public ResponseEntity<ActividadPaginadaDTO> obtenerActividadesPaginadas(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico,
+            @RequestParam(required = false) String nombreActividad,
+            @RequestParam(required = false) String idTipoActividad,
+            @RequestParam(required = false) String idTipoFuente,
+            @RequestParam(required = false) String idEstadoFuente,
             Pageable pageable) {
         try {
-            ActividadPaginadaDTO actividades = consolidadoService.obtenerActividadesPaginadas(idEvaluado, periodoAcademico, pageable);
+            ActividadPaginadaDTO actividades = consolidadoService.obtenerActividadesPaginadas(idEvaluado, periodoAcademico, nombreActividad, idTipoActividad, idTipoFuente, idEstadoFuente, pageable);
             return ResponseEntity.ok(actividades);
         } catch (Exception e) {
             logger.error("Error al obtener actividades paginadas: {}", e.getMessage(), e);

@@ -70,8 +70,7 @@ public class ActividadService {
         logger.info("✅ [FIND_ALL] Se encontraron {} actividades en la base de datos.", actividades.getTotalElements());
     
         List<ActividadBaseDTO> actividadDTOs = actividades.getContent().stream()
-                .map(actividad -> actividadDTOService.convertActividadToDTO(actividad))
-                .collect(Collectors.toList());
+                .map(actividad -> actividadDTOService.convertActividadToDTO(actividad)).collect(Collectors.toList());
     
         List<ActividadBaseDTO> sortedDTOs = actividadSortService.sortActivitiesByType(actividadDTOs, order);
         logger.info("✅ [FIND_ALL] Se ordenaron {} actividades según el criterio especificado.", sortedDTOs.size());
@@ -84,8 +83,7 @@ public class ActividadService {
     }
 
     public ActividadBaseDTO findDTOByOid(Integer oid) {
-        Actividad actividad = actividadRepository.findById(oid)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
+        Actividad actividad = actividadRepository.findById(oid).orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
         return actividadDTOService.convertActividadToDTO(actividad);
     }
 
@@ -95,8 +93,7 @@ public class ActividadService {
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
             asignarPeriodoAcademicoActivo(actividad);
 
-            if (actividad.getProceso().getNombreProceso() == null
-                    || actividad.getProceso().getNombreProceso().isEmpty()) {
+            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
                 actividad.getProceso().setNombreProceso("ACTIVIDAD");
             }
 

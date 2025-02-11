@@ -112,4 +112,14 @@ public class ProcesoService {
                 new PeriodoAcademico(idPeriodoAcademico),
                 nombreProceso).orElse(null);
     }
+
+    public Proceso crearNuevoProceso(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico){
+        Proceso proceso = new Proceso();
+        proceso.setEvaluador(new Usuario(idEvaluador));
+        proceso.setEvaluado(new Usuario(idEvaluado));
+        proceso.setOidPeriodoAcademico(new PeriodoAcademico());
+        proceso.getOidPeriodoAcademico().setOidPeriodoAcademico(idPeriodoAcademico);
+        proceso.setNombreProceso("Consolidado Generado");
+        return this.procesoRepository.save(proceso);
+    }
 }

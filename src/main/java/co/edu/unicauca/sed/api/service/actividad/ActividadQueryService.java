@@ -3,6 +3,7 @@ package co.edu.unicauca.sed.api.service.actividad;
 import co.edu.unicauca.sed.api.controller.ActividadController;
 import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
+import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
@@ -49,29 +50,22 @@ public class ActividadQueryService {
             Pageable pageable) {
 
         logger.info(
-                "🔵 [FIND_BY_EVALUADO] Buscando actividades para evaluado con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
-                evaluatorUserId, evaluatedUserId, activityCode);
+            "🔵 [FIND_BY_EVALUADO] Buscando actividades para evaluado con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
+            evaluatorUserId, evaluatedUserId, activityCode
+        );
 
         try {
-            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                    activityType,
-                    evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
-
-            // Obtener actividades desde el repositorio
+            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
             Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
-
-            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades para los parámetros dados.",
-                    activitiesPage.getTotalElements());
-
+            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades para los parámetros dados.", activitiesPage.getTotalElements());
+        
             List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
                     .map(actividadDTOService::convertActividadToDTO)
                     .collect(Collectors.toList());
-
-            // Retornar actividades paginadas
             return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
         } catch (IllegalStateException e) {
             logger.warn("⚠️ [WARN] No se encontró un período académico activo.");
-            throw e; // No envolver en RuntimeException para que lo capture GlobalExceptionHandler
+            throw e;
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error en findActivitiesByEvaluado: {}", e.getMessage(), e);
             throw new RuntimeException("Error inesperado al obtener actividades para evaluado.", e);
@@ -90,7 +84,6 @@ public class ActividadQueryService {
         Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
                 evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
 
-        // Obtener actividades desde el repositorio
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
 
         if (activitiesPage == null) {
@@ -98,31 +91,27 @@ public class ActividadQueryService {
             throw new RuntimeException("La consulta a la base de datos devolvió NULL, verifica la configuración.");
         }
 
-        logger.info("✅ [FIND_BY_EVALUADOR] Se encontraron {} actividades para los parámetros dados.",
-                activitiesPage.getTotalElements());
-
-        List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
+        List<ActividadDTOEvaluador> activityDTOs = activitiesPage.stream()
                 .map(activity -> (sourceType != null || sourceStatus != null)
                         ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
                         : actividadDTOService.convertToDTOWithEvaluado(activity))
                 .collect(Collectors.toList());
 
-        // Retornar actividades paginadas
         return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
     }
 
+
     public Specification<Actividad> filtrarActividades(
             Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType,
-            String evaluatorName,
-            List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder,
-            Integer idPeriodoAcademico) {
+            String evaluatorName, List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico) {
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             Integer finalIdPeriodoAcademico;
             try {
-                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico
+                        : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
             } catch (IllegalStateException e) {
                 logger.warn("⚠️ [PERIODO] No se encontró un período académico activo antes de ejecutar la consulta.");
                 throw new EntityNotFoundException("No se encontró un período académico activo.");
@@ -143,8 +132,7 @@ public class ActividadQueryService {
             }
 
             if (activityType != null && !activityType.isEmpty()) {
-                predicates.add(
-                        cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
+                predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
             }
 
             if (evaluatorName != null && !evaluatorName.isEmpty()) {
@@ -153,31 +141,37 @@ public class ActividadQueryService {
                         root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
             }
 
-            if (sourceType != null || sourceStatus != null) {
-                Join<Object, Object> sourceJoin = root.join("fuentes", JoinType.INNER);
-                if (sourceType != null) {
-                    predicates.add(cb.equal(sourceJoin.get("tipoFuente"), sourceType));
-                }
-                if (sourceStatus != null) {
-                    predicates.add(cb.equal(sourceJoin.get("estadoFuente").get("oidEstadoFuente"), sourceStatus));
-                }
-            }
-
             query.distinct(true);
 
-            aplicarOrdenacion(query, cb, root, ascendingOrder);
+            aplicarOrdenacion(query, cb, root, ascendingOrder, sourceType, sourceStatus);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     private void aplicarOrdenacion(CriteriaQuery<?> query, CriteriaBuilder cb, Root<Actividad> root,
-            Boolean ascendingOrder) {
+            Boolean ascendingOrder, String sourceType, String sourceStatus) {
         boolean isAscending = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        if (isAscending) {
-            query.orderBy(cb.asc(root.get("nombreActividad")));
+        List<Order> orderList = new ArrayList<>();
+
+        boolean ordenarPorFuente = (sourceType != null && !sourceType.isEmpty()) || (sourceStatus != null && !sourceStatus.isEmpty());
+
+        if (ordenarPorFuente) {
+            Join<Actividad, Fuente> fuenteJoin = root.join("fuentes", JoinType.LEFT);
+
+            if (sourceType != null && !sourceType.isEmpty()) {
+                orderList.add(isAscending ? cb.asc(fuenteJoin.get("tipoFuente")) : cb.desc(fuenteJoin.get("tipoFuente")));
+            }
+
+            if (sourceStatus != null && !sourceStatus.isEmpty()) {
+                orderList.add(isAscending ? cb.asc(fuenteJoin.get("estadoFuente").get("oidEstadoFuente")) : cb.desc(fuenteJoin.get("estadoFuente").get("oidEstadoFuente")));
+            }
         } else {
-            query.orderBy(cb.desc(root.get("nombreActividad")));
+            orderList.add(isAscending ? cb.asc(root.get("nombreActividad")) : cb.desc(root.get("nombreActividad")));
+        }
+
+        if (!orderList.isEmpty()) {
+            query.orderBy(orderList);
         }
     }
 }
