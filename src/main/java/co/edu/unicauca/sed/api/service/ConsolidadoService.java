@@ -151,8 +151,7 @@ public class ConsolidadoService {
     public ConsolidadoDTO generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
 
-        List<Actividad> actividades = baseData.getProcesos().stream()
-                .flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+        List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
 
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
@@ -162,13 +161,14 @@ public class ConsolidadoService {
         double totalAcumulado = calcularTotalAcumulado(actividadesPorTipo);
 
         return construirConsolidado(
-                baseData.getEvaluado(),
-                baseData.getDetalleUsuario(),
-                baseData.getPeriodoAcademico(),
-                null,
-                totalHoras,
-                totalPorcentaje,
-                totalAcumulado);
+            baseData.getEvaluado(),
+            baseData.getDetalleUsuario(),
+            baseData.getPeriodoAcademico(),
+            null,
+            totalHoras,
+            totalPorcentaje,
+            totalAcumulado
+        );
     }
 
     public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico,
@@ -297,6 +297,7 @@ public class ConsolidadoService {
 
         ConsolidadoDTO consolidado = new ConsolidadoDTO();
         consolidado.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
+        consolidado.setCorreoElectronico(evaluado.getCorreo());
         consolidado.setNumeroIdentificacion(evaluado.getIdentificacion());
         consolidado.setPeriodoAcademico(periodoAcademico.getIdPeriodo());
         consolidado.setFacultad(detalleUsuario.getFacultad());

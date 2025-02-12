@@ -20,6 +20,7 @@ import java.util.List;
 public class ConsolidadoDTO {
 
     private String nombreDocente;
+    private String correoElectronico;
     private String numeroIdentificacion;
     private String periodoAcademico;
     private String facultad;
