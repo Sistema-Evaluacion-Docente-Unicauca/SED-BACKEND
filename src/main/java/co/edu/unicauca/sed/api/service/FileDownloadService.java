@@ -22,11 +22,14 @@ public class FileDownloadService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public InputStream createZipStream(String periodo, String departamento, String tipoContrato, Integer oidUsuario) throws IOException {
+    public InputStream createZipStream(String periodo, boolean esConsolidado, String departamento, String tipoContrato, Integer oidUsuario) throws IOException {
         Path basePath = Paths.get(documentUploadDir);
 
         if (periodo != null) {
             basePath = basePath.resolve(periodo);
+        }
+        if (esConsolidado) {
+            basePath = basePath.resolve("Consolidados");
         }
         if (departamento != null) {
             basePath = basePath.resolve(departamento);

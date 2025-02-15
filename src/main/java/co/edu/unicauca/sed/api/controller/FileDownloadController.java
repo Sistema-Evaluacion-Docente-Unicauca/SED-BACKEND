@@ -25,7 +25,8 @@ public class FileDownloadController {
             @RequestParam(value = "periodo", required = false) String periodo,
             @RequestParam(value = "departamento", required = false) String departamento,
             @RequestParam(value = "tipoContrato", required = false) String tipoContrato,
-            @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario) {
+            @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario,
+            @RequestParam(defaultValue = "false") boolean esConsolidado) {
 
         // Validaciones de parámetros según la jerarquía establecida
         if (departamento != null && periodo == null) {
@@ -39,7 +40,7 @@ public class FileDownloadController {
         }
 
         try {
-            InputStream zipStream = fileDownloadService.createZipStream(periodo, departamento, tipoContrato, oidUsuario);
+            InputStream zipStream = fileDownloadService.createZipStream(periodo, esConsolidado, departamento, tipoContrato, oidUsuario);
             InputStreamResource resource = new InputStreamResource(zipStream);
 
             HttpHeaders headers = new HttpHeaders();
