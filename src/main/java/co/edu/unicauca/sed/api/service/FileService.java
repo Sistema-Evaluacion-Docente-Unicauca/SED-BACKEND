@@ -43,9 +43,13 @@ public class FileService {
         Path directoryPath = Paths.get(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado);
         Files.createDirectories(directoryPath); // Crea los directorios si no existen
 
-        // Generar el nombre del archivo con prefijo solo si se proporciona
+        // Obtener el nombre original del archivo
         String originalFilename = file.getOriginalFilename();
-        String prefixedFilename = (prefix != null && !prefix.isEmpty()) ? prefix + "-" + originalFilename : originalFilename;
+
+        // Validar si el archivo ya tiene el prefijo
+        String prefixedFilename = (prefix != null && !prefix.isEmpty() && !originalFilename.startsWith(prefix + "-"))
+                ? prefix + "-" + originalFilename
+                : originalFilename;
 
         // Ruta completa del archivo
         Path targetPath = directoryPath.resolve(prefixedFilename);
@@ -53,8 +57,9 @@ public class FileService {
         try {
             // Guardar el archivo
             Files.write(targetPath, file.getBytes());
+            logger.info("✅ Archivo guardado correctamente en: {}", targetPath);
         } catch (IOException e) {
-            logger.error("Error al guardar el archivo: {}, Error: {}", targetPath, e.getMessage(), e);
+            logger.error("❌ Error al guardar el archivo: {}, Error: {}", targetPath, e.getMessage(), e);
             throw e;
         }
 
