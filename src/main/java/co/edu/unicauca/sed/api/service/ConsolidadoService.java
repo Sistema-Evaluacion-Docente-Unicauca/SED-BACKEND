@@ -237,8 +237,7 @@ public class ConsolidadoService {
         guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
     }
 
-    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento,
-            String rutaDocumento, String nota) {
+    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento, String rutaDocumento, String nota) {
         consolidadoExistente.setNombredocumento(nombreDocumento);
         consolidadoExistente.setRutaDocumento(rutaDocumento);
         consolidadoExistente.setNota(nota);
@@ -270,7 +269,7 @@ public class ConsolidadoService {
 
     private String generarNombreDocumento(ConsolidadoDTO consolidadoDTO) {
         return "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-"
-                + consolidadoDTO.getNombreDocente().replace(" ", "_") + ".xlsx";
+                + consolidadoDTO.getNombreDocente().replace(" ", "_");
     }
 
     private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData,
