@@ -136,7 +136,7 @@ public class PeriodoAcademicoService {
      *
      * @return Un Optional que contiene el período académico activo si existe.
      */
-    private Optional<PeriodoAcademico> getPeriodoAcademicoActivo() {
+    public Optional<PeriodoAcademico> getPeriodoAcademicoActivo() {
         String nombreEstadoActivo = "ACTIVO";
         return periodoAcademicoRepository.findByEstadoPeriodoAcademicoNombre(nombreEstadoActivo);
     }
@@ -147,7 +147,7 @@ public class PeriodoAcademicoService {
      * @return El identificador del período académico activo.
      * @throws IllegalStateException Si no se encuentra un período académico activo.
      */
-    public Integer obtenerPeriodoAcademicoActivo() {
+    public Integer obtenerIdPeriodoAcademicoActivo() {
         return getPeriodoAcademicoActivo()
                 .map(PeriodoAcademico::getOidPeriodoAcademico)
                 .orElseThrow(() -> {

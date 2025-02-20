@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -143,6 +144,23 @@ public class PeriodoAcademicoController {
         } catch (Exception e) {
             logger.error("Error al eliminar el período académico con ID {}: {}", oid, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
+        }
+    }
+
+    /**
+     * Obtiene el período académico activo.
+     *
+     * @return El período académico activo si existe, o un mensaje de error si no hay ninguno activo.
+     */
+    @GetMapping("/activo")
+    public ResponseEntity<?> obtenerPeriodoAcademicoActivo() {
+        Optional<PeriodoAcademico> periodoAcademicoOpt = periodoAcademicoService.getPeriodoAcademicoActivo();
+
+        if (periodoAcademicoOpt.isPresent()) {
+            return ResponseEntity.ok(periodoAcademicoOpt.get());
+        } else {
+            logger.warn("⚠️ No se encontró un período académico activo.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró un período académico activo.");
         }
     }
 }

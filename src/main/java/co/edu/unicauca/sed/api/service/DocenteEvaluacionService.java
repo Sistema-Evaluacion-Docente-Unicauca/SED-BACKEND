@@ -38,7 +38,7 @@ public class DocenteEvaluacionService {
     public Page<DocenteEvaluacionDTO> obtenerEvaluacionDocentes(Integer idEvaluado, Integer idPeriodoAcademico,
             String departamento, Pageable pageable) {
         if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
         }
 
         final Integer periodoFinal = idPeriodoAcademico;

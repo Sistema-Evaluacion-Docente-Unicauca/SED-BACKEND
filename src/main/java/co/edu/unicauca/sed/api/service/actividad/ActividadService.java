@@ -63,27 +63,29 @@ public class ActividadService {
 
     public Page<ActividadBaseDTO> findAll(Pageable pageable, Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : ActividadSortService.DEFAULT_ASCENDING_ORDER;
-    
-        logger.info("🔵 [FIND_ALL] Buscando actividades con paginación: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
-    
+
+        logger.info("🔵 [FIND_ALL] Buscando actividades con paginación: page={}, size={}", pageable.getPageNumber(),
+                pageable.getPageSize());
+
         Page<Actividad> actividades = actividadRepository.findAll(pageable);
         logger.info("✅ [FIND_ALL] Se encontraron {} actividades en la base de datos.", actividades.getTotalElements());
-    
+
         List<ActividadBaseDTO> actividadDTOs = actividades.getContent().stream()
                 .map(actividad -> actividadDTOService.convertActividadToDTO(actividad)).collect(Collectors.toList());
-    
+
         List<ActividadBaseDTO> sortedDTOs = actividadSortService.sortActivitiesByType(actividadDTOs, order);
         logger.info("✅ [FIND_ALL] Se ordenaron {} actividades según el criterio especificado.", sortedDTOs.size());
-    
+
         return new PageImpl<>(sortedDTOs, pageable, actividades.getTotalElements());
-    }    
+    }
 
     public Actividad findByOid(Integer oid) {
         return actividadRepository.findById(oid).orElse(null);
     }
 
     public ActividadBaseDTO findDTOByOid(Integer oid) {
-        Actividad actividad = actividadRepository.findById(oid).orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
+        Actividad actividad = actividadRepository.findById(oid)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
         return actividadDTOService.convertActividadToDTO(actividad);
     }
 
@@ -93,7 +95,8 @@ public class ActividadService {
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
             asignarPeriodoAcademicoActivo(actividad);
 
-            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
+            if (actividad.getProceso().getNombreProceso() == null
+                    || actividad.getProceso().getNombreProceso().isEmpty()) {
                 actividad.getProceso().setNombreProceso("ACTIVIDAD");
             }
 
@@ -155,7 +158,8 @@ public class ActividadService {
                 .equals(actividadDTO.getTipoActividad().getOidTipoActividad());
 
         if (tipoActividadCambio) {
-            actividadDetalleService.cambiarTipoActividad(actividadExistente, actividadDTO.getTipoActividad().getOidTipoActividad());
+            actividadDetalleService.cambiarTipoActividad(actividadExistente,
+                    actividadDTO.getTipoActividad().getOidTipoActividad());
         }
 
         if (actividadDTO.getNombreActividad() == null || actividadDTO.getNombreActividad().isEmpty()) {
@@ -166,18 +170,22 @@ public class ActividadService {
         estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
 
         if (actividadDTO.getDetalle() != null) {
-            TipoActividadEnum tipoActividadEnum = TipoActividadEnum.fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
+            TipoActividadEnum tipoActividadEnum = TipoActividadEnum
+                    .fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
 
             if (tipoActividadEnum == null) {
-                logger.warn("⚠️ [UPDATE] Tipo de actividad no encontrado para OID: {}", actividadDTO.getTipoActividad().getOidTipoActividad());
-                throw new ValidationException(400, "Tipo de actividad inválido para OID: " + actividadDTO.getTipoActividad().getOidTipoActividad());
+                logger.warn("⚠️ [UPDATE] Tipo de actividad no encontrado para OID: {}",
+                        actividadDTO.getTipoActividad().getOidTipoActividad());
+                throw new ValidationException(400, "Tipo de actividad inválido para OID: "
+                        + actividadDTO.getTipoActividad().getOidTipoActividad());
             }
 
             Class<?> entityClass = tipoActividadEnum.getEntityClass();
 
             if (entityClass == null) {
                 logger.warn("⚠️ [UPDATE] Entidad no encontrada para tipo de actividad: {}", tipoActividadEnum.name());
-                throw new ValidationException(400, "Entidad no encontrada para el tipo de actividad: " + tipoActividadEnum.name());
+                throw new ValidationException(400,
+                        "Entidad no encontrada para el tipo de actividad: " + tipoActividadEnum.name());
             }
 
             if (tipoActividadCambio) {
@@ -209,20 +217,20 @@ public class ActividadService {
 
     private void asignarPeriodoAcademicoActivo(Actividad actividad) {
         try {
-            Integer idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             logger.info("🔵 [PERIODO] Asignando periodo académico activo con ID: {}", idPeriodoAcademico);
-    
+
             if (actividad.getProceso() == null) {
                 logger.warn("⚠️ [PERIODO] La actividad no tiene un proceso asociado. Se creará uno nuevo.");
                 actividad.setProceso(new Proceso());
             }
-    
+
             PeriodoAcademico periodoAcademico = new PeriodoAcademico();
             periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
             actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
-    
+
             logger.info("✅ [PERIODO] Periodo académico asignado con ID: {}", idPeriodoAcademico);
-    
+
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al asignar periodo académico activo: {}", e.getMessage(), e);
             throw new RuntimeException("Error al asignar periodo académico: " + e.getMessage(), e);

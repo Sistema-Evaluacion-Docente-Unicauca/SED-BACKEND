@@ -29,7 +29,7 @@ public class ProcesoService {
             LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, int page, int size) {
 
         if (idPeriodo == null) {
-            idPeriodo = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            idPeriodo = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
         }
         Pageable pageable = PageRequest.of(page, size);
 
@@ -113,7 +113,7 @@ public class ProcesoService {
                 nombreProceso).orElse(null);
     }
 
-    public Proceso crearNuevoProceso(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico){
+    public Proceso crearNuevoProceso(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico) {
         Proceso proceso = new Proceso();
         proceso.setEvaluador(new Usuario(idEvaluador));
         proceso.setEvaluado(new Usuario(idEvaluado));

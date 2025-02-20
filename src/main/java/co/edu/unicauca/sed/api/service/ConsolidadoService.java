@@ -39,7 +39,7 @@ public class ConsolidadoService {
     private ActividadRepository actividadRepository;
     @Autowired
     private ActividadCalculoService calculoService;
-    @Autowired 
+    @Autowired
     private ActividadTransformacionService transformacionService;
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
@@ -131,7 +131,7 @@ public class ConsolidadoService {
 
         idPeriodoAcademico = (idPeriodoAcademico != null)
                 ? idPeriodoAcademico
-                : periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+                : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
 
         List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(
                 evaluado, idPeriodoAcademico);
@@ -150,7 +150,8 @@ public class ConsolidadoService {
     public ConsolidadoDTO generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
 
-        List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+        List<Actividad> actividades = baseData.getProcesos().stream()
+                .flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
 
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
@@ -160,14 +161,13 @@ public class ConsolidadoService {
         double totalAcumulado = calcularTotalAcumulado(actividadesPorTipo);
 
         return construirConsolidado(
-            baseData.getEvaluado(),
-            baseData.getDetalleUsuario(),
-            baseData.getPeriodoAcademico(),
-            null,
-            totalHoras,
-            totalPorcentaje,
-            totalAcumulado
-        );
+                baseData.getEvaluado(),
+                baseData.getDetalleUsuario(),
+                baseData.getPeriodoAcademico(),
+                null,
+                totalHoras,
+                totalPorcentaje,
+                totalAcumulado);
     }
 
     public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico,
@@ -188,7 +188,7 @@ public class ConsolidadoService {
                 true, idPeriodoAcademico);
 
         Page<Actividad> actividadPage = actividadRepository.findAll(spec, pageable);
-        
+
         return construirActividadPaginadaDTO(actividadPage);
     }
 
@@ -196,10 +196,11 @@ public class ConsolidadoService {
             throws IOException {
 
         if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
+            idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
         }
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
-        ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico, Pageable.unpaged());
+        ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico,
+                Pageable.unpaged());
 
         if (nota != null) {
             nota = nota.toUpperCase();
@@ -218,22 +219,26 @@ public class ConsolidadoService {
             throw new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado);
         });
 
-        Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, "CONSOLIDADO GENERADO");
+        Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico,
+                "CONSOLIDADO GENERADO");
 
         if (procesoExistente == null) {
             procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
-            logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}", procesoExistente.getOidProceso());
+            logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}",
+                    procesoExistente.getOidProceso());
         }
 
         Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
         if (consolidadoExistente == null) {
             consolidadoExistente = new Consolidado(procesoExistente);
-            logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
+            logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}",
+                    procesoExistente.getOidProceso());
         }
         guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
     }
 
-    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento, String rutaDocumento, String nota) {
+    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento,
+            String rutaDocumento, String nota) {
         consolidadoExistente.setNombredocumento(nombreDocumento);
         consolidadoExistente.setRutaDocumento(rutaDocumento);
         consolidadoExistente.setNota(nota);
@@ -276,10 +281,9 @@ public class ConsolidadoService {
         Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
 
         ConsolidadoDTO consolidado = construirConsolidado(
-            baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
-            actividadesPorTipo, totalHoras, calcularTotalPorcentaje(actividadesPorTipo),
-            calcularTotalAcumulado(actividadesPorTipo)
-        );
+                baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
+                actividadesPorTipo, totalHoras, calcularTotalPorcentaje(actividadesPorTipo),
+                calcularTotalAcumulado(actividadesPorTipo));
 
         consolidado.setCurrentPage(actividadPage.getNumber());
         consolidado.setPageSize(actividadPage.getSize());
@@ -313,7 +317,8 @@ public class ConsolidadoService {
     }
 
     private double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
-        return actividadesPorTipo.values().stream().flatMap(List::stream).mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue()).sum();
+        return actividadesPorTipo.values().stream().flatMap(List::stream)
+                .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue()).sum();
     }
 
     private double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
@@ -323,14 +328,14 @@ public class ConsolidadoService {
                 .sum();
     }
 
-    private Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
+    private Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades,
+            float totalHoras) {
         return actividades.stream().sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
-            .collect(Collectors.groupingBy(
-                actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
-                Collectors.mapping(
-                    actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad, totalHoras),
-                    Collectors.toList()
-                )
-            ));
-    }    
+                .collect(Collectors.groupingBy(
+                        actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
+                        Collectors.mapping(
+                                actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad,
+                                        totalHoras),
+                                Collectors.toList())));
+    }
 }
