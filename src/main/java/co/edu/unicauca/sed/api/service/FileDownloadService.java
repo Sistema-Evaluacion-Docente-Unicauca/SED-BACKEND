@@ -2,7 +2,10 @@ package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.service.fuente.FuenteFileService;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class FileDownloadService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FuenteFileService.class);
+
     @Value("${DOCUMENT_UPLOAD_DIR}")
     private String documentUploadDir;
 
@@ -22,8 +27,25 @@ public class FileDownloadService {
     private UsuarioRepository usuarioRepository;
 
     public InputStream createZipStream(String periodo, boolean esConsolidado, String departamento, String tipoContrato, Integer oidUsuario) throws IOException {
+        Path basePath = construirRutaBase(periodo, esConsolidado, departamento, tipoContrato);
+    
+        if (esConsolidado && oidUsuario != null) {
+            return obtenerArchivoConsolidado(basePath, periodo, oidUsuario);
+        }
+    
+        if (!Files.exists(basePath)) {
+            throw new FileNotFoundException("No se encontró la ruta: " + basePath);
+        }
+    
+        return generarZip(basePath);
+    }
+    
+    /**
+     * Construye la ruta base según los parámetros recibidos.
+     */
+    private Path construirRutaBase(String periodo, boolean esConsolidado, String departamento, String tipoContrato) {
         Path basePath = Paths.get(documentUploadDir);
-
+    
         if (periodo != null) {
             basePath = basePath.resolve(periodo);
         }
@@ -36,50 +58,55 @@ public class FileDownloadService {
         if (tipoContrato != null) {
             basePath = basePath.resolve(tipoContrato);
         }
-        if (oidUsuario != null && !esConsolidado) {
-            Usuario usuario = getUsuarioById(oidUsuario);
-            if (usuario == null) {
-                throw new FileNotFoundException("No se encontró el usuario con ID: " + oidUsuario);
-            }
-            String nombreUsuario = formatUsuarioFolder(usuario);
-            basePath = basePath.resolve(nombreUsuario);
+    
+        return basePath;
+    }
+    
+    /**
+     * Obtiene el archivo de consolidado específico para un usuario.
+     */
+    private InputStream obtenerArchivoConsolidado(Path basePath, String periodo, Integer oidUsuario) throws IOException {
+        Usuario usuario = getUsuarioById(oidUsuario);
+        String nombreArchivo = "Consolidado-" + periodo + "-" + formatUsuarioFolder(usuario) + ".xlsx";
+        Path archivoConsolidado = basePath.resolve(nombreArchivo);
+    
+        if (!Files.exists(archivoConsolidado)) {
+            throw new FileNotFoundException("No se encontró el archivo de consolidado: " + archivoConsolidado);
         }
-
-        if (esConsolidado && oidUsuario != null) {
-            Usuario usuario = getUsuarioById(oidUsuario);
-            String nombreArchivo = "Consolidado-" + periodo + "-" + formatUsuarioFolder(usuario) + ".xlsx";
-            basePath = basePath.resolve(nombreArchivo);
-            if (!Files.exists(basePath)) {
-                throw new FileNotFoundException("No se encontró el archivo de consolidado: " + basePath);
-            }
-            return new ByteArrayInputStream(Files.readAllBytes(basePath));
-        }
-
-        if (!Files.exists(basePath)) {
-            throw new FileNotFoundException("No se encontró la ruta: " + basePath);
-        }
-
-        final Path finalBasePath = basePath;
+    
+        return Files.newInputStream(archivoConsolidado);
+    }
+    
+    /**
+     * Genera un archivo ZIP a partir del contenido de una carpeta.
+     */
+    private InputStream generarZip(Path directorioBase) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            try (Stream<Path> paths = Files.walk(finalBasePath)) {
-                paths.forEach(path -> {
-                    try {
-                        Path relativePath = finalBasePath.relativize(path);
-                        ZipEntry zipEntry = new ZipEntry(relativePath.toString() + (Files.isDirectory(path) ? "/" : ""));
-                        zos.putNextEntry(zipEntry);
-                        if (!Files.isDirectory(path)) {
-                            Files.copy(path, zos);
-                        }
-                        zos.closeEntry();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            try (Stream<Path> paths = Files.walk(directorioBase)) {
+                paths.forEach(path -> agregarArchivoAZip(zos, directorioBase, path));
             }
         }
         return new ByteArrayInputStream(baos.toByteArray());
     }
+    
+    /**
+     * Agrega un archivo o carpeta al ZIP.
+     */
+    private void agregarArchivoAZip(ZipOutputStream zos, Path directorioBase, Path path) {
+        try {
+            Path relativePath = directorioBase.relativize(path);
+            ZipEntry zipEntry = new ZipEntry(relativePath.toString() + (Files.isDirectory(path) ? "/" : ""));
+            zos.putNextEntry(zipEntry);
+    
+            if (!Files.isDirectory(path)) {
+                Files.copy(path, zos);
+            }
+            zos.closeEntry();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }       
 
     private Usuario getUsuarioById(Integer oidUsuario) {
         return usuarioRepository.findById(oidUsuario)

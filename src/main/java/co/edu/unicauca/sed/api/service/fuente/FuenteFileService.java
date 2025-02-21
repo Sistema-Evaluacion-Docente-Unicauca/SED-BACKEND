@@ -54,8 +54,6 @@ public class FuenteFileService {
                 }
             }
 
-            // Siempre guarda el archivo en caso de que sea la primera vez o si es un
-            // archivo nuevo
             Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, "fuente");
             return savedFile;
 

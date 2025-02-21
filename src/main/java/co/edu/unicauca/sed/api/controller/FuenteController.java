@@ -85,6 +85,15 @@ public class FuenteController {
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
+            logger.debug("📌 Parámetro [informeFuente]: Nombre del archivo -> {}", informeFuente.getOriginalFilename());
+            logger.debug("📌 Parámetro [observation]: {}", observation);
+            logger.debug("📌 Parámetro [sources]: {}", sourcesJson);
+            if (allFiles != null) {
+                logger.debug("📌 Parámetro [allFiles]: {} archivos adicionales recibidos.", allFiles.size());
+                allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes", file.getOriginalFilename(), file.getSize()));
+            } else {
+                logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
+            }
             fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
             logger.info("Fuente guardada exitosamente");
             return ResponseEntity.ok("Archivos procesados correctamente");

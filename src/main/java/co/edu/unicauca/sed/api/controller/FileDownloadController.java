@@ -27,31 +27,31 @@ public class FileDownloadController {
             @RequestParam(value = "tipoContrato", required = false) String tipoContrato,
             @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario,
             @RequestParam(defaultValue = "false") boolean esConsolidado) {
-
-        // Validaciones de parámetros según la jerarquía establecida
-        if (departamento != null && periodo == null) {
-            return ResponseEntity.badRequest().body("Si se envía 'departamento', también se debe enviar 'periodo'.");
-        }
-        if (tipoContrato != null && (departamento == null || periodo == null)) {
-            return ResponseEntity.badRequest().body("Si se envía 'tipoContrato', también se deben enviar 'periodo' y 'departamento'.");
-        }
-        if (oidUsuario != null && (tipoContrato == null || departamento == null || periodo == null)) {
-            return ResponseEntity.badRequest().body("Si se envía 'oidUsuario', también se deben enviar 'periodo', 'departamento' y 'tipoContrato'.");
-        }
-
+    
         try {
-            InputStream zipStream = fileDownloadService.createZipStream(periodo, esConsolidado, departamento, tipoContrato, oidUsuario);
-            InputStreamResource resource = new InputStreamResource(zipStream);
-
+            InputStream fileStream = fileDownloadService.createZipStream(periodo, esConsolidado, departamento, tipoContrato, oidUsuario);
+            InputStreamResource resource = new InputStreamResource(fileStream);
+    
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=descarga_" + (periodo != null ? periodo : "all") + ".zip");
-
+            String filename = definirNombreArchivo(periodo, esConsolidado, oidUsuario);
+    
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         } catch (IOException ex) {
-            return ResponseEntity.status(500).body("Error al generar el archivo ZIP: " + ex.getMessage());
+            return ResponseEntity.status(500).body("Error al generar el archivo: " + ex.getMessage());
         }
+    }
+    
+    /**
+     * Define el nombre del archivo de salida según el tipo de descarga.
+     */
+    private String definirNombreArchivo(String periodo, boolean esConsolidado, Integer oidUsuario) {
+        if (esConsolidado && oidUsuario != null) {
+            return "Consolidado-" + periodo + ".xlsx";
+        }
+        return esConsolidado ? "Consolidados-" + periodo + ".zip" : "descarga_" + (periodo != null ? periodo : "all") + ".zip";
     }
 }
