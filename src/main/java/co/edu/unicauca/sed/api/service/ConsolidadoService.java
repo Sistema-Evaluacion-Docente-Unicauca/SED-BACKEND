@@ -316,9 +316,13 @@ public class ConsolidadoService {
     }
 
     private double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
-        return actividadesPorTipo.values().stream().flatMap(List::stream)
-                .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue()).sum();
-    }
+        double total = actividadesPorTipo.values().stream()
+            .flatMap(List::stream)
+            .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue())
+            .sum();
+    
+        return Math.min(total, 100.0);
+    }    
 
     private double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
         return actividadesPorTipo.values().stream()
@@ -327,14 +331,12 @@ public class ConsolidadoService {
                 .sum();
     }
 
-    private Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades,
-            float totalHoras) {
+    private Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
         return actividades.stream().sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
-                .collect(Collectors.groupingBy(
-                        actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
-                        Collectors.mapping(
-                                actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad,
-                                        totalHoras),
-                                Collectors.toList())));
+            .collect(Collectors.groupingBy(
+                actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
+                Collectors.mapping(
+                        actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad, totalHoras),
+                        Collectors.toList())));
     }
 }
