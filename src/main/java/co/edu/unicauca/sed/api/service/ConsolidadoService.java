@@ -150,8 +150,7 @@ public class ConsolidadoService {
     public ConsolidadoDTO generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
 
-        List<Actividad> actividades = baseData.getProcesos().stream()
-                .flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+        List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
 
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
@@ -321,9 +320,8 @@ public class ConsolidadoService {
             .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue())
             .sum();
     
-        return Math.min(total, 100.0);
-    }    
-
+        return Math.min(Math.round(total), 100.0);
+    }
     private double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
         return actividadesPorTipo.values().stream()
                 .flatMap(List::stream)
@@ -336,7 +334,7 @@ public class ConsolidadoService {
             .collect(Collectors.groupingBy(
                 actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
                 Collectors.mapping(
-                        actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad, totalHoras),
-                        Collectors.toList())));
+                    actividad -> (Map<String, Object>) transformacionService.transformarActividad(actividad, totalHoras),
+                    Collectors.toList())));
     }
 }
