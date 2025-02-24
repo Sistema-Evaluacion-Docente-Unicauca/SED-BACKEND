@@ -277,10 +277,8 @@ public class ConsolidadoService {
         double totalAcumulado = calcularTotalAcumulado(actividadesPorTipo);
 
 
-        ConsolidadoDTO consolidado = construirConsolidado(
-                baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
-                actividadesPorTipo, totalHoras, totalPorcentaje,
-                totalAcumulado);
+        ConsolidadoDTO consolidado = construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
+                actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
 
         consolidado.setCurrentPage(actividadPage.getNumber());
         consolidado.setPageSize(actividadPage.getSize());

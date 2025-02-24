@@ -51,7 +51,7 @@ public class ExcelService {
                 }
             }
 
-            currentRow = agregarTotales(sheet, workbook, currentRow, totalHS, totalPorcentaje, totalAcumulado);
+            currentRow = agregarTotales(sheet, workbook, currentRow, totalHS, consolidadoDTO.getTotalPorcentaje(), consolidadoDTO.getTotalAcumulado());
 
             if (!nota.isEmpty()) {
                 agregarNota(sheet, workbook, currentRow++, nota);
