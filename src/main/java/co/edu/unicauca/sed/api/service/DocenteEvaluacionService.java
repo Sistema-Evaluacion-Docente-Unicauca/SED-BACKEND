@@ -55,8 +55,7 @@ public class DocenteEvaluacionService {
         List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
                 .map(evaluado -> {
                     List<Actividad> actividades = procesoRepository
-                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
-                                    evaluado.getOidUsuario(), periodoFinal)
+                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado.getOidUsuario(), periodoFinal)
                             .stream()
                             .flatMap(proceso -> proceso.getActividades().stream())
                             .collect(Collectors.toList());
@@ -94,14 +93,29 @@ public class DocenteEvaluacionService {
      * @return Lista de usuarios evaluados.
      */
     private List<Usuario> obtenerUsuariosEvaluados(Integer idEvaluado, Integer idPeriodoAcademico) {
-        if (idEvaluado != null) {
-            return List.of(usuarioRepository.findById(idEvaluado)
-                    .orElseThrow(() -> new IllegalArgumentException("Evaluado no encontrado.")));
-        }
 
-        return procesoRepository.findByOidPeriodoAcademico_OidPeriodoAcademico(idPeriodoAcademico).stream()
-                .map(Proceso::getEvaluado)
-                .distinct()
-                .collect(Collectors.toList());
+        final int ROL_DOCENTE_ID = 1;
+    
+        if (idEvaluado != null) {
+            Usuario usuario = usuarioRepository.findById(idEvaluado)
+                .orElseThrow(() -> new IllegalArgumentException("Evaluado no encontrado."));
+    
+            boolean esDocente = usuario.getRoles().stream()
+                .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID));
+    
+            if (!esDocente) {
+                throw new IllegalArgumentException("El usuario no tiene rol docente.");
+            }
+    
+            return List.of(usuario);
+        }
+    
+        return procesoRepository.findByOidPeriodoAcademico_OidPeriodoAcademico(idPeriodoAcademico)
+            .stream()
+            .map(Proceso::getEvaluado)
+            .filter(usuario -> usuario.getRoles().stream()
+                .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID)))
+            .distinct()
+            .collect(Collectors.toList());
     }
 }
