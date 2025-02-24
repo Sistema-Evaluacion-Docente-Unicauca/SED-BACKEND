@@ -169,8 +169,7 @@ public class ConsolidadoService {
                 totalAcumulado);
     }
 
-    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico,
-            Pageable pageable) {
+    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico, Pageable pageable) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
         Page<Actividad> actividadPage = obtenerActividadesPaginadas(baseData.getProcesos(), pageable);
         return construirConsolidadoDesdeActividades(baseData, actividadPage);
@@ -197,9 +196,7 @@ public class ConsolidadoService {
         if (idPeriodoAcademico == null) {
             idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
         }
-        BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
-        ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico,
-                Pageable.unpaged());
+        ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico, Pageable.unpaged());
 
         if (nota != null) {
             nota = nota.toUpperCase();
@@ -271,17 +268,19 @@ public class ConsolidadoService {
                 + consolidadoDTO.getNombreDocente().replace(" ", "_");
     }
 
-    private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData,
-            Page<Actividad> actividadPage) {
+    private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData, Page<Actividad> actividadPage) {
         List<Actividad> actividades = actividadPage.getContent();
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
         Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
+        double totalPorcentaje = calcularTotalPorcentaje(actividadesPorTipo);
+        double totalAcumulado = calcularTotalAcumulado(actividadesPorTipo);
+
 
         ConsolidadoDTO consolidado = construirConsolidado(
                 baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
-                actividadesPorTipo, totalHoras, calcularTotalPorcentaje(actividadesPorTipo),
-                calcularTotalAcumulado(actividadesPorTipo));
+                actividadesPorTipo, totalHoras, totalPorcentaje,
+                totalAcumulado);
 
         consolidado.setCurrentPage(actividadPage.getNumber());
         consolidado.setPageSize(actividadPage.getSize());
