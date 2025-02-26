@@ -152,17 +152,21 @@ public class EavAtributoService {
         List<ActividadInt> actividadIntList = new ArrayList<>();
         List<ActividadBoolean> actividadBooleanList = new ArrayList<>();
         List<ActividadDate> actividadDateList = new ArrayList<>();
-
+    
         for (AtributoDTO atributoDTO : actividadDTO.getAtributos()) {
+            if (atributoDTO.getValor() == null || atributoDTO.getValor().trim().isEmpty()) {
+                continue;
+            }
+    
             EavAtributo atributo = eavAtributoRepository.findByNombre(atributoDTO.getCodigoAtributo())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Atributo no encontrado: " + atributoDTO.getCodigoAtributo()));
-
+    
             switch (atributo.getTipoDato()) {
                 case VARCHAR:
                     actividadVarcharList.add(new ActividadVarchar(actividad, atributo, atributoDTO.getValor()));
                     break;
-
+    
                 case FLOAT:
                     try {
                         Float valorDecimal = Float.parseFloat(atributoDTO.getValor());
@@ -171,7 +175,7 @@ public class EavAtributoService {
                         throw new IllegalArgumentException("Error al convertir el valor a FLOAT: " + atributoDTO.getValor(), e);
                     }
                     break;
-
+    
                 case INT:
                     try {
                         Integer valorEntero = Integer.parseInt(atributoDTO.getValor());
@@ -181,12 +185,12 @@ public class EavAtributoService {
                                 "Error al convertir el valor a INT: " + atributoDTO.getValor());
                     }
                     break;
-
+    
                 case BOOLEAN:
                     Boolean valorBooleano = Boolean.parseBoolean(atributoDTO.getValor());
                     actividadBooleanList.add(new ActividadBoolean(actividad, atributo, valorBooleano));
                     break;
-
+    
                 case DATE:
                     try {
                         LocalDateTime valorFecha = LocalDateTime.parse(atributoDTO.getValor());
@@ -196,12 +200,12 @@ public class EavAtributoService {
                                 "Error al convertir el valor a DATE: " + atributoDTO.getValor());
                     }
                     break;
-
+    
                 default:
                     throw new IllegalArgumentException("Tipo de dato no soportado: " + atributo.getTipoDato());
             }
         }
-
+    
         // Guardar en batch para mejorar rendimiento
         if (!actividadVarcharList.isEmpty()) {
             actividadVarcharRepository.saveAll(actividadVarcharList);
@@ -218,7 +222,7 @@ public class EavAtributoService {
         if (!actividadDateList.isEmpty()) {
             actividadDateRepository.saveAll(actividadDateList);
         }
-    }
+    }    
 
     public List<AtributoDTO> obtenerAtributosPorActividad(Actividad actividad) {
         List<AtributoDTO> atributos = new ArrayList<>();
