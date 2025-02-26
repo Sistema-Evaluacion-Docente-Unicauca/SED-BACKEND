@@ -61,7 +61,7 @@ public class ActividadQueryService {
                     activitiesPage.getTotalElements());
 
             List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
-                    .map(actividadDTOService::convertActividadToDTO)
+                    .map(actividadDTOService::buildActividadBaseDTO)
                     .collect(Collectors.toList());
             return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
         } catch (IllegalStateException e) {

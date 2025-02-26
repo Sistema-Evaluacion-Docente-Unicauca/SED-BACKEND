@@ -1,14 +1,20 @@
 package co.edu.unicauca.sed.api.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
+import co.edu.unicauca.sed.api.controller.TipoActividadController;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.model.TipoActividad;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import org.springframework.data.domain.Pageable;
 
 @Service
 public class TipoActividadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TipoActividadController.class);
 
     @Autowired
     private TipoActividadRepository tipoActividadRepository;
@@ -39,14 +45,17 @@ public class TipoActividadService {
      * @param tipoActividad El objeto TipoActividad que se desea guardar.
      * @return El objeto TipoActividad guardado, o null si ocurre un error.
      */
-    public TipoActividad save(TipoActividad tipoActividad) {
+    public ApiResponse<TipoActividad> save(TipoActividad tipoActividad) {
         try {
-            // Convertir los campos a mayúsculas
             tipoActividad.setNombre(tipoActividad.getNombre().toUpperCase());
             tipoActividad.setDescripcion(tipoActividad.getDescripcion().toUpperCase());
-            return this.tipoActividadRepository.save(tipoActividad);
+
+            TipoActividad savedTipoActividad = this.tipoActividadRepository.save(tipoActividad);
+            return new ApiResponse<>(200, "Tipo de actividad guardado con éxito", savedTipoActividad);
+
         } catch (Exception e) {
-            throw new RuntimeException("Error al guardar el tipo de actividad: " + e.getMessage(), e);
+            logger.error("❌ [ERROR] Error al guardar el tipo de actividad: {}", e.getMessage(), e);
+            return new ApiResponse<>(500, "Error al guardar el tipo de actividad: " + e.getMessage(), null);
         }
     }
 

@@ -2,10 +2,8 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.List;

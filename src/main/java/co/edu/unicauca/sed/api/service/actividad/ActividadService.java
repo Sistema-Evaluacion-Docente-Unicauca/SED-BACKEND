@@ -1,11 +1,11 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
-import co.edu.unicauca.sed.api.enums.TipoActividadEnum;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
+import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.service.EstadoActividadService;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import co.edu.unicauca.sed.api.service.ProcesoService;
@@ -61,6 +61,12 @@ public class ActividadService {
     @Autowired
     private ProcesoService procesoService;
 
+    @Autowired
+    private EavAtributoService eavAtributoService;
+
+    @Autowired
+    private ActividadDTOService actividadDtoService;
+
     public Page<ActividadBaseDTO> findAll(Pageable pageable, Boolean ascendingOrder) {
         boolean order = (ascendingOrder != null) ? ascendingOrder : ActividadSortService.DEFAULT_ASCENDING_ORDER;
 
@@ -71,7 +77,8 @@ public class ActividadService {
         logger.info("✅ [FIND_ALL] Se encontraron {} actividades en la base de datos.", actividades.getTotalElements());
 
         List<ActividadBaseDTO> actividadDTOs = actividades.getContent().stream()
-                .map(actividad -> actividadDTOService.convertActividadToDTO(actividad)).collect(Collectors.toList());
+            .map(actividad -> actividadDtoService.buildActividadBaseDTO(actividad))
+            .collect(Collectors.toList());
 
         List<ActividadBaseDTO> sortedDTOs = actividadSortService.sortActivitiesByType(actividadDTOs, order);
         logger.info("✅ [FIND_ALL] Se ordenaron {} actividades según el criterio especificado.", sortedDTOs.size());
@@ -86,7 +93,7 @@ public class ActividadService {
     public ActividadBaseDTO findDTOByOid(Integer oid) {
         Actividad actividad = actividadRepository.findById(oid)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + oid));
-        return actividadDTOService.convertActividadToDTO(actividad);
+        return actividadDTOService.buildActividadBaseDTO(actividad);
     }
 
     @Transactional
@@ -95,8 +102,7 @@ public class ActividadService {
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
             asignarPeriodoAcademicoActivo(actividad);
 
-            if (actividad.getProceso().getNombreProceso() == null
-                    || actividad.getProceso().getNombreProceso().isEmpty()) {
+            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
                 actividad.getProceso().setNombreProceso("ACTIVIDAD");
             }
 
@@ -108,37 +114,17 @@ public class ActividadService {
                 actividad.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
             }
 
-            Actividad savedActividad = actividadRepository.save(actividad);
-            logger.info("✅ [SAVE] Actividad guardada con ID: {}", savedActividad.getOidActividad());
+            // 3️⃣ Guardar actividad principal
+        Actividad savedActividad = actividadRepository.save(actividad);
+        logger.info("✅ [SAVE] Actividad guardada con ID: {}", savedActividad.getOidActividad());
 
-            if (actividadDTO.getDetalle() != null) {
-                Object detalleConvertido = actividadDetalleService.convertirDetalleADTO(actividadDTO);
-                actividadDTO.setDetalle(detalleConvertido);
+        // 4️⃣ Guardar fuentes
+        fuenteService.saveSource(savedActividad);
 
-                TipoActividadEnum tipoActividadEnum = TipoActividadEnum
-                        .fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
+        // 5️⃣ Guardar atributos dinámicos en EAV
+        eavAtributoService.guardarAtributosDinamicos(actividadDTO, actividad);
 
-                if (tipoActividadEnum == null) {
-                    logger.warn("⚠️ [SAVE] Tipo de actividad no encontrado para OID: {}",
-                            actividadDTO.getTipoActividad().getOidTipoActividad());
-                    throw new ValidationException(400, "Tipo de actividad inválido para OID: "
-                            + actividadDTO.getTipoActividad().getOidTipoActividad());
-                }
-
-                Class<?> entityClass = tipoActividadEnum.getEntityClass();
-
-                if (entityClass == null) {
-                    logger.warn("⚠️ [SAVE] Entidad no encontrada para DTO: {}",
-                            detalleConvertido.getClass().getSimpleName());
-                    throw new ValidationException(400,
-                            "Entidad no encontrada para el DTO: " + detalleConvertido.getClass().getSimpleName());
-                }
-
-                actividadDetalleService.saveDetalle(savedActividad, detalleConvertido, entityClass);
-            }
-
-            fuenteService.saveSource(savedActividad);
-            return savedActividad;
+        return savedActividad;
 
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al guardar actividad: {}", e.getMessage(), e);
@@ -154,14 +140,6 @@ public class ActividadService {
                     return new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada.");
                 });
 
-        boolean tipoActividadCambio = !actividadExistente.getTipoActividad().getOidTipoActividad()
-                .equals(actividadDTO.getTipoActividad().getOidTipoActividad());
-
-        if (tipoActividadCambio) {
-            actividadDetalleService.cambiarTipoActividad(actividadExistente,
-                    actividadDTO.getTipoActividad().getOidTipoActividad());
-        }
-
         if (actividadDTO.getNombreActividad() == null || actividadDTO.getNombreActividad().isEmpty()) {
             actividadDTO.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
         }
@@ -169,32 +147,10 @@ public class ActividadService {
         actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
         estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
 
-        if (actividadDTO.getDetalle() != null) {
-            TipoActividadEnum tipoActividadEnum = TipoActividadEnum
-                    .fromOid(actividadDTO.getTipoActividad().getOidTipoActividad());
+        // 🔹 Actualizar atributos dinámicos
+        eavAtributoService.actualizarAtributosDinamicos(actividadDTO, actividadExistente);
 
-            if (tipoActividadEnum == null) {
-                logger.warn("⚠️ [UPDATE] Tipo de actividad no encontrado para OID: {}",
-                        actividadDTO.getTipoActividad().getOidTipoActividad());
-                throw new ValidationException(400, "Tipo de actividad inválido para OID: "
-                        + actividadDTO.getTipoActividad().getOidTipoActividad());
-            }
-
-            Class<?> entityClass = tipoActividadEnum.getEntityClass();
-
-            if (entityClass == null) {
-                logger.warn("⚠️ [UPDATE] Entidad no encontrada para tipo de actividad: {}", tipoActividadEnum.name());
-                throw new ValidationException(400,
-                        "Entidad no encontrada para el tipo de actividad: " + tipoActividadEnum.name());
-            }
-
-            if (tipoActividadCambio) {
-                actividadDetalleService.saveDetalle(actividadExistente, actividadDTO.getDetalle(), entityClass);
-            } else {
-                actividadDetalleService.updateDetalle(actividadExistente, actividadDTO.getDetalle(), entityClass);
-            }
-        }
-
+        // Guardar cambios en la actividad
         Actividad actividadActualizada = actividadRepository.save(actividadExistente);
         logger.info("✅ [UPDATE] Actividad actualizada con ID: {}", actividadActualizada.getOidActividad());
 

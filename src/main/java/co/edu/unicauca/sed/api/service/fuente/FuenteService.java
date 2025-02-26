@@ -166,8 +166,7 @@ public class FuenteService {
     }
 
     public void saveSource(Actividad actividad) {
-        EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
-                .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
+        EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE").orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
     
         // Crear y guardar las fuentes
         createAndSaveFuente(actividad, "1", estadoFuente);
@@ -188,6 +187,5 @@ public class FuenteService {
         fuente.setEstadoFuente(estadoFuente);
         fuente.setCalificacion(null);
         fuenteRepository.save(fuente);
-
     }
 }

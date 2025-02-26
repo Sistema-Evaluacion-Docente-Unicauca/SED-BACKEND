@@ -124,17 +124,24 @@ public class ActividadController {
         try {
             Actividad resultado = actividadService.save(actividadDTO);
             logger.info("✅ [SAVE] Actividad guardada exitosamente con ID: {}", resultado.getOidActividad());
-
+    
             ApiResponse<Actividad> response = new ApiResponse<>(201, "Actividad guardada exitosamente.", resultado);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
+    
         } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al guardar actividad: {}", e.getMessage(), e);
-
-            ApiResponse<Void> errorResponse = new ApiResponse<>(500, "Error al guardar la actividad.", null);
+            // Obtener mensaje de error detallado
+            String errorMessage = "Error al guardar la actividad: " + e.getMessage();
+            if (e.getCause() != null) {
+                errorMessage += " | Causa: " + e.getCause().getMessage();
+            }
+    
+            logger.error("❌ [ERROR] {}", errorMessage, e);
+    
+            ApiResponse<String> errorResponse = new ApiResponse<>(500, errorMessage, null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+    
 
     /**
      * Actualiza una actividad existente.
@@ -147,8 +154,7 @@ public class ActividadController {
             Object updatedActividad = actividadService.update(idActividad, actividadDTO);
             logger.info("✅ [UPDATE] Actividad actualizada correctamente con ID: {}", idActividad);
 
-            ApiResponse<Object> response = new ApiResponse<>(200, "Actividad actualizada correctamente.",
-                    updatedActividad);
+            ApiResponse<Object> response = new ApiResponse<>(200, "Actividad actualizada correctamente.", updatedActividad);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

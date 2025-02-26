@@ -2,6 +2,8 @@ package co.edu.unicauca.sed.api.dto.actividad;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.model.TipoActividad;
@@ -19,7 +21,7 @@ public class ActividadBaseDTO {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
     private List<FuenteDTO> fuentes;
-    private Object detalle;
+    private List<AtributoDTO> atributos;
     private UsuarioDTO evaluador;
     private Integer oidEvaluado;
     private Integer oidEvaluador;
@@ -28,7 +30,7 @@ public class ActividadBaseDTO {
     public ActividadBaseDTO(Integer oidActividad, TipoActividad tipoActividad, Integer oidProceso, Integer oidEstadoActividad,
                              String nombreActividad, Float horas, Float semanas, Boolean informeEjecutivo,
                              LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, List<FuenteDTO> fuentes,
-                             Object detalle, UsuarioDTO evaluador, Integer oidEvaluado, Integer oidEvaluador) {
+                             List<AtributoDTO> atributos, UsuarioDTO evaluador, Integer oidEvaluado, Integer oidEvaluador) {
         this.oidActividad = oidActividad;
         this.tipoActividad = tipoActividad;
         this.oidProceso = oidProceso;
@@ -40,7 +42,7 @@ public class ActividadBaseDTO {
         this.fechaCreacion = fechaCreacion;
         this.fechaActualizacion = fechaActualizacion;
         this.fuentes = fuentes;
-        this.detalle = detalle;
+        this.atributos = atributos;
         this.evaluador = evaluador;
         this.oidEvaluado = oidEvaluado;
         this.oidEvaluador = oidEvaluador;
@@ -62,8 +64,8 @@ public class ActividadBaseDTO {
         return tipoActividad;
     }
 
-    public void setTipoActividad(TipoActividad oidTipoActividad) {
-        this.tipoActividad = oidTipoActividad;
+    public void setTipoActividad(TipoActividad tipoActividad) {
+        this.tipoActividad = tipoActividad;
     }
 
     public Integer getOidProceso() {
@@ -138,12 +140,12 @@ public class ActividadBaseDTO {
         this.fuentes = fuentes;
     }
 
-    public Object getDetalle() {
-        return detalle;
+    public List<AtributoDTO> getAtributos() {
+        return atributos;
     }
 
-    public void setDetalle(Object detalle) {
-        this.detalle = detalle;
+    public void setAtributos(List<AtributoDTO> atributos) {
+        this.atributos = atributos;
     }
 
     public UsuarioDTO getEvaluador() {

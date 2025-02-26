@@ -2,10 +2,7 @@ package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
-import co.edu.unicauca.sed.api.service.fuente.FuenteFileService;
 import jakarta.persistence.EntityNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,8 +14,6 @@ import java.util.zip.ZipOutputStream;
 
 @Service
 public class FileDownloadService {
-
-    private static final Logger logger = LoggerFactory.getLogger(FuenteFileService.class);
 
     @Value("${DOCUMENT_UPLOAD_DIR}")
     private String documentUploadDir;

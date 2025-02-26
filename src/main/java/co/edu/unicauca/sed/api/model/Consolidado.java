@@ -1,10 +1,8 @@
 package co.edu.unicauca.sed.api.model;
 
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,6 +24,10 @@ public class Consolidado {
     @JoinColumn(name = "OIDPROCESO")
     @JsonBackReference
     private Proceso proceso;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "OIDESTADOCONSOLIDADO", nullable = false)
+    private EstadoConsolidado estadoConsolidado;
 
     @Column(name = "NOMBREDOCUMENTO")
     private String nombredocumento;
@@ -51,5 +53,16 @@ public class Consolidado {
      */
     public Consolidado(Proceso proceso) {
         this.proceso = proceso;
+    }
+
+    /**
+     * Asigna un estado consolidado por defecto (OID 1) antes de persistir.
+     */
+    @PrePersist
+    public void asignarEstadoPorDefecto() {
+        if (this.estadoConsolidado == null) {
+            this.estadoConsolidado = new EstadoConsolidado();
+            this.estadoConsolidado.setOidEstadoConsolidado(1);
+        }
     }
 }
