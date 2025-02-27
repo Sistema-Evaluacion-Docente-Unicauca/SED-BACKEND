@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
@@ -44,9 +46,7 @@ public class UsuarioController {
      *         problema.
      */
     @GetMapping
-    public ResponseEntity<?> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+    public ResponseEntity<ApiResponse<Page<Usuario>>> findAll(
             @RequestParam(required = false) String identificacion,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String facultad,
@@ -56,20 +56,11 @@ public class UsuarioController {
             @RequestParam(required = false) String dedicacion,
             @RequestParam(required = false) String estudios,
             @RequestParam(required = false) String rol,
-            @RequestParam(required = false) String estado) {
-        try {
-            Page<Usuario> usuarios = usuarioService.findAll(identificacion, nombre, facultad, departamento, categoria,
-                    contratacion, dedicacion, estudios, rol, estado, PageRequest.of(page, size));
-            if (usuarios.hasContent()) {
-                return ResponseEntity.ok().body(usuarios);
-            } else {
-                logger.warn("No se encontraron usuarios en la página solicitada.");
-                return ResponseEntity.noContent().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error al obtener todos los usuarios con paginación: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error:" + e.getMessage());
-        }
+            @RequestParam(required = false) String estado,
+            Pageable pageable) {
+        ApiResponse<Page<Usuario>> response = usuarioService.findAll(identificacion, nombre, facultad, departamento,
+                categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -80,18 +71,9 @@ public class UsuarioController {
      *         existe.
      */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        try {
-            Usuario resultado = usuarioService.findByOid(oid);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            } else {
-                logger.warn("Usuario con ID {} no encontrado.", oid);
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar usuario con ID {}: {}", oid, e.getMessage(), e);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Usuario>> findByOid(@PathVariable Integer oid) {
+        ApiResponse<Usuario> response = usuarioService.findByOid(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -102,18 +84,9 @@ public class UsuarioController {
      *         problema.
      */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody List<Usuario> usuarios) {
-        try {
-            List<Usuario> resultado = usuarioService.save(usuarios);
-            if (resultado != null && !resultado.isEmpty()) {
-                return ResponseEntity.ok().body(resultado);
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar los usuarios: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.warn("No se pudieron guardar los usuarios. Resultado nulo o vacío.");
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo o vacío.");
+    public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
+        ApiResponse<List<Usuario>> response = usuarioService.save(usuarios);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -126,18 +99,9 @@ public class UsuarioController {
      *         un problema.
      */
     @PutMapping("/{idUsuario}")
-    public ResponseEntity<?> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
-        try {
-            Usuario usuario = usuarioService.update(idUsuario, usuarioActualizado);
-            logger.info("Usuario con ID {} actualizado correctamente.", idUsuario);
-            return ResponseEntity.ok(usuario);
-        } catch (RuntimeException e) {
-            logger.warn("No se pudo actualizar el usuario con ID {}: {}", idUsuario, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error al actualizar el usuario con ID {}: {}", idUsuario, e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error al actualizar el usuario: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
+        ApiResponse<Usuario> response = usuarioService.update(idUsuario, usuarioActualizado);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -148,21 +112,9 @@ public class UsuarioController {
      *         puede ser eliminado.
      */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        try {
-            Usuario usuario = usuarioService.findByOid(oid);
-            if (usuario == null) {
-                logger.warn("Usuario con ID {} no encontrado para eliminación.", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-            }
-
-            usuarioService.delete(oid);
-            logger.info("Usuario con ID {} eliminado correctamente.", oid);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            logger.error("Error al eliminar el usuario con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
+        ApiResponse<Void> response = usuarioService.delete(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -174,27 +126,22 @@ public class UsuarioController {
      * @return Lista de evaluaciones de docentes o un mensaje de error.
      */
     @GetMapping("/obtenerEvaluacionDocente")
-    public ResponseEntity<?> obtenerEvaluacionDocentes(
+    public ResponseEntity<ApiResponse<Page<DocenteEvaluacionDTO>>> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
             @RequestParam(required = false) String departamento,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<DocenteEvaluacionDTO> evaluaciones = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,
+            ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,
                     idPeriodoAcademico, departamento, PageRequest.of(page, size));
-
-            if (evaluaciones.hasContent()) {
-                return ResponseEntity.ok(evaluaciones);
-            } else {
-                return ResponseEntity.noContent().build();
-            }
-        } catch (IllegalStateException e) {
+            return ResponseEntity.status(response.getCodigo()).body(response);
+        } catch (IllegalArgumentException e) {
             logger.warn("Error en los parámetros proporcionados: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
         } catch (Exception e) {
             logger.error("Error inesperado al obtener evaluaciones de docentes: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error inesperado: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(new ApiResponse<>(500, "Error inesperado: " + e.getMessage(), null));
         }
     }
 }

@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.mapper.DocenteEvaluacionMapper;
 import co.edu.unicauca.sed.api.model.Actividad;
@@ -35,40 +36,55 @@ public class DocenteEvaluacionService {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes.
      */
-    public Page<DocenteEvaluacionDTO> obtenerEvaluacionDocentes(Integer idEvaluado, Integer idPeriodoAcademico,
-            String departamento, Pageable pageable) {
-        if (idPeriodoAcademico == null) {
-            idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
-        }
+    public ApiResponse<Page<DocenteEvaluacionDTO>> obtenerEvaluacionDocentes(
+            Integer idEvaluado, Integer idPeriodoAcademico, String departamento, Pageable pageable) {
 
-        final Integer periodoFinal = idPeriodoAcademico;
-
-        List<Usuario> evaluados = obtenerUsuariosEvaluados(idEvaluado, idPeriodoAcademico);
-
-        if (departamento != null) {
-            evaluados = filtrarPorDepartamento(evaluados, departamento);
-            if (evaluados.isEmpty() && idEvaluado == null) {
-                throw new IllegalArgumentException("No se encontraron docentes para el departamento: " + departamento);
+        try {
+            if (idPeriodoAcademico == null) {
+                idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             }
+
+            final Integer periodoFinal = idPeriodoAcademico;
+
+            List<Usuario> evaluados = obtenerUsuariosEvaluados(idEvaluado, idPeriodoAcademico);
+
+            if (departamento != null) {
+                evaluados = filtrarPorDepartamento(evaluados, departamento);
+                if (evaluados.isEmpty() && idEvaluado == null) {
+                    return new ApiResponse<>(404, "No se encontraron docentes para el departamento: " + departamento,
+                            Page.empty());
+                }
+            }
+
+            List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
+                    .map(evaluado -> {
+                        List<Actividad> actividades = procesoRepository
+                                .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
+                                        evaluado.getOidUsuario(), periodoFinal)
+                                .stream()
+                                .flatMap(proceso -> proceso.getActividades().stream())
+                                .collect(Collectors.toList());
+
+                        return DocenteEvaluacionMapper.toDto(evaluado, actividades);
+                    }).collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
+            List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
+
+            Page<DocenteEvaluacionDTO> pageResult = new PageImpl<>(paginatedList, pageable, evaluacionDTOs.size());
+
+            return new ApiResponse<>(200, "Evaluaciones obtenidas correctamente.", pageResult);
+
+        } catch (IllegalArgumentException e) {
+            return new ApiResponse<>(400, "Error en los parámetros proporcionados: " + e.getMessage(), Page.empty());
+
+        } catch (Exception e) {
+            return new ApiResponse<>(500, "Error inesperado al obtener evaluaciones de docentes: " + e.getMessage(),
+                    Page.empty());
         }
-
-        List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
-                .map(evaluado -> {
-                    List<Actividad> actividades = procesoRepository
-                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado.getOidUsuario(), periodoFinal)
-                            .stream()
-                            .flatMap(proceso -> proceso.getActividades().stream())
-                            .collect(Collectors.toList());
-
-                    return DocenteEvaluacionMapper.toDto(evaluado, actividades);
-                }).collect(Collectors.toList());
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
-        List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
-
-        return new PageImpl<>(paginatedList, pageable, evaluacionDTOs.size());
     }
+
 
     /**
      * Filtra la lista de evaluados según el departamento proporcionado.

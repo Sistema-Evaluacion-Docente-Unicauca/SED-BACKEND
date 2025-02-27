@@ -67,6 +67,7 @@ public class UsuarioDetalleService {
     public void procesarUsuarioDetalle(Usuario usuario) {
         if (usuario.getUsuarioDetalle() != null) {
             UsuarioDetalle usuarioDetalle = usuario.getUsuarioDetalle();
+            
             usuarioDetalle.setFacultad(stringUtils.safeToUpperCase(usuarioDetalle.getFacultad()));
             usuarioDetalle.setDepartamento(stringUtils.safeToUpperCase(usuarioDetalle.getDepartamento()));
             usuarioDetalle.setCategoria(stringUtils.safeToUpperCase(usuarioDetalle.getCategoria()));
