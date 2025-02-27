@@ -38,113 +38,56 @@ public class ConsolidadoController {
      * @return Página de Consolidado o mensaje de error.
      */
     @GetMapping
-    public ResponseEntity<?> findAll(
+    public ResponseEntity<ApiResponse<Page<Consolidado>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
-        try {
-            Page<Consolidado> pageResult = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder);
-            if (pageResult.hasContent()) {
-                return ResponseEntity.ok().body(pageResult);
-            }
-        } catch (Exception e) {
-            logger.error("Error al obtener la lista de consolidados: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.warn("No se encontraron consolidados en la base de datos.");
-        return ResponseEntity.noContent().build();
+    
+        ApiResponse<Page<Consolidado>> response = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
+    
 
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        try {
-            Consolidado resultado = this.consolidadoService.findByOid(oid);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            }
-            logger.warn("Consolidado con ID {} no encontrado.", oid);
-        } catch (Exception e) {
-            logger.error("Error al buscar el consolidado con ID {}: {}", oid, e.getMessage(), e);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Consolidado>> findById(@PathVariable Integer oid) {
+        ApiResponse<Consolidado> response = consolidadoService.findByOid(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody Consolidado consolidado) {
-        try {
-            Consolidado resultado = consolidadoService.save(consolidado);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar el consolidado: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.error("El resultado del guardado fue nulo. Verifique los datos de entrada.");
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    public ResponseEntity<ApiResponse<Consolidado>> save(@RequestBody Consolidado consolidado) {
+        ApiResponse<Consolidado> response = consolidadoService.save(consolidado);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PutMapping("/{oidConsolidado}")
-    public ResponseEntity<?> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
-        try {
-            consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
-            return ResponseEntity.ok("Consolidados actualizados correctamente.");
-        } catch (IllegalArgumentException e) {
-            logger.warn("Actualización fallida: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error al actualizar los consolidados: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar los consolidados: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
+        ApiResponse<Void> response = consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        try {
-            Consolidado consolidado = consolidadoService.findByOid(oid);
-            if (consolidado == null) {
-                logger.warn("No se pudo eliminar. Consolidado con ID {} no encontrado.", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar el consolidado con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Consolidado no encontrado");
-        }
-
-        try {
-            this.consolidadoService.delete(oid);
-        } catch (Exception e) {
-            logger.error("Error al eliminar el consolidado con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
-        logger.info("Consolidado con ID {} eliminado exitosamente.", oid);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
+        ApiResponse<Void> response = consolidadoService.delete(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
      * Endpoint para obtener solo la información general del consolidado sin actividades.
      */
     @GetMapping("/informacion-general")
-    public ResponseEntity<ConsolidadoDTO> obtenerInformacionGeneral(
+    public ResponseEntity<ApiResponse<ConsolidadoDTO>> obtenerInformacionGeneral(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico) {
-        try {
-            ConsolidadoDTO consolidado = consolidadoService.generarInformacionGeneral(idEvaluado, periodoAcademico);
-            return ResponseEntity.ok(consolidado);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error al obtener la información general: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (Exception e) {
-            logger.error("Error inesperado en obtenerInformaciónGeneral: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        ApiResponse<ConsolidadoDTO> response = consolidadoService.generarInformacionGeneral(idEvaluado, periodoAcademico);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
      * Endpoint para obtener solo las actividades del consolidado paginadas.
      */
     @GetMapping("/actividades")
-    public ResponseEntity<ActividadPaginadaDTO> obtenerActividadesPaginadas(
+    public ResponseEntity<ApiResponse<ActividadPaginadaDTO>> obtenerActividadesPaginadas(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nombreActividad,
@@ -152,13 +95,9 @@ public class ConsolidadoController {
             @RequestParam(required = false) String idTipoFuente,
             @RequestParam(required = false) String idEstadoFuente,
             Pageable pageable) {
-        try {
-            ActividadPaginadaDTO actividades = consolidadoService.obtenerActividadesPaginadas(idEvaluado, periodoAcademico, nombreActividad, idTipoActividad, idTipoFuente, idEstadoFuente, pageable);
-            return ResponseEntity.ok(actividades);
-        } catch (Exception e) {
-            logger.error("Error al obtener actividades paginadas: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        ApiResponse<ActividadPaginadaDTO> response = consolidadoService.filtrarActividadesPaginadas(
+                idEvaluado, periodoAcademico, nombreActividad, idTipoActividad, idTipoFuente, idEstadoFuente, pageable);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -170,18 +109,7 @@ public class ConsolidadoController {
             @RequestParam Integer idEvaluador,
             @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nota) {
-        try {
-            consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico, nota);
-            ApiResponse<Void> response = new ApiResponse<>(200, "Consolidado aprobado y archivo generado correctamente.", null);
-            return ResponseEntity.ok(response);
-        } catch (EntityNotFoundException e) {
-            logger.warn("⚠️ [ERROR] Recurso no encontrado: {}", e.getMessage());
-            ApiResponse<Void> errorResponse = new ApiResponse<>(404, e.getMessage(), null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al aprobar el consolidado: {}", e.getMessage(), e);
-            ApiResponse<Void> errorResponse = new ApiResponse<>(500, "Error interno: " + e.getMessage(), null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        ApiResponse<Void> response = consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico, nota);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }
