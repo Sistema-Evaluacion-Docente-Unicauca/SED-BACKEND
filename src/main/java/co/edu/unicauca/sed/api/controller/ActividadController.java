@@ -37,14 +37,14 @@ public class ActividadController {
      * Obtiene todas las actividades con paginación.
      */
     @GetMapping
-    public ResponseEntity<Page<?>> findAll(
+    public ResponseEntity<ApiResponse<Page<ActividadBaseDTO>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         logger.info("🔵 [FIND_ALL] Buscando actividades con paginación: page={}, size={}", page, size);
-        Page<ActividadBaseDTO> activities = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
-        logger.info("✅ [FIND_ALL] Se encontraron {} actividades.", activities.getTotalElements());
-        return ResponseEntity.ok(activities);
+        
+        ApiResponse<Page<ActividadBaseDTO>> response = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -53,27 +53,15 @@ public class ActividadController {
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<ActividadBaseDTO>> findById(@PathVariable Integer oid) {
         logger.info("🔵 [FIND_BY_ID] Buscando actividad con ID: {}", oid);
-        try {
-            ActividadBaseDTO actividadDTO = actividadService.findDTOByOid(oid);
-            logger.info("✅ [FIND_BY_ID] Actividad encontrada con ID: {}", oid);
-            ApiResponse<ActividadBaseDTO> response = new ApiResponse<>(200, "Actividad encontrada.", actividadDTO);
-            return ResponseEntity.ok(response);
-        } catch (EntityNotFoundException e) {
-            logger.warn("⚠️ [FIND_BY_ID] Actividad con ID {} no encontrada.", oid);
-            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(404, "Actividad con ID " + oid + " no encontrada.", null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al buscar actividad con ID {}: {}", oid, e.getMessage(), e);
-            ApiResponse<ActividadBaseDTO> errorResponse = new ApiResponse<>(500, "Error interno al buscar la actividad.", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        ApiResponse<ActividadBaseDTO> response = actividadService.findDTOByOid(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
      * Busca actividades asignadas a un evaluado en períodos activos con paginación.
      */
     @GetMapping("/buscarActividadesPorEvaluado")
-    public ResponseEntity<Page<?>> buscarActividadesPorEvaluado(
+    public ResponseEntity<ApiResponse<Page<ActividadBaseDTO>>> buscarActividadesPorEvaluado(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer idEvaluador,
@@ -86,10 +74,12 @@ public class ActividadController {
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Integer idPeriodo) {
-        Page<ActividadBaseDTO> activities = actividadQueryService.findActivitiesByEvaluado(
+
+        ApiResponse<Page<ActividadBaseDTO>> response = actividadQueryService.findActivitiesByEvaluado(
                 idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador,
                 roles, tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
-        return ResponseEntity.ok(activities);
+
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -97,7 +87,7 @@ public class ActividadController {
      * paginación.
      */
     @GetMapping("/buscarActividadesPorEvaluador")
-    public ResponseEntity<Page<?>> buscarActividadesPorEvaluador(
+    public ResponseEntity<ApiResponse<Page<ActividadDTOEvaluador>>> buscarActividadesPorEvaluador(
             @RequestParam(required = false) Integer idEvaluador,
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) String tipoActividad,
@@ -110,59 +100,32 @@ public class ActividadController {
             @RequestParam(required = false) Integer idPeriodo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<ActividadDTOEvaluador> activities = actividadQueryService.findActivitiesByEvaluador(
+        ApiResponse<Page<ActividadDTOEvaluador>> response = actividadQueryService.findActivitiesByEvaluador(
                 idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles,
                 tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
-        return ResponseEntity.ok(activities);
+
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
      * Guarda una nueva actividad.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> save(@RequestBody ActividadBaseDTO actividadDTO) {
-        try {
-            Actividad resultado = actividadService.save(actividadDTO);
-            logger.info("✅ [SAVE] Actividad guardada exitosamente con ID: {}", resultado.getOidActividad());
-    
-            ApiResponse<Actividad> response = new ApiResponse<>(201, "Actividad guardada exitosamente.", resultado);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    
-        } catch (Exception e) {
-            // Obtener mensaje de error detallado
-            String errorMessage = "Error al guardar la actividad: " + e.getMessage();
-            if (e.getCause() != null) {
-                errorMessage += " | Causa: " + e.getCause().getMessage();
-            }
-    
-            logger.error("❌ [ERROR] {}", errorMessage, e);
-    
-            ApiResponse<String> errorResponse = new ApiResponse<>(500, errorMessage, null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+    public ResponseEntity<ApiResponse<Actividad>> save(@RequestBody ActividadBaseDTO actividadDTO) {
+        ApiResponse<Actividad> response = actividadService.save(actividadDTO);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
+    
     
 
     /**
      * Actualiza una actividad existente.
      */
     @PutMapping("/{idActividad}")
-    public ResponseEntity<?> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
+    public ResponseEntity<ApiResponse<Actividad>> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
         logger.info("🔵 [UPDATE] Iniciando actualización de actividad con ID: {}", idActividad);
-
-        try {
-            Object updatedActividad = actividadService.update(idActividad, actividadDTO);
-            logger.info("✅ [UPDATE] Actividad actualizada correctamente con ID: {}", idActividad);
-
-            ApiResponse<Object> response = new ApiResponse<>(200, "Actividad actualizada correctamente.", updatedActividad);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al actualizar actividad con ID {}: {}", idActividad, e.getMessage(), e);
-
-            ApiResponse<Object> errorResponse = new ApiResponse<>(500, "Error al actualizar la actividad.", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        ApiResponse<Actividad> response = actividadService.update(idActividad, actividadDTO);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
@@ -170,8 +133,7 @@ public class ActividadController {
      */
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        actividadService.delete(oid);
-        ApiResponse<Void> response = new ApiResponse<>(200, "Actividad eliminada correctamente.", null);
-        return ResponseEntity.ok(response);
+        ApiResponse<Void> response = actividadService.delete(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

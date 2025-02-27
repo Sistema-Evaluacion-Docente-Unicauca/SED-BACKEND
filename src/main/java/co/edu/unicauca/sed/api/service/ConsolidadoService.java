@@ -220,15 +220,13 @@ public class ConsolidadoService {
 
         if (procesoExistente == null) {
             procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
-            logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}",
-                    procesoExistente.getOidProceso());
+            logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}", procesoExistente.getOidProceso());
         }
 
         Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
         if (consolidadoExistente == null) {
             consolidadoExistente = new Consolidado(procesoExistente);
-            logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}",
-                    procesoExistente.getOidProceso());
+            logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
         }
         guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
     }

@@ -134,7 +134,6 @@ public class UsuarioService {
         }
     }
 
-
     /**
      * Elimina un usuario por su ID.
      */
