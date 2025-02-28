@@ -2,12 +2,9 @@ package co.edu.unicauca.sed.api.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.model.EstadoUsuario;
 import co.edu.unicauca.sed.api.model.Rol;
@@ -43,8 +40,8 @@ public class UsuarioService {
             String rol, String estado, Pageable pageable) {
         try {
             Page<Usuario> usuarios = usuarioRepository
-                    .findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
-                            categoria, contratacion, dedicacion, estudios, rol, estado), pageable);
+                .findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
+                        categoria, contratacion, dedicacion, estudios, rol, estado), pageable);
             return new ApiResponse<>(200, "Usuarios encontrados correctamente.", usuarios);
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error al recuperar los usuarios: " + e.getMessage(), null);

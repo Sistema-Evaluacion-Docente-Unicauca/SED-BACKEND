@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import co.edu.unicauca.sed.api.specification.ConsolidadoSpecification;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -54,15 +55,29 @@ public class ConsolidadoService {
     @Autowired
     private ProcesoService procesoService;
 
-    public ApiResponse<Page<Consolidado>> findAll(Pageable pageable, Boolean ascendingOrder) {
+    public ApiResponse<Page<Consolidado>> findAll(Pageable pageable, Boolean ascendingOrder,
+            Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion,
+            String facultad, String departamento, String categoria) {
+
         try {
             boolean order = (ascendingOrder != null) ? ascendingOrder : true;
             Sort sort = order ? Sort.by("fechaCreacion").ascending() : Sort.by("fechaCreacion").descending();
             Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-            Page<Consolidado> consolidadoPage = consolidadoRepository.findAll(sortedPageable);
+
+            if (idPeriodoAcademico == null) {
+                idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+            }
+            // Crear el ConsolidadoSpecification y obtener el Specification dinámico
+            ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
+            Specification<Consolidado> specification = specBuilder.byFilters(
+                    idUsuario, nombre, identificacion, facultad, departamento, categoria, idPeriodoAcademico);
+
+            // Ejecutar consulta con filtros dinámicos
+            Page<Consolidado> consolidadoPage = consolidadoRepository.findAll(specification, sortedPageable);
 
             if (consolidadoPage.isEmpty()) {
-                return new ApiResponse<>(404, "No se encontraron consolidados.", Page.empty());
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.",
+                        Page.empty());
             }
 
             return new ApiResponse<>(200, "Consolidados obtenidos correctamente.", consolidadoPage);
@@ -224,23 +239,24 @@ public class ConsolidadoService {
         try {
             BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
 
-        List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+            List<Actividad> actividades = baseData.getProcesos().stream()
+                    .flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
 
-        float totalHoras = calculoService.calcularTotalHoras(actividades);
+            float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
+            Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
 
-        double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
-        double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
-        ConsolidadoDTO consolidadoDTO = construirConsolidado(
-            baseData.getEvaluado(),
-            baseData.getDetalleUsuario(),
-            baseData.getPeriodoAcademico(),
-            null,
-            totalHoras,
-            totalPorcentaje,
-            totalAcumulado);
-        return new ApiResponse<>(200, "Información general obtenida correctamente.", consolidadoDTO);
+            double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
+            double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
+            ConsolidadoDTO consolidadoDTO = construirConsolidado(
+                    baseData.getEvaluado(),
+                    baseData.getDetalleUsuario(),
+                    baseData.getPeriodoAcademico(),
+                    null,
+                    totalHoras,
+                    totalPorcentaje,
+                    totalAcumulado);
+            return new ApiResponse<>(200, "Información general obtenida correctamente.", consolidadoDTO);
         } catch (EntityNotFoundException e) {
             logger.warn("⚠️ [ERROR] {}", e.getMessage());
             return new ApiResponse<>(404, e.getMessage(), null);

@@ -2,10 +2,7 @@ package co.edu.unicauca.sed.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import java.time.LocalDateTime;
 
 /**
  * Entidad que representa el estado consolidado.
@@ -24,12 +21,4 @@ public class EstadoConsolidado {
 
     @Column(name = "NOMBRE", nullable = false, length = 15)
     private String nombre;
-
-    @Column(name = "FECHACREACION", updatable = false, nullable = false)
-    @CreationTimestamp
-    private LocalDateTime fechaCreacion;
-
-    @Column(name = "FECHAACTUALIZACION", nullable = false)
-    @UpdateTimestamp
-    private LocalDateTime fechaActualizacion;
 }

@@ -25,10 +25,6 @@ public class Consolidado {
     @JsonBackReference
     private Proceso proceso;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "OIDESTADOCONSOLIDADO", nullable = false)
-    private EstadoConsolidado estadoConsolidado;
-
     @Column(name = "NOMBREDOCUMENTO")
     private String nombredocumento;
 
@@ -53,16 +49,5 @@ public class Consolidado {
      */
     public Consolidado(Proceso proceso) {
         this.proceso = proceso;
-    }
-
-    /**
-     * Asigna un estado consolidado por defecto (OID 1) antes de persistir.
-     */
-    @PrePersist
-    public void asignarEstadoPorDefecto() {
-        if (this.estadoConsolidado == null) {
-            this.estadoConsolidado = new EstadoConsolidado();
-            this.estadoConsolidado.setOidEstadoConsolidado(1);
-        }
     }
 }

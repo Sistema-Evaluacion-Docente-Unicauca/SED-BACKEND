@@ -5,9 +5,6 @@ import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadService;
-import jakarta.persistence.EntityNotFoundException;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;

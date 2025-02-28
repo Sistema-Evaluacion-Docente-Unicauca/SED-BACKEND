@@ -1,15 +1,12 @@
 package co.edu.unicauca.sed.api.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;

@@ -59,12 +59,8 @@ public class DocenteEvaluacionService {
             List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
                     .map(evaluado -> {
                         List<Actividad> actividades = procesoRepository
-                                .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
-                                        evaluado.getOidUsuario(), periodoFinal)
-                                .stream()
-                                .flatMap(proceso -> proceso.getActividades().stream())
-                                .collect(Collectors.toList());
-
+                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado.getOidUsuario(), periodoFinal)
+                            .stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
                         return DocenteEvaluacionMapper.toDto(evaluado, actividades);
                     }).collect(Collectors.toList());
 

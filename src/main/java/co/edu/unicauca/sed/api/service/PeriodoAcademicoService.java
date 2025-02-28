@@ -48,7 +48,7 @@ public class PeriodoAcademicoService {
      * @throws IllegalArgumentException Si el ID del período académico ya existe.
      */
     public PeriodoAcademico save(PeriodoAcademico periodoAcademico) {
-        validatePeriodoAcademico(null, periodoAcademico); // Validaciones comunes
+        validatePeriodoAcademico(null, periodoAcademico);
         try {
             return periodoAcademicoRepository.save(periodoAcademico);
         } catch (Exception e) {
@@ -88,18 +88,13 @@ public class PeriodoAcademicoService {
     }
 
     /**
-     * Valida las condiciones necesarias para guardar o actualizar un período
-     * académico.
+     * Valida las condiciones necesarias para guardar o actualizar un período académico.
      *
-     * @param oid              El identificador del período académico (puede ser
-     *                         null para un nuevo registro).
-     * @param periodoAcademico El objeto PeriodoAcademico que se desea guardar o
-     *                         actualizar.
+     * @param oid              El identificador del período académico (puede ser null para un nuevo registro).
+     * @param periodoAcademico El objeto PeriodoAcademico que se desea guardar o actualizar.
      * @throws IllegalArgumentException Si se violan las reglas de validación.
      */
     private void validatePeriodoAcademico(Integer oid, PeriodoAcademico periodoAcademico) {
-        // Validar si el ID del período ya existe (para nuevos o actualizaciones con
-        // cambio de ID)
         if (periodoAcademicoRepository.existsByIdPeriodo(periodoAcademico.getIdPeriodo())
                 && (oid == null || !findByOid(oid).getIdPeriodo().equals(periodoAcademico.getIdPeriodo()))) {
             throw new IllegalArgumentException(

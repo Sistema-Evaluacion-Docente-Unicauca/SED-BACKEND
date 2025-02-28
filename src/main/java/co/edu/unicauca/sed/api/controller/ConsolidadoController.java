@@ -2,23 +2,18 @@ package co.edu.unicauca.sed.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.service.ConsolidadoService;
-import jakarta.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 
 @Controller
 @RequestMapping("api/consolidado")
@@ -41,12 +36,19 @@ public class ConsolidadoController {
     public ResponseEntity<ApiResponse<Page<Consolidado>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "true") Boolean ascendingOrder) {
-    
-        ApiResponse<Page<Consolidado>> response = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder);
+            @RequestParam(defaultValue = "true") Boolean ascendingOrder,
+            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) Integer idUsuario,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String identificacion,
+            @RequestParam(required = false) String facultad,
+            @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String categoria) {
+
+        ApiResponse<Page<Consolidado>> response = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder,
+            idPeriodoAcademico,idUsuario, nombre, identificacion, facultad, departamento, categoria);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
-    
 
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<Consolidado>> findById(@PathVariable Integer oid) {
@@ -61,7 +63,8 @@ public class ConsolidadoController {
     }
 
     @PutMapping("/{oidConsolidado}")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oidConsolidado, @RequestBody Consolidado consolidado) {
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oidConsolidado,
+            @RequestBody Consolidado consolidado) {
         ApiResponse<Void> response = consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
@@ -73,13 +76,15 @@ public class ConsolidadoController {
     }
 
     /**
-     * Endpoint para obtener solo la información general del consolidado sin actividades.
+     * Endpoint para obtener solo la información general del consolidado sin
+     * actividades.
      */
     @GetMapping("/informacion-general")
     public ResponseEntity<ApiResponse<ConsolidadoDTO>> obtenerInformacionGeneral(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico) {
-        ApiResponse<ConsolidadoDTO> response = consolidadoService.generarInformacionGeneral(idEvaluado, periodoAcademico);
+        ApiResponse<ConsolidadoDTO> response = consolidadoService.generarInformacionGeneral(idEvaluado,
+                periodoAcademico);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -109,7 +114,8 @@ public class ConsolidadoController {
             @RequestParam Integer idEvaluador,
             @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nota) {
-        ApiResponse<Void> response = consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico, nota);
+        ApiResponse<Void> response = consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico,
+                nota);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }
