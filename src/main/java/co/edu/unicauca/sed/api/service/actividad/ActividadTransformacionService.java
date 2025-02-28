@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
 
@@ -67,5 +67,30 @@ public class ActividadTransformacionService {
 						fuente.getCalificacion(),
 						fuente.getTipoFuente() != null ? fuente.getTipoFuente() : "Sin tipo"))
 				.collect(Collectors.toList());
+	}
+
+	public ActividadPaginadaDTO construirActividadPaginadaDTO(Page<Actividad> actividadPage) {
+		List<Actividad> actividades = actividadPage.getContent();
+		float totalHoras = calculoService.calcularTotalHoras(actividades);
+
+		Map<String, List<Map<String, Object>>> actividadesPorTipo = agruparActividadesPorTipo(actividades, totalHoras);
+
+		ActividadPaginadaDTO actividadPaginadaDTO = new ActividadPaginadaDTO();
+		actividadPaginadaDTO.setActividades(actividadesPorTipo);
+		actividadPaginadaDTO.setCurrentPage(actividadPage.getNumber());
+		actividadPaginadaDTO.setPageSize(actividadPage.getSize());
+		actividadPaginadaDTO.setTotalItems((int) actividadPage.getTotalElements());
+		actividadPaginadaDTO.setTotalPages(actividadPage.getTotalPages());
+
+		return actividadPaginadaDTO;
+	}
+
+	public Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
+		return actividades.stream().sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
+			.collect(Collectors.groupingBy(
+				actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
+				Collectors.mapping(
+					actividad -> (Map<String, Object>) transformarActividad(actividad, totalHoras),
+					Collectors.toList())));
 	}
 }

@@ -75,17 +75,17 @@ public class EstadoFuenteService {
     @Transactional
     public ResponseEntity<ApiResponse<EstadoFuente>> update(Integer id, EstadoFuente estadoFuente) {
         try {
-            // 🔹 Validar si el estado existe
+            // Validar si el estado existe
             EstadoFuente existingEstadoFuente = estadoFuenteRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("EstadoFuente no encontrado con ID: " + id));
     
-            // 🔹 Validar que `nombreEstado` no sea nulo o vacío
+            // Validar que `nombreEstado` no sea nulo o vacío
             if (estadoFuente.getNombreEstado() == null || estadoFuente.getNombreEstado().trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ApiResponse<>(400, "El nombre del EstadoFuente no puede estar vacío.", null));
             }
     
-            // 🔹 Convertir el nombre a mayúsculas antes de actualizar
+            //Convertir el nombre a mayúsculas antes de actualizar
             existingEstadoFuente.setNombreEstado(estadoFuente.getNombreEstado().toUpperCase());
             EstadoFuente updatedEstadoFuente = estadoFuenteRepository.save(existingEstadoFuente);
     
@@ -93,16 +93,14 @@ public class EstadoFuenteService {
             return ResponseEntity.ok(new ApiResponse<>(200, "EstadoFuente actualizado exitosamente.", updatedEstadoFuente));
     
         } catch (IllegalArgumentException e) {
-            // 🔹 Capturar cuando el ID no existe y retornar 404
+            //Capturar cuando el ID no existe y retornar 404
             logger.warn("⚠️ [UPDATE] {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(404, e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(404, e.getMessage(), null));
     
         } catch (Exception e) {
-            // 🔹 Capturar otros errores y registrar en logs
+            // Capturar otros errores y registrar en logs
             logger.error("❌ [ERROR] Error al actualizar EstadoFuente: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(500, "Error al actualizar el EstadoFuente: " + e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(500, "Error al actualizar el EstadoFuente: " + e.getMessage(), null));
         }
     }
     

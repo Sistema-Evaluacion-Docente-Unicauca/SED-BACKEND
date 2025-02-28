@@ -19,6 +19,7 @@ import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class ProcesoService {
@@ -35,27 +36,29 @@ public class ProcesoService {
      * Obtiene todos los procesos con filtros y paginación.
      */
     public ApiResponse<Page<Proceso>> findAll(Integer evaluadorId, Integer evaluadoId, Integer idPeriodo,
-            String nombreProceso, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, int page, int size) {
+            String nombreProceso, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, Pageable pageable) {
         try {
             if (idPeriodo == null) {
                 idPeriodo = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             }
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Proceso> procesos = procesoRepository.findAll(
-                    ProcesoSpecification.byFilters(evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion,
-                            fechaActualizacion),
-                    pageable);
+
+            Specification<Proceso> spec = ProcesoSpecification.byFilters(
+                    evaluadorId, evaluadoId, idPeriodo, nombreProceso, fechaCreacion, fechaActualizacion);
+
+            Page<Proceso> procesos = procesoRepository.findAll(spec, pageable);
 
             if (procesos.isEmpty()) {
-                return new ApiResponse<>(404, "No se encontraron procesos con los filtros dados.", Page.empty());
+                return new ApiResponse<>(204, "No se encontraron procesos con los filtros dados.", Page.empty());
             }
 
             return new ApiResponse<>(200, "Procesos obtenidos correctamente.", procesos);
+
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al obtener los procesos: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al obtener los procesos.", Page.empty());
         }
     }
+
 
     /**
      * Busca un proceso por su OID.

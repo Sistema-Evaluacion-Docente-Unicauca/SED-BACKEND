@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.utils.MathUtils;
 import co.edu.unicauca.sed.api.model.Actividad;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ActividadCalculoService {
@@ -64,4 +65,20 @@ public class ActividadCalculoService {
         double acumulado = promedio * (porcentaje / 100);
         return Math.round(acumulado * 100.0) / 100.0;
     }
+
+    public double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
+        double total = actividadesPorTipo.values().stream()
+            .flatMap(List::stream)
+            .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue())
+            .sum();
+    
+        return Math.min(Math.round(total), 100.0);
+    }
+    
+    public double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
+        return actividadesPorTipo.values().stream()
+                .flatMap(List::stream)
+                .mapToDouble(actividad -> ((Number) actividad.getOrDefault("acumulado", 0)).doubleValue())
+                .sum();
+    }    
 }

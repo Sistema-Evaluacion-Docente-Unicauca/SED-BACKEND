@@ -5,6 +5,7 @@ import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
@@ -206,5 +207,10 @@ public class ActividadQueryService {
         if (!orderList.isEmpty()) {
             query.orderBy(orderList);
         }
+    }
+
+    public Page<Actividad> obtenerActividadesPorProcesosPaginadas(List<Proceso> procesos, Pageable pageable) {
+        List<Integer> procesoIds = procesos.stream().map(Proceso::getOidProceso).collect(Collectors.toList());
+        return actividadRepository.findByProcesos(procesoIds, pageable);
     }
 }
