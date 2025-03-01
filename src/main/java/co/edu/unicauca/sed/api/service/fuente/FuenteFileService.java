@@ -38,7 +38,7 @@ public class FuenteFileService {
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");
-                return null; // Retornar null si no hay archivo proporcionado
+                return null;
             }
 
             // Si existe una fuente previa, verifica si el archivo es diferente

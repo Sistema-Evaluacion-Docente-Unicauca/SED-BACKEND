@@ -41,7 +41,7 @@ public class FileService {
             throws IOException {
         // Construir la ruta dinámica utilizando uploadDir
         Path directoryPath = Paths.get(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado);
-        Files.createDirectories(directoryPath); // Crea los directorios si no existen
+        Files.createDirectories(directoryPath);
 
         // Obtener el nombre original del archivo
         String originalFilename = file.getOriginalFilename();

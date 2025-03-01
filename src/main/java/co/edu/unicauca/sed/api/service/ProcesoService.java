@@ -29,6 +29,8 @@ public class ProcesoService {
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
 
+    public String TIPO_CONSOLIDADO = "CONSOLIDADO";
+
     /**
      * Obtiene todos los procesos con filtros y paginación.
      */
@@ -179,13 +181,13 @@ public class ProcesoService {
         }
     }
     
-    public Proceso crearNuevoProceso(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico) {
+    public Proceso crearNuevoProceso(Integer idEvaluador, Integer idEvaluado, Integer idPeriodoAcademico) {
         try {
             Proceso proceso = new Proceso();
             proceso.setEvaluador(new Usuario(idEvaluador));
             proceso.setEvaluado(new Usuario(idEvaluado));
             proceso.setOidPeriodoAcademico(new PeriodoAcademico(idPeriodoAcademico));
-            proceso.setNombreProceso("Consolidado Generado");
+            proceso.setNombreProceso(TIPO_CONSOLIDADO);
     
             Proceso savedProceso = this.procesoRepository.save(proceso);
             logger.info("✅ [SAVE] Nuevo proceso creado con ID: {}", savedProceso.getOidProceso());

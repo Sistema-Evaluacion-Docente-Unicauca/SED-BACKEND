@@ -1,6 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.*;
@@ -99,22 +100,6 @@ public class ConsolidadoService {
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al buscar consolidado por ID: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al buscar el consolidado.", null);
-        }
-    }
-
-    public ApiResponse<Consolidado> save(Consolidado consolidado) {
-        try {
-            Consolidado savedConsolidado = consolidadoRepository.save(consolidado);
-            logger.info("✅ [SAVE] Consolidado guardado con ID: {}", savedConsolidado.getOidConsolidado());
-
-            return new ApiResponse<>(201, "Consolidado guardado correctamente.", savedConsolidado);
-
-        } catch (DataIntegrityViolationException e) {
-            logger.error("❌ [ERROR] Restricción de integridad violada al guardar consolidado: {}", e.getMessage());
-            return new ApiResponse<>(409, "Error: Ya existe un consolidado con estos datos.", null);
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error inesperado al guardar el consolidado: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, "Error inesperado al guardar el consolidado.", null);
         }
     }
 
@@ -297,7 +282,7 @@ public class ConsolidadoService {
     /**
      * Aprobar un consolidado y generar el documento.
      */
-    public ApiResponse<Void> aprobarConsolidado(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico, String nota) {
+    public ApiResponse<ConsolidadoArchivoDTO> aprobarConsolidado(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico, String nota) {
         try {
             if (idPeriodoAcademico == null) {
                 idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
@@ -316,8 +301,7 @@ public class ConsolidadoService {
 
             usuarioRepository.findById(idEvaluado).orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado));
 
-            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico,
-                    "CONSOLIDADO GENERADO");
+            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
 
             if (procesoExistente == null) {
                 procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
@@ -330,9 +314,9 @@ public class ConsolidadoService {
                 logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
             }
 
-            guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
-            return new ApiResponse<>(200, "Consolidado aprobado correctamente.", null);
-
+            Integer oidConsolidado = guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
+            ConsolidadoArchivoDTO archivoDTO = new ConsolidadoArchivoDTO(nombreDocumento, oidConsolidado);
+            return new ApiResponse<>(200, "Consolidado aprobado correctamente.", archivoDTO);
         } catch (IOException e) {
             logger.error("❌ [ERROR] Error al generar el archivo de consolidado: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error al generar el archivo de consolidado.", null);
@@ -345,13 +329,16 @@ public class ConsolidadoService {
         }
     }
 
-    private void guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso, String nombreDocumento, String rutaDocumento, String nota) {
+    private Integer guardarConsolidado(Consolidado consolidadoExistente, Proceso nuevoProceso,
+            String nombreDocumento, String rutaDocumento, String nota) {
         consolidadoExistente.setNombredocumento(nombreDocumento);
         consolidadoExistente.setRutaDocumento(rutaDocumento);
         consolidadoExistente.setNota(nota);
         consolidadoExistente.setFechaActualizacion(LocalDateTime.now());
 
-        consolidadoRepository.save(consolidadoExistente);
+        Consolidado consolidadoGuardado = consolidadoRepository.save(consolidadoExistente);
+
+        return consolidadoGuardado.getOidConsolidado();
     }
 
     private String generarNombreDocumento(ConsolidadoDTO consolidadoDTO) {
