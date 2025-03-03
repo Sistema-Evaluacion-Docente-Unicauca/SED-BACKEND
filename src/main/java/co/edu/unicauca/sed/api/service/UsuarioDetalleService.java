@@ -74,7 +74,6 @@ public class UsuarioDetalleService {
                 UsuarioDetalle usuarioDetalleProcesado;
     
                 if (usuarioDetalle.getOidUsuarioDetalle() != null) {
-                    // Buscar y actualizar
                     usuarioDetalleProcesado = usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
                             .orElseThrow(() -> new RuntimeException(
                                     "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));

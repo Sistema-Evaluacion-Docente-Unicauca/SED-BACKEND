@@ -78,7 +78,7 @@ public class UsuarioService {
                 generarUsername(usuario);
                 usuarioDetalleService.procesarUsuarioDetalle(usuario);
                 procesarEstadoUsuario(usuario);
-                List<Rol> rolesAsignados = procesarRoles(usuario);
+                List<Rol> rolesAsignados = procesarRoles(usuario, null);
                 usuario.setRoles(rolesAsignados);
                 usuariosGuardados.add(usuarioRepository.save(usuario));
             }
@@ -115,7 +115,7 @@ public class UsuarioService {
                         .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
                 usuarioExistente.setEstadoUsuario(estadoUsuario);
             }
-            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado);
+            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado, id);
             usuarioExistente.setRoles(rolesAsignados);
     
             usuarioDetalleService.procesarUsuarioDetalle(usuarioActualizado);
@@ -173,39 +173,25 @@ public class UsuarioService {
         }
     }
 
-    private List<Rol> procesarRoles(Usuario usuario) {
+    private List<Rol> procesarRoles(Usuario usuario, Integer idUsuario) {
         List<Rol> rolesAsignados = rolService.processRoles(usuario.getRoles());
+    
         for (Rol rol : rolesAsignados) {
             switch (rol.getNombre().toUpperCase()) {
                 case "JEFE DE DEPARTAMENTO":
-                    if (usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreIn(
-                            usuario.getUsuarioDetalle().getDepartamento(), List.of("JEFE DE DEPARTAMENTO")) > 0) {
-                        throw new RuntimeException("Ya existe un Jefe de Departamento registrado en este departamento.");
-                    }
+                    validarRolUnico(usuario, idUsuario, "JEFE DE DEPARTAMENTO");
                     break;
                 case "COORDINADOR":
-                    if (usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreIn(
-                            usuario.getUsuarioDetalle().getDepartamento(), List.of("COORDINADOR")) > 0) {
-                        throw new RuntimeException("Ya existe un Coordinador registrado en este departamento.");
-                    }
+                    validarRolUnico(usuario, idUsuario, "COORDINADOR");
                     break;
                 case "CPD":
-                    if (usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreIn(
-                            usuario.getUsuarioDetalle().getDepartamento(), List.of("CPD")) > 0) {
-                        throw new RuntimeException("Ya existe un CPD registrado en este departamento.");
-                    }
+                    validarRolUnico(usuario, idUsuario, "CPD");
                     break;
                 case "DECANO":
-                    if (usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreIn(
-                            usuario.getUsuarioDetalle().getFacultad(), List.of("DECANO")) > 0) {
-                        throw new RuntimeException("Ya existe un Decano registrado en esta facultad.");
-                    }
+                    validarRolUnico(usuario, idUsuario, "DECANO");
                     break;
                 case "SECRETARIA/O FACULTAD":
-                    if (usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreIn(
-                            usuario.getUsuarioDetalle().getFacultad(), List.of("SECRETARIO/A FACULTAD")) > 0) {
-                        throw new RuntimeException("Ya existe un Secretario/a de Facultad registrado en esta facultad.");
-                    }
+                    validarRolUnico(usuario, idUsuario, "SECRETARIO/A FACULTAD");
                     break;
                 default:
                     break;
@@ -213,5 +199,28 @@ public class UsuarioService {
         }
     
         return rolesAsignados;
-    }    
+    }
+    
+
+    private void validarRolUnico(Usuario usuario, Integer idUsuario, String rolNombre) {
+        long count;
+    
+        if ("JEFE DE DEPARTAMENTO".equals(rolNombre) || "COORDINADOR".equals(rolNombre) || "CPD".equals(rolNombre)) {
+            count = usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreInExcludingUser(
+                    usuario.getUsuarioDetalle().getDepartamento(), List.of(rolNombre), idUsuario);
+        } else {
+            count = usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreInExcludingUser(
+                    usuario.getUsuarioDetalle().getFacultad(), List.of(rolNombre), idUsuario);
+        }
+    
+        if (count > 0) {
+            throw new RuntimeException("Ya existe un " + rolNombre + " registrado en " +
+                    (esRolDeDepartamento(rolNombre) ? "este departamento." : "esta facultad."));
+        }
+    }
+    
+    private boolean esRolDeDepartamento(String rolNombre) {
+        return List.of("JEFE DE DEPARTAMENTO", "COORDINADOR", "CPD").contains(rolNombre);
+    }
+    
 }
