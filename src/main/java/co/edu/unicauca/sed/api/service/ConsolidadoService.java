@@ -8,13 +8,13 @@ import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.specification.ConsolidadoSpecification;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +55,8 @@ public class ConsolidadoService {
     private ConsolidadoRepository consolidadoRepository;
     @Autowired
     private ProcesoService procesoService;
+    @Autowired
+    private NotificacionDocumentoService notificacionDocumentoService;
 
     public ApiResponse<Page<Consolidado>> findAll(Pageable pageable, Boolean ascendingOrder,
             Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion,
@@ -297,9 +299,11 @@ public class ConsolidadoService {
             String nombreDocumento = generarNombreDocumento(consolidadoDTO);
             Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
-            usuarioRepository.findById(idEvaluador).orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
+            Usuario evaluador = usuarioRepository.findById(idEvaluador)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
 
-            usuarioRepository.findById(idEvaluado).orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado));
+            Usuario evaluado = usuarioRepository.findById(idEvaluado)
+                    .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado));
 
             Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
 
@@ -315,6 +319,7 @@ public class ConsolidadoService {
             }
 
             Integer oidConsolidado = guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
+            notificacionDocumentoService.notificarJefeDepartamento("consolidado", evaluador, evaluado);
             ConsolidadoArchivoDTO archivoDTO = new ConsolidadoArchivoDTO(nombreDocumento, oidConsolidado);
             return new ApiResponse<>(200, "Consolidado aprobado correctamente.", archivoDTO);
         } catch (IOException e) {

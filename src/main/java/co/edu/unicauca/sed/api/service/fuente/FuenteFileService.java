@@ -115,38 +115,4 @@ public class FuenteFileService {
             throw new RuntimeException("Error al manejar el informe ejecutivo: " + e.getMessage(), e);
         }
     }
-
-    /**
-     * Obtiene el período académico asociado a la actividad.
-     *
-     * @param activity La actividad relacionada.
-     * @return El identificador del período académico.
-     */
-    public String getPeriodoAcademico(Actividad activity) {
-        return activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
-    }
-
-    /**
-     * Obtiene el nombre del evaluado basado en su información.
-     *
-     * @param activity La actividad relacionada.
-     * @return El nombre del evaluado formateado.
-     */
-    public String getNombreEvaluado(Actividad activity) {
-        return (activity.getProceso().getEvaluado().getNombres() + "_" +
-                activity.getProceso().getEvaluado().getApellidos()).replaceAll("\\s+", "_");
-    }
-
-    /*
-     * 
-     */
-    public String getDepartamento(Actividad actividad) {
-        String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
-        return departamento;
-    }
-
-    public String getContratacion(Actividad actividad) {
-        String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
-        return contratacion;
-    }
 }

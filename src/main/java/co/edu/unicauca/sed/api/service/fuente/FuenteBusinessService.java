@@ -3,9 +3,11 @@ package co.edu.unicauca.sed.api.service.fuente;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.EstadoFuenteService;
+import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,9 @@ public class FuenteBusinessService {
     @Autowired
     private EstadoFuenteService estadoFuenteService;
 
+    @Autowired
+    private NotificacionDocumentoService notificacionDocumentoService;
+
     /**
      * Procesa una fuente, actualizando o creando su información y archivos
      * asociados.
@@ -51,10 +56,10 @@ public class FuenteBusinessService {
         try {
             Actividad actividad = actividadRepository.findById(sourceDTO.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + sourceDTO.getOidActividad()));
-            String periodoAcademico = fileService.getPeriodoAcademico(actividad);
-            String nombreEvaluado = fileService.getNombreEvaluado(actividad);
-            String contratacion = fileService.getContratacion(actividad);
-            String departamento = fileService.getDepartamento(actividad);
+            String periodoAcademico = actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo();
+            String nombreEvaluado = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
+            String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
+            String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
 
             // Garantizar que el repositorio no devuelva null
             Optional<Fuente> optionalFuente = Optional.ofNullable(
@@ -82,8 +87,12 @@ public class FuenteBusinessService {
             // Asignar valores a la fuente
             assignSourceValues(source, sourceDTO, commonFilePath, observation, stateSource, actividad, executiveReportPath);
 
-            // Guardar la fuente
+            Usuario evaluador = actividad.getProceso().getEvaluador();
+
+            Usuario evaluado = actividad.getProceso().getEvaluado();
+
             fuenteRepository.save(source);
+            notificacionDocumentoService.notificarJefeDepartamento("fuente", evaluador, evaluado);
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", sourceDTO, e);
             throw new RuntimeException("Error inesperado al procesar la fuente: " + e.getMessage(), e);

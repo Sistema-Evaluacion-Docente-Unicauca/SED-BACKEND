@@ -74,12 +74,6 @@ public class ConsolidadoController {
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Consolidado>> save(@RequestBody Consolidado consolidado) {
-        ApiResponse<Consolidado> response = consolidadoService.save(consolidado);
-        return ResponseEntity.status(response.getCodigo()).body(response);
-    }
-
     @PutMapping("/{oidConsolidado}")
     public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oidConsolidado,
             @RequestBody Consolidado consolidado) {
