@@ -1,7 +1,6 @@
 package co.edu.unicauca.sed.api.service.notificacion;
 
 import co.edu.unicauca.sed.api.client.ClienteNotificacion;
-import co.edu.unicauca.sed.api.service.notificacion.NotificacionTemplateService;
 import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import org.slf4j.Logger;

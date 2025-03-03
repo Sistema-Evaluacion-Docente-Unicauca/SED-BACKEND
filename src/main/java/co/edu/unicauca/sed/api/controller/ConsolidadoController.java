@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.Consolidado;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
@@ -51,7 +52,7 @@ public class ConsolidadoController {
      * @return Página de Consolidado o mensaje de error.
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<Consolidado>>> findAll(
+    public ResponseEntity<ApiResponse<Page<InformacionConsolidadoDTO>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "true") Boolean ascendingOrder,
@@ -63,7 +64,7 @@ public class ConsolidadoController {
             @RequestParam(required = false) String departamento,
             @RequestParam(required = false) String categoria) {
 
-        ApiResponse<Page<Consolidado>> response = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder,
+        ApiResponse<Page<InformacionConsolidadoDTO>> response = consolidadoService.findAll(PageRequest.of(page, size), ascendingOrder,
             idPeriodoAcademico,idUsuario, nombre, identificacion, facultad, departamento, categoria);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }

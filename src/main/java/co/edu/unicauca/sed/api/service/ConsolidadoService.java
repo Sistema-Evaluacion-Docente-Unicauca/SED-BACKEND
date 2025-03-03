@@ -3,6 +3,7 @@ package co.edu.unicauca.sed.api.service;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
@@ -58,7 +59,7 @@ public class ConsolidadoService {
     @Autowired
     private NotificacionDocumentoService notificacionDocumentoService;
 
-    public ApiResponse<Page<Consolidado>> findAll(Pageable pageable, Boolean ascendingOrder,
+    public ApiResponse<Page<InformacionConsolidadoDTO>> findAll(Pageable pageable, Boolean ascendingOrder,
             Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion,
             String facultad, String departamento, String categoria) {
 
@@ -70,12 +71,12 @@ public class ConsolidadoService {
             if (idPeriodoAcademico == null) {
                 idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             }
-            // Crear el ConsolidadoSpecification y obtener el Specification dinámico
-            ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
-            Specification<Consolidado> specification = specBuilder.byFilters(
-                    idUsuario, nombre, identificacion, facultad, departamento, categoria, idPeriodoAcademico);
 
-            // Ejecutar consulta con filtros dinámicos
+            ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
+            Specification<Consolidado> specification = specBuilder.byFilters(idUsuario, nombre, identificacion,
+                    facultad, departamento, categoria, idPeriodoAcademico);
+
+            // Ejecutar consulta
             Page<Consolidado> consolidadoPage = consolidadoRepository.findAll(specification, sortedPageable);
 
             if (consolidadoPage.isEmpty()) {
@@ -83,7 +84,10 @@ public class ConsolidadoService {
                         Page.empty());
             }
 
-            return new ApiResponse<>(200, "Consolidados obtenidos correctamente.", consolidadoPage);
+            // Convertir Page<Consolidado> a Page<InformacionConsolidadoDTO>
+            Page<InformacionConsolidadoDTO> dtoPage = consolidadoPage.map(this::convertirAInformacionDTO);
+
+            return new ApiResponse<>(200, "Consolidados obtenidos correctamente.", dtoPage);
 
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al obtener la lista de consolidados: {}", e.getMessage(), e);
@@ -155,7 +159,6 @@ public class ConsolidadoService {
         }
     }
 
-
     /**
      * Elimina un consolidado por su ID.
      *
@@ -195,7 +198,7 @@ public class ConsolidadoService {
     private BaseConsolidadoData obtenerBaseConsolidado(Integer idEvaluado, Integer idPeriodoAcademico) {
         try {
             Usuario evaluado = usuarioRepository.findById(idEvaluado)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario con ID " + idEvaluado + " no encontrado."));
+                    .orElseThrow(() -> new EntityNotFoundException("Usuario con ID " + idEvaluado + " no encontrado."));
 
             idPeriodoAcademico = (idPeriodoAcademico != null)
                     ? idPeriodoAcademico
@@ -231,7 +234,8 @@ public class ConsolidadoService {
 
             float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-            Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
+            Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService
+                    .agruparActividadesPorTipo(actividades, totalHoras);
 
             double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
             double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
@@ -253,26 +257,29 @@ public class ConsolidadoService {
         }
     }
 
-    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico, Pageable pageable) {
+    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico,
+            Pageable pageable) {
         BaseConsolidadoData baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
-        Page<Actividad> actividadPage = actividadQueryService.obtenerActividadesPorProcesosPaginadas(baseData.getProcesos(), pageable);
+        Page<Actividad> actividadPage = actividadQueryService
+                .obtenerActividadesPorProcesosPaginadas(baseData.getProcesos(), pageable);
         return construirConsolidadoDesdeActividades(baseData, actividadPage);
     }
 
-/**
+    /**
      * Obtiene actividades paginadas para el consolidado.
      */
     public ApiResponse<ActividadPaginadaDTO> filtrarActividadesPaginadas(Integer idEvaluado, Integer idPeriodoAcademico,
-                                                                         String nombreActividad, String idTipoActividad,
-                                                                         String idTipoFuente, String idEstadoFuente,
-                                                                         Pageable pageable) {
+            String nombreActividad, String idTipoActividad,
+            String idTipoFuente, String idEstadoFuente,
+            Pageable pageable) {
         try {
             Specification<Actividad> spec = actividadQueryService.filtrarActividades(
                     null, idEvaluado, nombreActividad, idTipoActividad, null, null,
                     idTipoFuente, idEstadoFuente, true, idPeriodoAcademico);
 
             Page<Actividad> actividadPage = actividadRepository.findAll(spec, pageable);
-            ActividadPaginadaDTO actividadPaginadaDTO = transformacionService.construirActividadPaginadaDTO(actividadPage);
+            ActividadPaginadaDTO actividadPaginadaDTO = transformacionService
+                    .construirActividadPaginadaDTO(actividadPage);
             return new ApiResponse<>(200, "Actividades obtenidas correctamente.", actividadPaginadaDTO);
 
         } catch (Exception e) {
@@ -284,13 +291,15 @@ public class ConsolidadoService {
     /**
      * Aprobar un consolidado y generar el documento.
      */
-    public ApiResponse<ConsolidadoArchivoDTO> aprobarConsolidado(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico, String nota) {
+    public ApiResponse<ConsolidadoArchivoDTO> aprobarConsolidado(Integer idEvaluado, Integer idEvaluador,
+            Integer idPeriodoAcademico, String nota) {
         try {
             if (idPeriodoAcademico == null) {
                 idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             }
 
-            ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico, Pageable.unpaged());
+            ConsolidadoDTO consolidadoDTO = generarConsolidadoConActividades(idEvaluado, idPeriodoAcademico,
+                    Pageable.unpaged());
 
             if (nota != null) {
                 nota = nota.toUpperCase();
@@ -300,25 +309,30 @@ public class ConsolidadoService {
             Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
             Usuario evaluador = usuarioRepository.findById(idEvaluador)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
 
             Usuario evaluado = usuarioRepository.findById(idEvaluado)
                     .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado));
 
-            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
+            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado,
+                    idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
 
             if (procesoExistente == null) {
                 procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
-                logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}", procesoExistente.getOidProceso());
+                logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}",
+                        procesoExistente.getOidProceso());
             }
 
             Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
             if (consolidadoExistente == null) {
                 consolidadoExistente = new Consolidado(procesoExistente);
-                logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
+                logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}",
+                        procesoExistente.getOidProceso());
             }
 
-            Integer oidConsolidado = guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento, excelPath.toString(), nota);
+            Integer oidConsolidado = guardarConsolidado(consolidadoExistente, procesoExistente, nombreDocumento,
+                    excelPath.toString(), nota);
             notificacionDocumentoService.notificarJefeDepartamento("consolidado", evaluador, evaluado);
             ConsolidadoArchivoDTO archivoDTO = new ConsolidadoArchivoDTO(nombreDocumento, oidConsolidado);
             return new ApiResponse<>(200, "Consolidado aprobado correctamente.", archivoDTO);
@@ -351,16 +365,18 @@ public class ConsolidadoService {
                 + consolidadoDTO.getNombreDocente().replace(" ", "_");
     }
 
-    private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData, Page<Actividad> actividadPage) {
+    private ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoData baseData,
+            Page<Actividad> actividadPage) {
         List<Actividad> actividades = actividadPage.getContent();
         float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
+        Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService
+                .agruparActividadesPorTipo(actividades, totalHoras);
         double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
         double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
 
-
-        ConsolidadoDTO consolidado = construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
+        ConsolidadoDTO consolidado = construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(),
+                baseData.getPeriodoAcademico(),
                 actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
 
         consolidado.setCurrentPage(actividadPage.getNumber());
@@ -393,4 +409,24 @@ public class ConsolidadoService {
 
         return consolidado;
     }
+
+    private InformacionConsolidadoDTO convertirAInformacionDTO(Consolidado consolidado) {
+        InformacionConsolidadoDTO dto = new InformacionConsolidadoDTO();
+        
+        Usuario evaluado = consolidado.getProceso().getEvaluado();
+        UsuarioDetalle detalle = evaluado.getUsuarioDetalle();
+    
+        dto.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
+        dto.setNumeroIdentificacion(evaluado.getIdentificacion());
+        dto.setFacultad(detalle.getFacultad());
+        dto.setDepartamento(detalle.getDepartamento());
+        dto.setCategoria(detalle.getCategoria());
+        dto.setTipoContratacion(detalle.getContratacion());
+        dto.setDedicacion(detalle.getDedicacion());
+        dto.setNombreArchivo(consolidado.getNombredocumento());
+        dto.setRutaArchivo(consolidado.getRutaDocumento());
+    
+        return dto;
+    }
+    
 }
