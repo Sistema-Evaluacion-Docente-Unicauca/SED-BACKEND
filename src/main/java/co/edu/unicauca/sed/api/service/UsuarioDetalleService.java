@@ -67,7 +67,7 @@ public class UsuarioDetalleService {
     public void procesarUsuarioDetalle(Usuario usuario) {
         if (usuario.getUsuarioDetalle() != null) {
             UsuarioDetalle usuarioDetalle = usuario.getUsuarioDetalle();
-            
+    
             usuarioDetalle.setFacultad(stringUtils.safeToUpperCase(usuarioDetalle.getFacultad()));
             usuarioDetalle.setDepartamento(stringUtils.safeToUpperCase(usuarioDetalle.getDepartamento()));
             usuarioDetalle.setCategoria(stringUtils.safeToUpperCase(usuarioDetalle.getCategoria()));
@@ -75,12 +75,20 @@ public class UsuarioDetalleService {
             usuarioDetalle.setDedicacion(stringUtils.safeToUpperCase(usuarioDetalle.getDedicacion()));
             usuarioDetalle.setEstudios(stringUtils.safeToUpperCase(usuarioDetalle.getEstudios()));
     
-            // Creamos una nueva variable para evitar la reasignación de usuarioDetalle
-            UsuarioDetalle usuarioDetalleProcesado = (usuarioDetalle.getOidUsuarioDetalle() != null)
-                    ? usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
+            try {
+                UsuarioDetalle usuarioDetalleProcesado;
+                if (usuarioDetalle.getOidUsuarioDetalle() != null) {
+                    usuarioDetalleProcesado = usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
                             .orElseThrow(() -> new RuntimeException(
-                                    "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle())) : usuarioDetalleRepository.save(usuarioDetalle);
-            usuario.setUsuarioDetalle(usuarioDetalleProcesado);
+                                    "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));
+                } else {
+                    usuarioDetalleProcesado = usuarioDetalleRepository.save(usuarioDetalle);
+                }
+                usuario.setUsuarioDetalle(usuarioDetalleProcesado);
+    
+            } catch (Exception e) {
+                throw new RuntimeException("Error al procesar el detalle del usuario: " + e.getMessage(), e);
+            }
         }
-    }    
+    }       
 }

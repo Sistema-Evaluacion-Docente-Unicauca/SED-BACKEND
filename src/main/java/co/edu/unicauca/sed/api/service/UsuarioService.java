@@ -205,7 +205,7 @@ public class UsuarioService {
                         throw new RuntimeException("Ya existe un Decano registrado en esta facultad.");
                     }
                     break;
-                case "SECRETARIO/A FACULTAD":
+                case "SECRETARIA/O FACULTAD":
                     if (usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreIn(
                             usuario.getUsuarioDetalle().getFacultad(), List.of("SECRETARIO/A FACULTAD")) > 0) {
                         throw new RuntimeException("Ya existe un Secretario/a de Facultad registrado en esta facultad.");

@@ -26,7 +26,7 @@ public class UsuarioDetalle {
     @Column(name = "FACULTAD", nullable = false)
     private String facultad;
 
-    @Column(name = "DEPARTAMENTO", nullable = false)
+    @Column(name = "DEPARTAMENTO")
     private String departamento;
 
     @Column(name = "CATEGORIA")
