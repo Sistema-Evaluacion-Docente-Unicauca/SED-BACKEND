@@ -118,8 +118,7 @@ public class UsuarioService {
             usuarioDetalleService.procesarUsuarioDetalle(usuarioActualizado);
     
             // Actualizar roles
-            List<Rol> rolesActualizados = rolService.processRoles(usuarioActualizado.getRoles());
-            usuarioExistente.setRoles(rolesActualizados);
+            procesarRoles(usuarioActualizado);
     
             // Guardar cambios
             Usuario usuarioGuardado = usuarioRepository.save(usuarioExistente);
