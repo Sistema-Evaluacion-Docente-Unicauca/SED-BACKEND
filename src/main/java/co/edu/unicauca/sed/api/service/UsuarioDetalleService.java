@@ -109,6 +109,6 @@ public class UsuarioDetalleService {
         existente.setContratacion(recibido.getContratacion());
         existente.setDedicacion(recibido.getDedicacion());
         existente.setEstudios(recibido.getEstudios());
-        usuarioDetalleRepository.save(existente);
-    }    
+        //usuarioDetalleRepository.save(existente);
+    }
 }

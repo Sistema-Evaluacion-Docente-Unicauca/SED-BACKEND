@@ -79,8 +79,7 @@ public class UsuarioController {
      * Guarda uno o varios usuarios en el sistema.
      * 
      * @param usuarios Lista de objetos Usuario a guardar.
-     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún
-     *         problema.
+     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún problema.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
@@ -92,10 +91,8 @@ public class UsuarioController {
      * Actualiza un usuario existente en el sistema.
      * 
      * @param idUsuario          ID del usuario a actualizar.
-     * @param usuarioActualizado Objeto que contiene los datos actualizados del
-     *                           usuario.
-     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre
-     *         un problema.
+     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
+     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
      */
     @PutMapping("/{idUsuario}")
     public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {

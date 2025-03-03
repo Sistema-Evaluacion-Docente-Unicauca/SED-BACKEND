@@ -78,7 +78,8 @@ public class UsuarioService {
                 generarUsername(usuario);
                 usuarioDetalleService.procesarUsuarioDetalle(usuario);
                 procesarEstadoUsuario(usuario);
-                procesarRoles(usuario);
+                List<Rol> rolesAsignados = procesarRoles(usuario);
+                usuario.setRoles(rolesAsignados);
                 usuariosGuardados.add(usuarioRepository.save(usuario));
             }
 
@@ -111,16 +112,14 @@ public class UsuarioService {
             // Actualizar EstadoUsuario
             if (usuarioActualizado.getEstadoUsuario() != null && usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario() != null) {
                 EstadoUsuario estadoUsuario = estadoUsuarioRepository.findById(usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario())
-                        .orElseThrow(() -> new RuntimeException("EstadoUsuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
+                        .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
                 usuarioExistente.setEstadoUsuario(estadoUsuario);
             }
+            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado);
+            usuarioExistente.setRoles(rolesAsignados);
     
             usuarioDetalleService.procesarUsuarioDetalle(usuarioActualizado);
     
-            // Actualizar roles
-            procesarRoles(usuarioActualizado);
-    
-            // Guardar cambios
             Usuario usuarioGuardado = usuarioRepository.save(usuarioExistente);
             return new ApiResponse<>(200, "Usuario actualizado correctamente.", usuarioGuardado);
         } catch (RuntimeException e) {
@@ -174,10 +173,8 @@ public class UsuarioService {
         }
     }
 
-    private void procesarRoles(Usuario usuario) {
+    private List<Rol> procesarRoles(Usuario usuario) {
         List<Rol> rolesAsignados = rolService.processRoles(usuario.getRoles());
-        usuario.setRoles(rolesAsignados);
-    
         for (Rol rol : rolesAsignados) {
             switch (rol.getNombre().toUpperCase()) {
                 case "JEFE DE DEPARTAMENTO":
@@ -214,5 +211,7 @@ public class UsuarioService {
                     break;
             }
         }
+    
+        return rolesAsignados;
     }    
 }
