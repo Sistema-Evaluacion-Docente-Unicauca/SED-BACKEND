@@ -69,14 +69,8 @@ public class PeriodoAcademicoController {
      *         hay ninguno activo.
      */
     @GetMapping("/activo")
-    public ResponseEntity<?> obtenerPeriodoAcademicoActivo() {
-        Optional<PeriodoAcademico> periodoAcademicoOpt = periodoAcademicoService.getPeriodoAcademicoActivo();
-
-        if (periodoAcademicoOpt.isPresent()) {
-            return ResponseEntity.ok(periodoAcademicoOpt.get());
-        } else {
-            logger.warn("⚠️ No se encontró un período académico activo.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró un período académico activo.");
-        }
+    public ResponseEntity<ApiResponse<PeriodoAcademico>> obtenerPeriodoAcademicoActivo() {
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.getPeriodoAcademicoActivo();
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

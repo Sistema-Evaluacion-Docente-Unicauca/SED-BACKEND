@@ -130,14 +130,21 @@ public class PeriodoAcademicoService {
             .orElseThrow(() -> new IllegalArgumentException("El EstadoPeriodoAcademico con OID "
                 + periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico() + " no existe."));
     
-        if ("ACTIVO".equals(estadoPeriodoAcademico.getNombre())) {
-            Optional<PeriodoAcademico> periodoActivo = getPeriodoAcademicoActivo();
-    
-            if (periodoActivo.isPresent() && (oid == null || !periodoActivo.get().getOidPeriodoAcademico().equals(oid))) {
-                throw new IllegalArgumentException(
-                    "Ya existe un período académico activo con ID: " + periodoActivo.get().getIdPeriodo());
-            }
-        }
+                if ("ACTIVO".equals(estadoPeriodoAcademico.getNombre())) {
+                    ApiResponse<PeriodoAcademico> response = getPeriodoAcademicoActivo();
+                
+                    // Verificamos si hay un periodo activo (código 200 y data no nula)
+                    if (response.getCodigo() == 200 && response.getData() != null) {
+                        PeriodoAcademico periodoActivo = response.getData();
+                
+                        // Validamos si ya existe un periodo activo diferente al que se está actualizando
+                        if (oid == null || !periodoActivo.getOidPeriodoAcademico().equals(oid)) {
+                            throw new IllegalArgumentException(
+                                "Ya existe un período académico activo con ID: " + periodoActivo.getIdPeriodo());
+                        }
+                    }
+                }                
+                
     }
 
     /**
@@ -146,9 +153,18 @@ public class PeriodoAcademicoService {
      *
      * @return Un Optional que contiene el período académico activo si existe.
      */
-    public Optional<PeriodoAcademico> getPeriodoAcademicoActivo() {
+    public ApiResponse<PeriodoAcademico> getPeriodoAcademicoActivo() {
         String nombreEstadoActivo = "ACTIVO";
-        return periodoAcademicoRepository.findByEstadoPeriodoAcademicoNombre(nombreEstadoActivo);
+
+        return periodoAcademicoRepository.findByEstadoPeriodoAcademicoNombre(nombreEstadoActivo)
+            .map(periodo -> {
+                logger.info("✅ Período académico activo encontrado: {}", periodo.getIdPeriodo());
+                return new ApiResponse<>(200, "Período académico activo encontrado", periodo);
+            })
+            .orElseGet(() -> {
+                logger.warn("⚠️ No se encontró un período académico activo.");
+                return new ApiResponse<>(404, "No se encontró un período académico activo", null);
+            });
     }
 
     /**
@@ -158,10 +174,12 @@ public class PeriodoAcademicoService {
      * @throws IllegalStateException Si no se encuentra un período académico activo.
      */
     public Integer obtenerIdPeriodoAcademicoActivo() {
-        return getPeriodoAcademicoActivo()
-                .map(PeriodoAcademico::getOidPeriodoAcademico)
-                .orElseThrow(() -> {
-                    return new EntityNotFoundException("No se encontró un período académico activo.");
-                });
+        ApiResponse<PeriodoAcademico> response = getPeriodoAcademicoActivo();
+    
+        if (response.getCodigo() != 200 || response.getData() == null) {
+            throw new EntityNotFoundException("No se encontró un período académico activo.");
+        }
+    
+        return response.getData().getOidPeriodoAcademico();
     }
 }
