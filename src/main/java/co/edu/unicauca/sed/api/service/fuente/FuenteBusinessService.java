@@ -44,8 +44,7 @@ public class FuenteBusinessService {
     private NotificacionDocumentoService notificacionDocumentoService;
 
     /**
-     * Procesa una fuente, actualizando o creando su información y archivos
-     * asociados.
+     * Procesa una fuente, actualizando o creando su información y archivos asociados.
      *
      * @param sourceDTO             El DTO de la fuente.
      * @param informeFuente         Archivo común asociado a la fuente.
@@ -54,6 +53,7 @@ public class FuenteBusinessService {
      */
         public void processSource(FuenteCreateDTO sourceDTO, MultipartFile informeFuente, String observation, Map<String, MultipartFile> informeEjecutivoFiles) {
         try {
+            String mensajeTipoFuente;
             Actividad actividad = actividadRepository.findById(sourceDTO.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + sourceDTO.getOidActividad()));
             String periodoAcademico = actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo();
@@ -70,10 +70,16 @@ public class FuenteBusinessService {
             // Manejo según tipo de fuente
             Path commonFilePath = null;
             Path executiveReportPath = null;
+            Usuario evaluador = actividad.getProceso().getEvaluador();
+
+            Usuario evaluado = actividad.getProceso().getEvaluado();
 
             if ("2".equals(sourceDTO.getTipoFuente())) {
+                mensajeTipoFuente = "Fuente 2";
                 commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
+                notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
             } else if ("1".equals(sourceDTO.getTipoFuente())) {
+                mensajeTipoFuente = "Fuente 1 (Autoevaluación)";
                 commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
                 executiveReportPath = fileService.handleExecutiveReport(optionalFuente, sourceDTO, informeEjecutivoFiles, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else {
@@ -86,13 +92,7 @@ public class FuenteBusinessService {
 
             // Asignar valores a la fuente
             assignSourceValues(source, sourceDTO, commonFilePath, observation, stateSource, actividad, executiveReportPath);
-
-            Usuario evaluador = actividad.getProceso().getEvaluador();
-
-            Usuario evaluado = actividad.getProceso().getEvaluado();
-
             fuenteRepository.save(source);
-            notificacionDocumentoService.notificarJefeDepartamento("fuente", evaluador, evaluado);
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", sourceDTO, e);
             throw new RuntimeException("Error inesperado al procesar la fuente: " + e.getMessage(), e);

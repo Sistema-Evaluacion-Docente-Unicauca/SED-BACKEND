@@ -11,7 +11,8 @@ import java.util.Collections;
 import java.util.Optional;
 
 /**
- * Servicio para enviar notificaciones relacionadas con documentos (consolidado, fuente, resolución, etc.)
+ * Servicio para enviar notificaciones relacionadas con documentos (consolidado,
+ * fuente, resolución, etc.)
  */
 @Service
 public class NotificacionDocumentoService {
@@ -41,18 +42,32 @@ public class NotificacionDocumentoService {
 
             Optional<Usuario> jefeDepartamento = usuarioRepository
                     .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
-                        departamento, "JEFE DE DEPARTAMENTO");
+                            departamento, "JEFE DE DEPARTAMENTO");
 
             if (jefeDepartamento.isPresent() && jefeDepartamento.get().getCorreo() != null) {
                 String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
-                String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador, evaluado, departamento);
+                String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador,
+                        evaluado, departamento);
 
-                notificationClient.enviarNotificacion(Collections.singletonList(jefeDepartamento.get().getCorreo()), asunto, mensaje);
+                notificationClient.enviarNotificacion(Collections.singletonList(jefeDepartamento.get().getCorreo()),
+                        asunto, mensaje);
 
-                logger.info("✅ Notificación enviada al jefe de departamento {} ({}) sobre el documento: {}", departamento, jefeDepartamento.get().getCorreo(), tipoDocumento);
+                logger.info("✅ Notificación enviada al jefe de departamento {} ({}) sobre el documento: {}",
+                        departamento, jefeDepartamento.get().getCorreo(), tipoDocumento);
             } else {
                 logger.warn("⚠️ No se encontró jefe de departamento para el departamento: {}", departamento);
             }
+        } catch (Exception e) {
+            logger.error("❌ Error notificando al jefe de departamento: {}", e.getMessage(), e);
+        }
+    }
+
+    public void notificarEvaluado(String tipoDocumento, Usuario evaluador, Usuario evaluado) {
+        try {
+            String departamento = evaluado.getUsuarioDetalle().getDepartamento();
+            String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
+            String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador, evaluado, departamento);
+            notificationClient.enviarNotificacion(Collections.singletonList(evaluado.getCorreo()), asunto, mensaje);
         } catch (Exception e) {
             logger.error("❌ Error notificando al jefe de departamento: {}", e.getMessage(), e);
         }

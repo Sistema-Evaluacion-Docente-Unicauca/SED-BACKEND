@@ -58,7 +58,7 @@ public class ClienteNotificacion {
             cuerpoSolicitud.put("correos", correos);
             cuerpoSolicitud.put("asunto", asunto);
             cuerpoSolicitud.put("mensaje", mensaje);
-            cuerpoSolicitud.put("documentos", Collections.emptyMap()); // No se envían adjuntos por el momento
+            cuerpoSolicitud.put("documentos", Collections.emptyMap());
 
             // Configurar cabeceras HTTP para forzar el uso de UTF-8
             HttpHeaders headers = new HttpHeaders();

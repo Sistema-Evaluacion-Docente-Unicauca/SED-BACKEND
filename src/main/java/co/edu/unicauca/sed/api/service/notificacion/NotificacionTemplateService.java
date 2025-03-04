@@ -61,7 +61,7 @@ public class NotificacionTemplateService {
         switch (tipoDocumento.toLowerCase(Locale.ROOT)) {
             case "consolidado":
                 return "aprobado";
-            case "fuente":
+            case "Fuente 2":
                 return "cargado";
             case "resolucion":
                 return "generado";
