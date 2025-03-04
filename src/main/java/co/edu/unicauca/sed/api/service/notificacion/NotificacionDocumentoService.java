@@ -40,7 +40,7 @@ public class NotificacionDocumentoService {
             String departamento = evaluado.getUsuarioDetalle().getDepartamento();
 
             Optional<Usuario> jefeDepartamento = usuarioRepository
-                    .findFirstByUsuarioDetalle_DepartamentoAndRoles_NombreIgnoreCase(
+                    .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
                         departamento, "JEFE DE DEPARTAMENTO");
 
             if (jefeDepartamento.isPresent() && jefeDepartamento.get().getCorreo() != null) {
