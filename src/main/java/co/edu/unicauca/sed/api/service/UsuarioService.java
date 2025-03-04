@@ -104,6 +104,9 @@ public class UsuarioService {
             if (!Objects.equals(usuarioActualizado.getIdentificacion(), usuarioExistente.getIdentificacion())) {
                 validarUsuarioExistente(usuarioActualizado);
             }
+
+            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado, id);
+            usuarioExistente.setRoles(rolesAsignados);
     
             usuarioExistente.setNombres(usuarioActualizado.getNombres().toUpperCase());
             usuarioExistente.setApellidos(usuarioActualizado.getApellidos().toUpperCase());
@@ -115,8 +118,6 @@ public class UsuarioService {
                         .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
                 usuarioExistente.setEstadoUsuario(estadoUsuario);
             }
-            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado, id);
-            usuarioExistente.setRoles(rolesAsignados);
     
             usuarioDetalleService.procesarUsuarioDetalle(usuarioActualizado);
     
