@@ -57,7 +57,9 @@ public class FuenteBusinessService {
             Actividad actividad = actividadRepository.findById(sourceDTO.getOidActividad())
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + sourceDTO.getOidActividad()));
             String periodoAcademico = actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo();
-            String nombreEvaluado = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
+            String nombres = actividad.getProceso().getEvaluado().getNombres().replaceAll("\\s+", "_");
+            String apellidos = actividad.getProceso().getEvaluado().getApellidos().replaceAll("\\s+", "_");
+            String nombreEvaluado = nombres + "_" + apellidos;
             String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
             String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
 
