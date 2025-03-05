@@ -62,7 +62,7 @@ public class ActividadQueryService {
             Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
 
             if (activitiesPage.isEmpty()) {
-                return new ApiResponse<>(404, "No se encontraron actividades para los parámetros proporcionados.",
+                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.",
                         Page.empty());
             }
 
@@ -109,7 +109,7 @@ public class ActividadQueryService {
             }
 
             if (activitiesPage.isEmpty()) {
-                return new ApiResponse<>(404, "No se encontraron actividades para los parámetros proporcionados.", Page.empty());
+                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.", Page.empty());
             }
 
             List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
