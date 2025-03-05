@@ -62,6 +62,8 @@ public class FuenteBusinessService {
             String nombreEvaluado = nombres + "_" + apellidos;
             String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
             String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
+            String nombreActividad = actividad.getNombreActividad().replace("-", "").replaceAll("\\s+", "_");
+            String idEvaluador = actividad.getProceso().getEvaluador().getIdentificacion();
 
             // Garantizar que el repositorio no devuelva null
             Optional<Fuente> optionalFuente = Optional.ofNullable(
@@ -78,11 +80,11 @@ public class FuenteBusinessService {
 
             if ("2".equals(sourceDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 2";
-                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
+                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador);
                 notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
             } else if ("1".equals(sourceDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 1 (Autoevaluación)";
-                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento);
+                commonFilePath = fileService.handleCommonFile(optionalFuente, informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, null, null);
                 executiveReportPath = fileService.handleExecutiveReport(optionalFuente, sourceDTO, informeEjecutivoFiles, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else {
                 logger.warn("Tipo de fuente desconocido: {}", sourceDTO.getTipoFuente());

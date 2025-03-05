@@ -32,8 +32,8 @@ public class FuenteFileService {
      * @param nombreEvaluado  Nombre del evaluado.
      * @return La ruta del archivo guardado.
      */
-    public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente,
-            String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) {
+    public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente, String periodoAcademico, String nombreEvaluado, 
+        String contratacion, String departamento,  String nombreActividad, String idEvaluador) {
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");
@@ -53,7 +53,7 @@ public class FuenteFileService {
                 }
             }
 
-            Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, "fuente");
+            Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador, "fuente");
             return savedFile;
 
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public class FuenteFileService {
             }
 
             // Guardar el nuevo informe ejecutivo
-            Path savedFile = fileService.saveFile(matchedFile.get(), periodoAcademico, nombreEvaluado, contratacion, departamento, "informe");
+            Path savedFile = fileService.saveFile(matchedFile.get(), periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, "informe");
             return savedFile;
 
         } catch (Exception e) {

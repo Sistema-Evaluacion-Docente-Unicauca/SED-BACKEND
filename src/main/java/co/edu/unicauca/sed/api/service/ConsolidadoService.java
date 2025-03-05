@@ -80,8 +80,7 @@ public class ConsolidadoService {
             Page<Consolidado> consolidadoPage = consolidadoRepository.findAll(specification, sortedPageable);
 
             if (consolidadoPage.isEmpty()) {
-                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.",
-                        Page.empty());
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.", Page.empty());
             }
 
             // Convertir Page<Consolidado> a Page<InformacionConsolidadoDTO>
