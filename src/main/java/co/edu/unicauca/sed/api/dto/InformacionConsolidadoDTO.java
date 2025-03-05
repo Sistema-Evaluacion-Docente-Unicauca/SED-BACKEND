@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @AllArgsConstructor
 
 public class InformacionConsolidadoDTO {
+    private Integer oidUsuario;
     private String nombreDocente;
     private String numeroIdentificacion;
     private String facultad;

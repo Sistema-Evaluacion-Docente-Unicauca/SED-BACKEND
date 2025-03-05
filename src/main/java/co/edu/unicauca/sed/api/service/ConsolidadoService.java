@@ -415,6 +415,7 @@ public class ConsolidadoService {
         Usuario evaluado = consolidado.getProceso().getEvaluado();
         UsuarioDetalle detalle = evaluado.getUsuarioDetalle();
     
+        dto.setOidUsuario(evaluado.getOidUsuario());
         dto.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
         dto.setNumeroIdentificacion(evaluado.getIdentificacion());
         dto.setFacultad(detalle.getFacultad());
