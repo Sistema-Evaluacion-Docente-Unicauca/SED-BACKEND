@@ -1,8 +1,8 @@
 package co.edu.unicauca.sed.api.mapper;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.utils.MathUtils;
 
 import java.util.List;

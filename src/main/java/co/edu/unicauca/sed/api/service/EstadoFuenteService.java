@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

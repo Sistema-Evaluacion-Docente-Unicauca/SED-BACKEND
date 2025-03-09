@@ -1,7 +1,9 @@
 package co.edu.unicauca.sed.api.specification;
 
-import co.edu.unicauca.sed.api.model.Proceso;
 import org.springframework.data.jpa.domain.Specification;
+
+import co.edu.unicauca.sed.api.domain.Proceso;
+
 import java.time.LocalDateTime;
 
 public class ProcesoSpecification {

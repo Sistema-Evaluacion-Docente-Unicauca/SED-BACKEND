@@ -1,9 +1,9 @@
 package co.edu.unicauca.sed.api.dto.actividad;
 
+import co.edu.unicauca.sed.api.domain.EstadoActividad;
+import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-import co.edu.unicauca.sed.api.model.EstadoActividad;
-import co.edu.unicauca.sed.api.model.TipoActividad;
 
 import java.time.LocalDateTime;
 import java.util.List;

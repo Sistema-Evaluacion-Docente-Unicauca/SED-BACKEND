@@ -1,15 +1,15 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.ActividadBoolean;
+import co.edu.unicauca.sed.api.domain.ActividadDate;
+import co.edu.unicauca.sed.api.domain.ActividadDecimal;
+import co.edu.unicauca.sed.api.domain.ActividadInt;
+import co.edu.unicauca.sed.api.domain.ActividadVarchar;
+import co.edu.unicauca.sed.api.domain.EavAtributo;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.ActividadBoolean;
-import co.edu.unicauca.sed.api.model.ActividadDate;
-import co.edu.unicauca.sed.api.model.ActividadDecimal;
-import co.edu.unicauca.sed.api.model.ActividadInt;
-import co.edu.unicauca.sed.api.model.ActividadVarchar;
-import co.edu.unicauca.sed.api.model.EavAtributo;
 import co.edu.unicauca.sed.api.repository.ActividadBooleanRepository;
 import co.edu.unicauca.sed.api.repository.ActividadDateRepository;
 import co.edu.unicauca.sed.api.repository.ActividadDecimalRepository;

@@ -1,11 +1,11 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.controller.ActividadController;
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Fuente;
-import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;

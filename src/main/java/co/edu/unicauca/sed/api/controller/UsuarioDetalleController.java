@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import co.edu.unicauca.sed.api.model.UsuarioDetalle;
+import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
 import co.edu.unicauca.sed.api.service.UsuarioDetalleService;
 
 @Controller

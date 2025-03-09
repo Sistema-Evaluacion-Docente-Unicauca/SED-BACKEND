@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -9,10 +9,11 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Fuente;
 
 @Service
 public class ActividadTransformacionService {

@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.model;
+package co.edu.unicauca.sed.api.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,30 +8,30 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 /**
- * Entidad que representa un valor VARCHAR en la actividad del modelo EAV.
+ * Entidad que representa un valor decimal en la actividad del modelo EAV.
  */
 @Data
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "ACTIVIDADVARCHAR")
-public class ActividadVarchar {
+@Table(name = "ACTIVIDADDECIMAL")
+public class ActividadDecimal {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "actividadVarcharSeq")
-    @SequenceGenerator(name = "actividadVarcharSeq", sequenceName = "SEQ_OIDACTIVIDADVARCHAR", allocationSize = 1)
-    @Column(name = "OIDACTIVIDADVARCHAR")
-    private Integer oidActividadVarchar;
-
-    @ManyToOne
-    @JoinColumn(name = "OIDEAVATRIBUTO", nullable = false)
-    private EavAtributo eavAtributo;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "actividadDecimalSeq")
+    @SequenceGenerator(name = "actividadDecimalSeq", sequenceName = "SEQ_OIDACTIVIDADDECIMAL", allocationSize = 1)
+    @Column(name = "OIDACTIVIDADDECIMAL")
+    private Integer oidActividadDecimal;
 
     @ManyToOne
     @JoinColumn(name = "OIDACTIVIDAD", nullable = false)
     private Actividad actividad;
 
-    @Column(name = "VALOR", nullable = false, length = 255)
-    private String valor;
+    @ManyToOne
+    @JoinColumn(name = "OIDEAVATRIBUTO", nullable = false)
+    private EavAtributo eavAtributo;
+
+    @Column(name = "VALOR", nullable = false)
+    private Float valor;
 
     @Column(name = "FECHACREACION", updatable = false, nullable = false)
     @CreationTimestamp
@@ -41,9 +41,9 @@ public class ActividadVarchar {
     @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 
-    public ActividadVarchar() {}
-
-    public ActividadVarchar(Actividad actividad, EavAtributo eavAtributo, String valor) {
+    public ActividadDecimal () {}
+    
+    public ActividadDecimal(Actividad actividad, EavAtributo eavAtributo, Float valor) {
         this.actividad = actividad;
         this.eavAtributo = eavAtributo;
         this.valor = valor;

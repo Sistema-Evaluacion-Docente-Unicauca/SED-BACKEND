@@ -5,10 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import co.edu.unicauca.sed.api.domain.EstadoUsuario;
+import co.edu.unicauca.sed.api.domain.Rol;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EstadoUsuario;
-import co.edu.unicauca.sed.api.model.Rol;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;

@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.model;
+package co.edu.unicauca.sed.api.domain;
 
 import java.time.LocalDateTime;
 
@@ -20,14 +20,14 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "OFICIO")
+@Table(name = "RESOLUCION")
 @Data
-public class Oficio {
+public class Resolucion {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oficioSeq")
-    @SequenceGenerator(name = "oficioSeq", sequenceName = "SEQ_OIDOFICIO", allocationSize = 1)
-    @Column(name = "OIDOFICIO")
-    private Integer oidOficio;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "resolucionSeq")
+    @SequenceGenerator(name = "resolucionSeq", sequenceName = "SEQ_OIDRESOLUCION", allocationSize = 1)
+    @Column(name = "OIDRESOLUCION")
+    private Integer oidResolucion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "OIDPROCESO")

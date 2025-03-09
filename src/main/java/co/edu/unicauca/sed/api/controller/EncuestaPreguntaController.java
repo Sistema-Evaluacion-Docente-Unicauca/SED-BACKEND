@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.EncuestaPregunta;
+import co.edu.unicauca.sed.api.domain.EncuestaPregunta;
 import co.edu.unicauca.sed.api.service.EncuestaPreguntaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

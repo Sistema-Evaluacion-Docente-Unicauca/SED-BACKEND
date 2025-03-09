@@ -6,9 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
+
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.UsuarioService;
 import java.util.List;

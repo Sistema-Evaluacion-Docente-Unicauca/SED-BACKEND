@@ -1,10 +1,10 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
+import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Fuente;
-import co.edu.unicauca.sed.api.model.Usuario;
-import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.EstadoFuenteService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;

@@ -1,10 +1,10 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
+import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
-import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.service.EstadoActividadService;

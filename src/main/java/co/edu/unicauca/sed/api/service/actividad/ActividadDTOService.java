@@ -1,11 +1,11 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
+import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.RolDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.service.FuenteDTOService;
 import org.springframework.beans.factory.annotation.Autowired;

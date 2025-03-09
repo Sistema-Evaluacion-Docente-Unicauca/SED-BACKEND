@@ -1,11 +1,11 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
-import co.edu.unicauca.sed.api.model.*;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;

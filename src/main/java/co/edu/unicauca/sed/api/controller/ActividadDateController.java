@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
+import co.edu.unicauca.sed.api.domain.ActividadDate;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.ActividadDate;
 import co.edu.unicauca.sed.api.service.ActividadDateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

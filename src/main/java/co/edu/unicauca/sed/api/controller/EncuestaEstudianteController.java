@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
+import co.edu.unicauca.sed.api.domain.EncuestaEstudiante;
 import co.edu.unicauca.sed.api.service.EncuestaEstudianteService;
 
 @Controller

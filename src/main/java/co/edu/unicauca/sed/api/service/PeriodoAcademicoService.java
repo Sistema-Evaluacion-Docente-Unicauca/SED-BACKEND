@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import co.edu.unicauca.sed.api.domain.EstadoPeriodoAcademico;
+import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EstadoPeriodoAcademico;
-import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;
 import co.edu.unicauca.sed.api.repository.PeriodoAcademicoRepository;
 import jakarta.persistence.EntityNotFoundException;

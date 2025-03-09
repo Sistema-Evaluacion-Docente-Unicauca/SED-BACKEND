@@ -1,8 +1,8 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Encuesta;
-import co.edu.unicauca.sed.api.model.EncuestaEstudiante;
-import co.edu.unicauca.sed.api.model.EvaluacionEstudiante;
+import co.edu.unicauca.sed.api.domain.Encuesta;
+import co.edu.unicauca.sed.api.domain.EncuestaEstudiante;
+import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.repository.EncuestaEstudianteRepository;
 import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import co.edu.unicauca.sed.api.repository.EvaluacionEstudianteRepository;

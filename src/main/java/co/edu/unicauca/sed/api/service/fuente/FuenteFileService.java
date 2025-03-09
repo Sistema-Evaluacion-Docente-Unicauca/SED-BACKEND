@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
-import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FileService;
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

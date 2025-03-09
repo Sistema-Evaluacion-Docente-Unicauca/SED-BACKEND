@@ -4,8 +4,9 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
-import co.edu.unicauca.sed.api.model.Usuario;
-import co.edu.unicauca.sed.api.model.EstadoUsuario;
+
+import co.edu.unicauca.sed.api.domain.EstadoUsuario;
+import co.edu.unicauca.sed.api.domain.Usuario;
 
 public class UsuarioSpecification {
 

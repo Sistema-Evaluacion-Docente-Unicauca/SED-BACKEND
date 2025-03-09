@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import co.edu.unicauca.sed.api.model.Usuario;
+import co.edu.unicauca.sed.api.domain.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaSpecificationExecutor<Usuario> {
     Usuario findByIdentificacion(String identificacion);

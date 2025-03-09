@@ -1,8 +1,8 @@
 package co.edu.unicauca.sed.api.controller;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadService;
 import org.springframework.http.ResponseEntity;

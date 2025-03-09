@@ -1,11 +1,11 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.mapper.DocenteEvaluacionMapper;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.Proceso;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;

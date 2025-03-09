@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.EstadoActividad;
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.EstadoActividad;
 import co.edu.unicauca.sed.api.repository.EstadoActividadRepository;
 import co.edu.unicauca.sed.api.utils.StringUtils;
 
