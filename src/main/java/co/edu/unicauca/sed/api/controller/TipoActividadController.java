@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.controller;
 
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.model.TipoActividad;
 import co.edu.unicauca.sed.api.service.TipoActividadService;
 import org.slf4j.Logger;
@@ -31,9 +32,13 @@ public class TipoActividadController {
      * @return El tipo de actividad creado con estado HTTP 201 (CREATED).
      */
     @PostMapping
-    public ResponseEntity<TipoActividad> create(@RequestBody TipoActividad tipoActividad) {
-        logger.info("Solicitud para crear TipoActividad: {}", tipoActividad);
-        return new ResponseEntity<>(service.save(tipoActividad), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<TipoActividad>> create(@RequestBody TipoActividad tipoActividad) {
+        logger.info("🔹 [POST] Solicitud para crear TipoActividad: {}", tipoActividad);
+
+        ApiResponse<TipoActividad> response = service.save(tipoActividad);
+
+        // Retornar el código HTTP en base al resultado
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**

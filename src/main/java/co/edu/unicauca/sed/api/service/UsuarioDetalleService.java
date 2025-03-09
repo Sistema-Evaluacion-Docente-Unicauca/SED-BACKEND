@@ -67,19 +67,47 @@ public class UsuarioDetalleService {
     public void procesarUsuarioDetalle(Usuario usuario) {
         if (usuario.getUsuarioDetalle() != null) {
             UsuarioDetalle usuarioDetalle = usuario.getUsuarioDetalle();
-            usuarioDetalle.setFacultad(stringUtils.safeToUpperCase(usuarioDetalle.getFacultad()));
-            usuarioDetalle.setDepartamento(stringUtils.safeToUpperCase(usuarioDetalle.getDepartamento()));
-            usuarioDetalle.setCategoria(stringUtils.safeToUpperCase(usuarioDetalle.getCategoria()));
-            usuarioDetalle.setContratacion(stringUtils.safeToUpperCase(usuarioDetalle.getContratacion()));
-            usuarioDetalle.setDedicacion(stringUtils.safeToUpperCase(usuarioDetalle.getDedicacion()));
-            usuarioDetalle.setEstudios(stringUtils.safeToUpperCase(usuarioDetalle.getEstudios()));
     
-            // Creamos una nueva variable para evitar la reasignación de usuarioDetalle
-            UsuarioDetalle usuarioDetalleProcesado = (usuarioDetalle.getOidUsuarioDetalle() != null)
-                    ? usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
+            normalizeUsuarioDetalle(usuarioDetalle);
+    
+            try {
+                UsuarioDetalle usuarioDetalleProcesado;
+    
+                if (usuarioDetalle.getOidUsuarioDetalle() != null) {
+                    usuarioDetalleProcesado = usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
                             .orElseThrow(() -> new RuntimeException(
-                                    "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle())) : usuarioDetalleRepository.save(usuarioDetalle);
-            usuario.setUsuarioDetalle(usuarioDetalleProcesado);
+                                    "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));
+    
+                    mergeUsuarioDetalle(usuarioDetalleProcesado, usuarioDetalle);
+    
+                } else {
+                    usuarioDetalleProcesado = usuarioDetalleRepository.save(usuarioDetalle);
+                }
+    
+                usuario.setUsuarioDetalle(usuarioDetalleProcesado);
+    
+            } catch (Exception e) {
+                throw new RuntimeException("Error al procesar el detalle del usuario: " + e.getMessage(), e);
+            }
         }
-    }    
+    }
+    
+    private void normalizeUsuarioDetalle(UsuarioDetalle detalle) {
+        detalle.setFacultad(stringUtils.safeToUpperCase(detalle.getFacultad()));
+        detalle.setDepartamento(stringUtils.safeToUpperCase(detalle.getDepartamento()));
+        detalle.setCategoria(stringUtils.safeToUpperCase(detalle.getCategoria()));
+        detalle.setContratacion(stringUtils.safeToUpperCase(detalle.getContratacion()));
+        detalle.setDedicacion(stringUtils.safeToUpperCase(detalle.getDedicacion()));
+        detalle.setEstudios(stringUtils.safeToUpperCase(detalle.getEstudios()));
+    }
+    
+    private void mergeUsuarioDetalle(UsuarioDetalle existente, UsuarioDetalle recibido) {
+        existente.setFacultad(recibido.getFacultad());
+        existente.setDepartamento(recibido.getDepartamento());
+        existente.setCategoria(recibido.getCategoria());
+        existente.setContratacion(recibido.getContratacion());
+        existente.setDedicacion(recibido.getDedicacion());
+        existente.setEstudios(recibido.getEstudios());
+        //usuarioDetalleRepository.save(existente);
+    }
 }

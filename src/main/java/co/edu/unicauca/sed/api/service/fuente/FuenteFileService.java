@@ -1,6 +1,5 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
-import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
 import co.edu.unicauca.sed.api.service.FileService;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
@@ -33,12 +32,12 @@ public class FuenteFileService {
      * @param nombreEvaluado  Nombre del evaluado.
      * @return La ruta del archivo guardado.
      */
-    public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente,
-            String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) {
+    public Path handleCommonFile(Optional<Fuente> optionalFuente, MultipartFile informeFuente, String periodoAcademico, String nombreEvaluado, 
+        String contratacion, String departamento,  String nombreActividad, String idEvaluador) {
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");
-                return null; // Retornar null si no hay archivo proporcionado
+                return null;
             }
 
             // Si existe una fuente previa, verifica si el archivo es diferente
@@ -54,7 +53,7 @@ public class FuenteFileService {
                 }
             }
 
-            Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, "fuente");
+            Path savedFile = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador, "fuente");
             return savedFile;
 
         } catch (Exception e) {
@@ -107,46 +106,12 @@ public class FuenteFileService {
             }
 
             // Guardar el nuevo informe ejecutivo
-            Path savedFile = fileService.saveFile(matchedFile.get(), periodoAcademico, nombreEvaluado, contratacion, departamento, "informe");
+            Path savedFile = fileService.saveFile(matchedFile.get(), periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, "informe");
             return savedFile;
 
         } catch (Exception e) {
             logger.error("Error al manejar el informe ejecutivo", e);
             throw new RuntimeException("Error al manejar el informe ejecutivo: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * Obtiene el período académico asociado a la actividad.
-     *
-     * @param activity La actividad relacionada.
-     * @return El identificador del período académico.
-     */
-    public String getPeriodoAcademico(Actividad activity) {
-        return activity.getProceso().getOidPeriodoAcademico().getIdPeriodo();
-    }
-
-    /**
-     * Obtiene el nombre del evaluado basado en su información.
-     *
-     * @param activity La actividad relacionada.
-     * @return El nombre del evaluado formateado.
-     */
-    public String getNombreEvaluado(Actividad activity) {
-        return (activity.getProceso().getEvaluado().getNombres() + "_" +
-                activity.getProceso().getEvaluado().getApellidos()).replaceAll("\\s+", "_");
-    }
-
-    /*
-     * 
-     */
-    public String getDepartamento(Actividad actividad) {
-        String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
-        return departamento;
-    }
-
-    public String getContratacion(Actividad actividad) {
-        String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
-        return contratacion;
     }
 }

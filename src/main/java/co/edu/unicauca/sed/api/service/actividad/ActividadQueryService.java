@@ -1,9 +1,11 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.controller.ActividadController;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.*;
 import co.edu.unicauca.sed.api.model.Actividad;
 import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
@@ -43,7 +45,7 @@ public class ActividadQueryService {
     // Orden predeterminada de clasificación
     private static final boolean DEFAULT_ASCENDING_ORDER = true;
 
-    public Page<ActividadBaseDTO> findActivitiesByEvaluado(
+    public ApiResponse<Page<ActividadBaseDTO>> findActivitiesByEvaluado(
             Integer evaluatorUserId, Integer evaluatedUserId,
             String activityCode, String activityType, String evaluatorName, List<String> roles,
             String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
@@ -56,49 +58,76 @@ public class ActividadQueryService {
         try {
             Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
                     activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+
             Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
-            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades para los parámetros dados.",
-                    activitiesPage.getTotalElements());
+
+            if (activitiesPage.isEmpty()) {
+                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.",
+                        Page.empty());
+            }
+
+            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades.", activitiesPage.getTotalElements());
 
             List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
-                    .map(actividadDTOService::convertActividadToDTO)
+                    .map(actividadDTOService::buildActividadBaseDTO)
                     .collect(Collectors.toList());
-            return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
+
+            Page<ActividadBaseDTO> responsePage = new PageImpl<>(activityDTOs, pageable,
+                    activitiesPage.getTotalElements());
+            return new ApiResponse<>(200, "Actividades obtenidas correctamente.", responsePage);
+
         } catch (IllegalStateException e) {
             logger.warn("⚠️ [WARN] No se encontró un período académico activo.");
-            throw e;
+            return new ApiResponse<>(400, "No se encontró un período académico activo.", Page.empty());
+
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error en findActivitiesByEvaluado: {}", e.getMessage(), e);
-            throw new RuntimeException("Error inesperado al obtener actividades para evaluado.", e);
+            return new ApiResponse<>(500, "Error inesperado al obtener actividades para evaluado: " + e.getMessage(),
+                    Page.empty());
         }
     }
 
-    public Page<ActividadDTOEvaluador> findActivitiesByEvaluador(
+    public ApiResponse<Page<ActividadDTOEvaluador>> findActivitiesByEvaluador(
             Integer evaluatorUserId, Integer evaluatedUserId,
-            String activityCode, String activityType, String evaluatorName, List<String> roles, String sourceType,
-            String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
+            String activityCode, String activityType, String evaluatorName, List<String> roles,
+            String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
+            Pageable pageable) {
 
         logger.info(
                 "🔵 [FIND_BY_EVALUADOR] Buscando actividades para evaluador con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
                 evaluatorUserId, evaluatedUserId, activityCode);
 
-        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType,
-                evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+        try {
+            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
+                    activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
 
-        Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
+            Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
 
-        if (activitiesPage == null) {
-            logger.warn("⚠️ [FIND_BY_EVALUADO] La consulta devolvió NULL, revisa los filtros y el repositorio.");
-            throw new RuntimeException("La consulta a la base de datos devolvió NULL, verifica la configuración.");
+            if (activitiesPage == null) {
+                logger.warn("⚠️ [FIND_BY_EVALUADOR] La consulta devolvió NULL, revisa los filtros y el repositorio.");
+                return new ApiResponse<>(500, "Error en la consulta: la base de datos devolvió NULL.", Page.empty());
+            }
+
+            if (activitiesPage.isEmpty()) {
+                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.", Page.empty());
+            }
+
+            List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
+                    .map(activity -> (sourceType != null || sourceStatus != null)
+                            ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
+                            : actividadDTOService.convertToDTOWithEvaluado(activity))
+                    .collect(Collectors.toList());
+
+            Page<ActividadDTOEvaluador> responsePage = new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
+
+            logger.info("✅ [FIND_BY_EVALUADOR] Se encontraron {} actividades.", responsePage.getTotalElements());
+
+            return new ApiResponse<>(200, "Actividades obtenidas correctamente.", responsePage);
+
+        } catch (Exception e) {
+            logger.error("❌ [ERROR] Error en findActivitiesByEvaluador: {}", e.getMessage(), e);
+            return new ApiResponse<>(500, "Error inesperado al obtener actividades para evaluador: " + e.getMessage(), Page.empty());
         }
-
-        List<ActividadDTOEvaluador> activityDTOs = activitiesPage.stream()
-                .map(activity -> (sourceType != null || sourceStatus != null)
-                        ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
-                        : actividadDTOService.convertToDTOWithEvaluado(activity))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
     }
 
     public Specification<Actividad> filtrarActividades(
@@ -178,5 +207,10 @@ public class ActividadQueryService {
         if (!orderList.isEmpty()) {
             query.orderBy(orderList);
         }
+    }
+
+    public Page<Actividad> obtenerActividadesPorProcesosPaginadas(List<Proceso> procesos, Pageable pageable) {
+        List<Integer> procesoIds = procesos.stream().map(Proceso::getOidProceso).collect(Collectors.toList());
+        return actividadRepository.findByProcesos(procesoIds, pageable);
     }
 }

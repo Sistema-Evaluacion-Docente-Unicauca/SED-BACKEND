@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manejo global de excepciones en la aplicación.
@@ -19,99 +20,109 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     /**
      * Maneja excepciones de conversión de tipos (ClassCastException).
-     *
-     * @param e Excepción capturada.
-     * @return Respuesta con código de error y mensaje.
      */
     @ExceptionHandler(ClassCastException.class)
-    public ResponseEntity<Map<String, Object>> handleClassCastException(ClassCastException e) {
+    public ResponseEntity<ApiResponse<Void>> handleClassCastException(ClassCastException e) {
+        logger.error("❌ [ERROR] Error de conversión de tipos: {}", e.getMessage(), e);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error de conversión de tipos: " + e.getMessage());
     }
 
     /**
      * Maneja excepciones de tipo IllegalArgumentException.
-     *
-     * @param e Excepción capturada.
-     * @return Respuesta con código de error y mensaje.
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
+        logger.warn("⚠️ [WARN] Parámetro inválido: {}", e.getMessage());
         return buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     /**
-     * Maneja errores de integridad de datos en la base de datos (ej. valores NULL
-     * en columnas NOT NULL).
-     *
-     * @param e Excepción capturada.
-     * @return Respuesta con código de error y mensaje.
+     * Maneja excepciones de estado ilegal (IllegalStateException).
      */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDatabaseConstraintViolation(DataIntegrityViolationException e) {
-        String errorMessage = "Error de integridad de datos.";
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException ex) {
+        logger.warn("⚠️ [WARN] Estado ilegal: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
 
-        // Analiza el mensaje para detectar errores de campos NULL o valores duplicados
-        if (e.getCause() != null && e.getCause().getMessage() != null) {
-            String detailedMessage = e.getCause().getMessage().toLowerCase();
-            if (detailedMessage.contains("null value in column")) {
-                errorMessage = "Uno o más campos obligatorios están vacíos.";
-            } else if (detailedMessage.contains("violates unique constraint")) {
-                errorMessage = "Ya existe un registro con este valor único.";
-            }
-        }
+    /**
+     * Maneja errores de acceso a datos inválidos en consultas.
+     */
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataAccessException(InvalidDataAccessApiUsageException ex) {
+        logger.warn("⚠️ [WARN] Error en consulta de datos: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Error en la consulta de datos: " + ex.getMessage());
+    }
 
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, errorMessage);
+    /**
+     * Maneja excepciones cuando no se encuentra una entidad en la base de datos.
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        logger.warn("⚠️ [WARN] Entidad no encontrada: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    /**
+     * Maneja errores generales de acceso a la base de datos.
+     */
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDatabaseException(DataAccessException ex) {
+        logger.error("❌ [ERROR] Error en la base de datos: {}", ex.getMessage(), ex);
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Error en la base de datos: " + ex.getMessage());
     }
 
     /**
      * Maneja cualquier otra excepción no capturada específicamente.
-     *
-     * @param e Excepción capturada.
-     * @return Respuesta con código de error y mensaje.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception e) {
+    public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception e) {
+        logger.error("❌ [ERROR] Excepción no controlada: {}", e.getMessage(), e);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error inesperado.");
     }
 
     /**
      * Método utilitario para construir la respuesta de error estándar.
-     *
-     * @param status  Código de estado HTTP.
-     * @param mensaje Mensaje de error.
-     * @return ResponseEntity con JSON estructurado.
      */
-    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String mensaje) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("codigo", status.value());
-        errorResponse.put("mensaje", mensaje);
+    private ResponseEntity<ApiResponse<Void>> buildErrorResponse(HttpStatus status, String mensaje) {
+        ApiResponse<Void> errorResponse = new ApiResponse<>(status.value(), mensaje, null);
         return ResponseEntity.status(status).body(errorResponse);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException ex) {
-        ApiResponse<Void> errorResponse = new ApiResponse<>(404, ex.getMessage(), null);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDatabaseConstraintViolation(DataIntegrityViolationException e) {
+        String errorMessage = "Error de integridad de datos.";
+
+        // Extraer el mensaje de error para detectar restricciones únicas
+        if (e.getCause() != null && e.getCause().getMessage() != null) {
+            String detailedMessage = e.getCause().getMessage().toLowerCase();
+
+            if (detailedMessage.contains("ora-00001") || detailedMessage.contains("unique constraint")) {
+                errorMessage = "Error: Ya existe un registro con los mismos datos.";
+            } else if (detailedMessage.contains("null value in column")) {
+                errorMessage = "Uno o más campos obligatorios están vacíos.";
+            }
+        }
+
+        logger.warn("⚠️ [DATABASE ERROR] {}", errorMessage);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(409, errorMessage, null));
     }
 
-    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDataAccessException(InvalidDataAccessApiUsageException ex) {
-        ApiResponse<Void> errorResponse = new ApiResponse<>(400, "Error en la consulta de datos: " + ex.getMessage(), null);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
+        logger.error("❌ [ERROR] Restricción de clave única violada: {}", e.getMessage());
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException ex) {
-        ApiResponse<Void> errorResponse = new ApiResponse<>(404, ex.getMessage(), null);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
+        String errorMessage = "Error: Ya existe un registro con los mismos datos.";
 
-    @ExceptionHandler(DataAccessException.class)
-public ResponseEntity<ApiResponse<Void>> handleDatabaseException(DataAccessException ex) {
-    ApiResponse<Void> errorResponse = new ApiResponse<>(404, ex.getMessage(), null);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-}
+        if (e.getSQLException() != null && e.getSQLException().getMessage().contains("ORA-00001")) {
+            errorMessage = "Error: Ya existe un proceso con este Evaluador, Evaluado y Período Académico.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(409, errorMessage, null));
+    }
 
 }

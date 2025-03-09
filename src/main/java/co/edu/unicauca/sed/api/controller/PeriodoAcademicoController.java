@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import java.util.Optional;
@@ -27,140 +29,48 @@ public class PeriodoAcademicoController {
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
 
-    /**
-     * Recupera todos los períodos académicos disponibles con soporte de paginación.
-     *
-     * @param page Número de página a recuperar (por defecto 0).
-     * @param size Cantidad de elementos por página (por defecto 10).
-     * @return Una página con los períodos académicos disponibles o un mensaje de error si no se encuentran.
-     */
     @GetMapping
-    public ResponseEntity<?> findAll(
+    public ResponseEntity<ApiResponse<Page<PeriodoAcademico>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            Page<PeriodoAcademico> periodos = periodoAcademicoService.findAll(PageRequest.of(page, size));
-            if (periodos.hasContent()) {
-                return ResponseEntity.ok().body(periodos);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sin períodos académicos disponibles.");
-            }
-        } catch (Exception e) {
-            logger.error("Error al obtener los períodos académicos: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+        ApiResponse<Page<PeriodoAcademico>> response = periodoAcademicoService.findAll(PageRequest.of(page, size));
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Busca un período académico específico por su ID.
-     *
-     * @param oid El ID del período académico.
-     * @return El período académico encontrado o un error 404 si no se encuentra.
-     */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        try {
-            PeriodoAcademico resultado = periodoAcademicoService.findByOid(oid);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Período académico con ID " + oid + " no encontrado");
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar el período académico con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<PeriodoAcademico>> find(@PathVariable Integer oid) {
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.findByOid(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Guarda un nuevo período académico en el sistema.
-     *
-     * @param periodoAcademico El objeto PeriodoAcademico a guardar.
-     * @return El período académico guardado o un mensaje de error.
-     */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody PeriodoAcademico periodoAcademico) {
-        try {
-            PeriodoAcademico resultado = periodoAcademicoService.save(periodoAcademico);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            } else {
-                logger.error("Error al guardar el período académico. Resultado nulo.");
-                return ResponseEntity.internalServerError().body("Error: Resultado nulo");
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar el período académico: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<PeriodoAcademico>> save(@RequestBody PeriodoAcademico periodoAcademico) {
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.save(periodoAcademico);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Actualiza un período académico existente.
-     *
-     * @param oid              El ID del período académico a actualizar.
-     * @param periodoAcademico Datos actualizados del período académico.
-     * @return Mensaje de éxito o error.
-     */
     @PutMapping("/{oid}")
-    public ResponseEntity<?> update(@PathVariable Integer oid, @RequestBody PeriodoAcademico periodoAcademico) {
-        try {
-            boolean updated = periodoAcademicoService.update(oid, periodoAcademico);
-            if (updated) {
-                return ResponseEntity.ok("Período académico actualizado correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Período académico con ID " + oid + " no encontrado.");
-            }
-        } catch (Exception e) {
-            logger.error("Error al actualizar el período académico con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oid,
+            @RequestBody PeriodoAcademico periodoAcademico) {
+        ApiResponse<Void> response = periodoAcademicoService.update(oid, periodoAcademico);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Elimina un período académico por su ID.
-     *
-     * @param oid El ID del período académico a eliminar.
-     * @return Mensaje de confirmación si se elimina, o un error si ocurre un
-     *         problema.
-     */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        try {
-            PeriodoAcademico periodoAcademico = periodoAcademicoService.findByOid(oid);
-            if (periodoAcademico == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Período académico no encontrado");
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar el período académico con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Período académico no encontrado");
-        }
-
-        try {
-            periodoAcademicoService.delete(oid);
-            logger.info("Período académico con ID {} eliminado exitosamente.", oid);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            logger.error("Error al eliminar el período académico con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
+        ApiResponse<Void> response = periodoAcademicoService.delete(oid);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     /**
      * Obtiene el período académico activo.
      *
-     * @return El período académico activo si existe, o un mensaje de error si no hay ninguno activo.
+     * @return El período académico activo si existe, o un mensaje de error si no
+     *         hay ninguno activo.
      */
     @GetMapping("/activo")
-    public ResponseEntity<?> obtenerPeriodoAcademicoActivo() {
-        Optional<PeriodoAcademico> periodoAcademicoOpt = periodoAcademicoService.getPeriodoAcademicoActivo();
-
-        if (periodoAcademicoOpt.isPresent()) {
-            return ResponseEntity.ok(periodoAcademicoOpt.get());
-        } else {
-            logger.warn("⚠️ No se encontró un período académico activo.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró un período académico activo.");
-        }
+    public ResponseEntity<ApiResponse<PeriodoAcademico>> obtenerPeriodoAcademicoActivo() {
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.getPeriodoAcademicoActivo();
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

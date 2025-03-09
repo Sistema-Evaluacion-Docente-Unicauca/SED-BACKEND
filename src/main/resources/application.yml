@@ -16,6 +16,9 @@ spring:
       enabled: true
       max-file-size: ${MULTIPART_MAX_FILE_SIZE}
       max-request-size: ${MULTIPART_MAX_REQUEST_SIZE}
+  notification:
+    service:
+      url: ${NOTIFICATION_SERVICE_URL}
 
 files:
   basePath: ${FILES_BASE_PATH}

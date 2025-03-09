@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FileService {
@@ -22,7 +25,7 @@ public class FileService {
     private String uploadDir;
 
     public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) throws IOException {
-        return saveFile(file, periodoAcademico, nombreEvaluado, contratacion, departamento, null);
+        return saveFile(file, periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, null);
     }
 
     /**
@@ -37,19 +40,21 @@ public class FileService {
      * @return Ruta del archivo guardado.
      * @throws IOException Si ocurre un error al guardar.
      */
-    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String prefix)
+    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String nombreActividad, String idEvaluador, String prefix)
             throws IOException {
         // Construir la ruta dinámica utilizando uploadDir
-        Path directoryPath = Paths.get(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado);
-        Files.createDirectories(directoryPath); // Crea los directorios si no existen
+        Path directoryPath = buildDynamicPath(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado, nombreActividad);
+        Files.createDirectories(directoryPath);
 
         // Obtener el nombre original del archivo
         String originalFilename = file.getOriginalFilename();
 
         // Validar si el archivo ya tiene el prefijo
+        String idEvaluadorSegment = (idEvaluador != null && !idEvaluador.isEmpty()) ? idEvaluador + "-" : "";
         String prefixedFilename = (prefix != null && !prefix.isEmpty() && !originalFilename.startsWith(prefix + "-"))
-                ? prefix + "-" + originalFilename
+                ? prefix + "-" + idEvaluadorSegment + originalFilename
                 : originalFilename;
+
 
         // Ruta completa del archivo
         Path targetPath = directoryPath.resolve(prefixedFilename);
@@ -108,4 +113,17 @@ public class FileService {
             throw e;
         }
     }
+
+    private Path buildDynamicPath(String... segments) {
+    List<String> validSegments = Arrays.stream(segments)
+            .filter(segment -> segment != null && !segment.isEmpty())
+            .collect(Collectors.toList());
+
+    if (validSegments.isEmpty()) {
+        throw new IllegalArgumentException("The path cannot be empty or composed only of null/empty segments.");
+    }
+
+    return Paths.get(validSegments.get(0), validSegments.subList(1, validSegments.size()).toArray(new String[0]));
+}
+
 }
