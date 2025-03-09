@@ -13,7 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import co.edu.unicauca.sed.api.model.Fuente;
+
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 
 /**

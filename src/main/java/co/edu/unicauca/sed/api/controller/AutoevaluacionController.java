@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.Autoevaluacion;
+import co.edu.unicauca.sed.api.domain.Autoevaluacion;
 import co.edu.unicauca.sed.api.service.AutoevaluacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

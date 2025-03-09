@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import co.edu.unicauca.sed.api.controller.TipoActividadController;
+import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.TipoActividad;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import org.springframework.data.domain.Pageable;
 

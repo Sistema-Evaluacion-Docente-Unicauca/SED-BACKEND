@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.model;
+package co.edu.unicauca.sed.api.domain;
 
 import java.time.LocalDateTime;
 

@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.ActividadDecimal;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.ActividadDecimal;
 import co.edu.unicauca.sed.api.repository.ActividadDecimalRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import co.edu.unicauca.sed.api.model.Oficio;
+import co.edu.unicauca.sed.api.domain.Oficio;
 import co.edu.unicauca.sed.api.service.OficioService;
 
 @Controller

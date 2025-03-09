@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import co.edu.unicauca.sed.api.model.Oficio;
+import co.edu.unicauca.sed.api.domain.Oficio;
 import co.edu.unicauca.sed.api.repository.OficioRepository;
 
 @Service

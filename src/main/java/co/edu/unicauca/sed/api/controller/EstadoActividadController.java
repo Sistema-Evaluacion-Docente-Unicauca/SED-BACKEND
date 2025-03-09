@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.model.EstadoActividad;
+import co.edu.unicauca.sed.api.domain.EstadoActividad;
 import co.edu.unicauca.sed.api.service.EstadoActividadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

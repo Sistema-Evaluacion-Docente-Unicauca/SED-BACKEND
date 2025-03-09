@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.Proceso;
 import co.edu.unicauca.sed.api.service.ProcesoService;
 
 @Controller

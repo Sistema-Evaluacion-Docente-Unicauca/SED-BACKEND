@@ -3,10 +3,10 @@ package co.edu.unicauca.sed.api.dto.actividad;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-import co.edu.unicauca.sed.api.model.TipoActividad;
 
 public class ActividadBaseDTO {
 

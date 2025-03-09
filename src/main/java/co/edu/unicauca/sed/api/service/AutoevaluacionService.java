@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Autoevaluacion;
+import co.edu.unicauca.sed.api.domain.Autoevaluacion;
 import co.edu.unicauca.sed.api.repository.AutoevaluacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

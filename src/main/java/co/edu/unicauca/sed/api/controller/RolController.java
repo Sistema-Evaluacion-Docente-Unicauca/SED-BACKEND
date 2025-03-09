@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import co.edu.unicauca.sed.api.model.Rol;
+
+import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.service.RolService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

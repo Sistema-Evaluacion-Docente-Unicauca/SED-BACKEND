@@ -1,9 +1,8 @@
-package co.edu.unicauca.sed.api.model;
+package co.edu.unicauca.sed.api.domain;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -20,28 +19,24 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "RESOLUCION")
+@Table(name = "COMENTARIO")
 @Data
-public class Resolucion {
+public class Comentario {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "resolucionSeq")
-    @SequenceGenerator(name = "resolucionSeq", sequenceName = "SEQ_OIDRESOLUCION", allocationSize = 1)
-    @Column(name = "OIDRESOLUCION")
-    private Integer oidResolucion;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comentarioSeq")
+    @SequenceGenerator(name = "comentarioSeq", sequenceName = "SEQ_OIDCOMENTARIO", allocationSize = 1)
+    @Column(name = "OIDCOMENTARIO", nullable = false)
+    private Integer oidComentario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "OIDPROCESO")
     @JsonBackReference
     private Proceso proceso;
 
-    @Column(name = "NOMBREDOCUMENTO", nullable = false)
-    private String nombredocumento;
+    @Column(name = "COMENTARIO", nullable = false)
+    private String comentario;
 
     @Column(name = "FECHACREACION", updatable = false)
     @CreationTimestamp
     private LocalDateTime fechaCreacion;
-
-    @Column(name = "FECHAACTUALIZACION")
-    @UpdateTimestamp
-    private LocalDateTime fechaActualizacion;
 }

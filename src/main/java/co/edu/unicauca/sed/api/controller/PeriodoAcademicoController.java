@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.PeriodoAcademico;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import java.util.Optional;
 import org.slf4j.Logger;

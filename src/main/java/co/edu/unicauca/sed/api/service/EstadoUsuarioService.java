@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.EstadoUsuario;
+import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

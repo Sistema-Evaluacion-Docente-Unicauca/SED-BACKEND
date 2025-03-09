@@ -5,7 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
-import co.edu.unicauca.sed.api.model.Comentario;
+
+import co.edu.unicauca.sed.api.domain.Comentario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.service.ComentarioService;
 

@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.EstadoEtapaDesarrollo;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EstadoEtapaDesarrollo;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

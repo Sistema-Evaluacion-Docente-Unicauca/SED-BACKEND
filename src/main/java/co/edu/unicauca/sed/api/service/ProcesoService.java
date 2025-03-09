@@ -7,11 +7,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
+import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.Actividad;
-import co.edu.unicauca.sed.api.model.PeriodoAcademico;
-import co.edu.unicauca.sed.api.model.Proceso;
-import co.edu.unicauca.sed.api.model.Usuario;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
 import org.springframework.data.domain.Page;

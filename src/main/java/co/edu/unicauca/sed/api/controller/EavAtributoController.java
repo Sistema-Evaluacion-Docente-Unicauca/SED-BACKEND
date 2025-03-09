@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
+import co.edu.unicauca.sed.api.domain.EavAtributo;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EavAtributo;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

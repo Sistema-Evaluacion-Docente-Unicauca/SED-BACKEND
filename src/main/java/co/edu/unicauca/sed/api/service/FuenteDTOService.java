@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
-import co.edu.unicauca.sed.api.model.Fuente;
 
 import java.util.ArrayList;
 import java.util.List;

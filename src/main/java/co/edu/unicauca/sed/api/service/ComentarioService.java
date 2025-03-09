@@ -8,8 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import co.edu.unicauca.sed.api.model.Comentario;
+
 import co.edu.unicauca.sed.api.repository.ComentarioRepository;
+import co.edu.unicauca.sed.api.domain.Comentario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

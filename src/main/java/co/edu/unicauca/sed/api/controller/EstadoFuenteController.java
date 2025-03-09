@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.EstadoFuente;
 import co.edu.unicauca.sed.api.service.EstadoFuenteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

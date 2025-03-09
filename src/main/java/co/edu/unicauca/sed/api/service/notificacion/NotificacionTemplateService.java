@@ -1,7 +1,8 @@
 package co.edu.unicauca.sed.api.service.notificacion;
 
-import co.edu.unicauca.sed.api.model.Usuario;
 import org.springframework.stereotype.Service;
+
+import co.edu.unicauca.sed.api.domain.Usuario;
 
 import java.util.Locale;
 

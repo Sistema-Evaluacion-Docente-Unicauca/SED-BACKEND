@@ -1,7 +1,7 @@
 package co.edu.unicauca.sed.api.service;
 
+import co.edu.unicauca.sed.api.domain.ActividadVarchar;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.model.ActividadVarchar;
 import co.edu.unicauca.sed.api.repository.ActividadVarcharRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

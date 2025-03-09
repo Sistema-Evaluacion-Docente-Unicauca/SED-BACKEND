@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.service;
 
-import co.edu.unicauca.sed.api.model.Encuesta;
+import co.edu.unicauca.sed.api.domain.Encuesta;
 import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

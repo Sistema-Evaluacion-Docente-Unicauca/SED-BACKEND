@@ -1,7 +1,8 @@
 package co.edu.unicauca.sed.api.mapper;
 
+import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.model.*;
+
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;

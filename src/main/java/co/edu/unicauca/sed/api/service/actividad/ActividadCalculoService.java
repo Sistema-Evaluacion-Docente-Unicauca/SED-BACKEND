@@ -2,9 +2,9 @@ package co.edu.unicauca.sed.api.service.actividad;
 
 import org.springframework.stereotype.Service;
 
-import co.edu.unicauca.sed.api.model.Fuente;
+import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.utils.MathUtils;
-import co.edu.unicauca.sed.api.model.Actividad;
 
 import java.util.List;
 import java.util.Map;

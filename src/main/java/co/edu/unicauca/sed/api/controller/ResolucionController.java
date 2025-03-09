@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import co.edu.unicauca.sed.api.model.Resolucion;
+import co.edu.unicauca.sed.api.domain.Resolucion;
 import co.edu.unicauca.sed.api.service.ResolucionService;
 
 @Controller

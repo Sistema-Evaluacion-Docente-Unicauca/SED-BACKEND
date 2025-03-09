@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import co.edu.unicauca.sed.api.model.Rol;
+
+import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

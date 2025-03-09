@@ -1,6 +1,6 @@
 package co.edu.unicauca.sed.api.specification;
 
-import co.edu.unicauca.sed.api.model.Consolidado;
+import co.edu.unicauca.sed.api.domain.Consolidado;
 import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
