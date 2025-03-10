@@ -1,16 +1,15 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import org.springframework.stereotype.Service;
-
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Fuente;
-import co.edu.unicauca.sed.api.utils.MathUtils;
 
 import java.util.List;
 import java.util.Map;
 
-@Service
-public class ActividadCalculoService {
+/**
+ * Interface que define los métodos para cálculos de actividades.
+ */
+public interface ActividadCalculoService {
 
     /**
      * Calcula el total de horas de una lista de actividades.
@@ -18,11 +17,7 @@ public class ActividadCalculoService {
      * @param actividades Lista de actividades.
      * @return Total de horas.
      */
-    public float calcularTotalHoras(List<Actividad> actividades) {
-        return (float) actividades.stream()
-                .mapToDouble(actividad -> actividad.getHoras())
-                .sum();
-    }
+    float calcularTotalHoras(List<Actividad> actividades);
 
     /**
      * Calcula el porcentaje de horas de una actividad respecto al total.
@@ -31,9 +26,7 @@ public class ActividadCalculoService {
      * @param horasTotales   Horas totales.
      * @return Porcentaje calculado redondeado a 2 decimales.
      */
-    public int calcularPorcentaje(float horasActividad, float horasTotales) {
-        return horasTotales > 0 ? Math.round((horasActividad / horasTotales) * 100) : 0;
-    }
+    int calcularPorcentaje(float horasActividad, float horasTotales);
 
     /**
      * Calcula el promedio de calificaciones de una lista de fuentes.
@@ -41,15 +34,7 @@ public class ActividadCalculoService {
      * @param fuentes Lista de fuentes.
      * @return Promedio redondeado a 2 decimales.
      */
-    public double calcularPromedio(List<Fuente> fuentes) {
-        return MathUtils.redondearDecimal(
-                fuentes.stream()
-                    .filter(f -> f.getCalificacion() != null)
-                    .mapToDouble(Fuente::getCalificacion)
-                    .average()
-                    .orElse(0),
-                2).doubleValue();
-    }
+    double calcularPromedio(List<Fuente> fuentes);
 
     /**
      * Calcula el valor acumulado de una actividad.
@@ -58,27 +43,21 @@ public class ActividadCalculoService {
      * @param porcentaje Porcentaje asociado.
      * @return Valor acumulado redondeado a 2 decimales.
      */
-    public double calcularAcumulado(double promedio, float porcentaje) {
-        if (porcentaje <= 0) {
-            return 0;
-        }
-        double acumulado = promedio * (porcentaje / 100);
-        return Math.round(acumulado * 100.0) / 100.0;
-    }
+    double calcularAcumulado(double promedio, float porcentaje);
 
-    public double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
-        double total = actividadesPorTipo.values().stream()
-            .flatMap(List::stream)
-            .mapToDouble(actividad -> ((Number) actividad.getOrDefault("porcentaje", 0)).doubleValue())
-            .sum();
-    
-        return Math.min(Math.round(total), 100.0);
-    }
-    
-    public double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo) {
-        return actividadesPorTipo.values().stream()
-                .flatMap(List::stream)
-                .mapToDouble(actividad -> ((Number) actividad.getOrDefault("acumulado", 0)).doubleValue())
-                .sum();
-    }    
+    /**
+     * Calcula el total del porcentaje de actividades por tipo.
+     *
+     * @param actividadesPorTipo Mapa de actividades categorizadas por tipo.
+     * @return Total del porcentaje.
+     */
+    double calcularTotalPorcentaje(Map<String, List<Map<String, Object>>> actividadesPorTipo);
+
+    /**
+     * Calcula el total acumulado de actividades por tipo.
+     *
+     * @param actividadesPorTipo Mapa de actividades categorizadas por tipo.
+     * @return Total acumulado.
+     */
+    double calcularTotalAcumulado(Map<String, List<Map<String, Object>>> actividadesPorTipo);
 }

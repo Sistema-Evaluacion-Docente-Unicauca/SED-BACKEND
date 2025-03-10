@@ -1,216 +1,98 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
-import co.edu.unicauca.sed.api.controller.ActividadController;
 import co.edu.unicauca.sed.api.domain.Actividad;
-import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.dto.actividad.*;
-import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
+import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
+
 /**
- * Servicio para realizar consultas avanzadas sobre actividades utilizando
- * Criteria API.
+ * Interfaz para definir los métodos de consultas avanzadas sobre actividades.
  */
-@Service
-public class ActividadQueryService {
+public interface ActividadQueryService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActividadController.class);
+    /**
+     * Busca actividades donde un usuario es el evaluado.
+     *
+     * @param idEvaluador        ID del evaluador.
+     * @param idEvaluado         ID del evaluado.
+     * @param codigoActividad    Código de la actividad.
+     * @param tipoActividad      Tipo de actividad.
+     * @param nombreEvaluador    Nombre del evaluador.
+     * @param roles              Lista de roles del usuario.
+     * @param tipoFuente         Tipo de fuente.
+     * @param estadoFuente       Estado de la fuente.
+     * @param ordenAscendente    Indica si el orden es ascendente o descendente.
+     * @param idPeriodoAcademico ID del período académico.
+     * @param paginacion         Configuración de paginación.
+     * @return ApiResponse con la lista de actividades en formato paginado.
+     */
+    ApiResponse<Page<ActividadBaseDTO>> buscarActividadesPorEvaluado(
+            Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
+            String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
+            Boolean ordenAscendente, Integer idPeriodoAcademico, Pageable paginacion);
 
-    @PersistenceContext
-    private EntityManager entityManager;
-    @Autowired
-    private ActividadDTOService actividadDTOService;
-    @Autowired
-    private PeriodoAcademicoService periodoAcademicoService;
-    @Autowired
-    private ActividadRepository actividadRepository;
+    /**
+     * Busca actividades donde un usuario es el evaluador.
+     *
+     * @param idEvaluador        ID del evaluador.
+     * @param idEvaluado         ID del evaluado.
+     * @param codigoActividad    Código de la actividad.
+     * @param tipoActividad      Tipo de actividad.
+     * @param nombreEvaluador    Nombre del evaluador.
+     * @param roles              Lista de roles del usuario.
+     * @param tipoFuente         Tipo de fuente.
+     * @param estadoFuente       Estado de la fuente.
+     * @param ordenAscendente    Indica si el orden es ascendente o descendente.
+     * @param idPeriodoAcademico ID del período académico.
+     * @param paginacion         Configuración de paginación.
+     * @return ApiResponse con la lista de actividades en formato paginado.
+     */
+    ApiResponse<Page<ActividadDTOEvaluador>> buscarActividadesPorEvaluador(
+            Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
+            String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
+            Boolean ordenAscendente, Integer idPeriodoAcademico, Pageable paginacion);
 
-    // Orden predeterminada de clasificación
-    private static final boolean DEFAULT_ASCENDING_ORDER = true;
+    /**
+     * Genera un filtro dinámico para la consulta de actividades.
+     *
+     * @param idEvaluador        ID del evaluador.
+     * @param idEvaluado         ID del evaluado.
+     * @param codigoActividad    Código de la actividad.
+     * @param tipoActividad      Tipo de actividad.
+     * @param nombreEvaluador    Nombre del evaluador.
+     * @param roles              Lista de roles del usuario.
+     * @param tipoFuente         Tipo de fuente.
+     * @param estadoFuente       Estado de la fuente.
+     * @param ordenAscendente    Ordenamiento ascendente/descendente.
+     * @param idPeriodoAcademico ID del período académico.
+     * @return Specification para la consulta dinámica.
+     */
+    Specification<Actividad> filtrarActividades(
+            Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
+            String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
+            Boolean ordenAscendente, Integer idPeriodoAcademico);
 
-    public ApiResponse<Page<ActividadBaseDTO>> findActivitiesByEvaluado(
-            Integer evaluatorUserId, Integer evaluatedUserId,
-            String activityCode, String activityType, String evaluatorName, List<String> roles,
-            String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
-            Pageable pageable) {
+    /**
+     * Obtiene actividades asociadas a procesos de forma paginada.
+     *
+     * @param procesos   Lista de procesos.
+     * @param paginacion Configuración de paginación.
+     * @return Página de actividades encontradas.
+     */
+    Page<Actividad> obtenerActividadesPorProcesosPaginadas(List<Proceso> procesos, Pageable paginacion);
 
-        logger.info(
-                "🔵 [FIND_BY_EVALUADO] Buscando actividades para evaluado con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
-                evaluatorUserId, evaluatedUserId, activityCode);
-
-        try {
-            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                    activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
-
-            Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
-
-            if (activitiesPage.isEmpty()) {
-                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.",
-                        Page.empty());
-            }
-
-            logger.info("✅ [FIND_BY_EVALUADO] Se encontraron {} actividades.", activitiesPage.getTotalElements());
-
-            List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
-                    .map(actividadDTOService::buildActividadBaseDTO)
-                    .collect(Collectors.toList());
-
-            Page<ActividadBaseDTO> responsePage = new PageImpl<>(activityDTOs, pageable,
-                    activitiesPage.getTotalElements());
-            return new ApiResponse<>(200, "Actividades obtenidas correctamente.", responsePage);
-
-        } catch (IllegalStateException e) {
-            logger.warn("⚠️ [WARN] No se encontró un período académico activo.");
-            return new ApiResponse<>(400, "No se encontró un período académico activo.", Page.empty());
-
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error en findActivitiesByEvaluado: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, "Error inesperado al obtener actividades para evaluado: " + e.getMessage(),
-                    Page.empty());
-        }
-    }
-
-    public ApiResponse<Page<ActividadDTOEvaluador>> findActivitiesByEvaluador(
-            Integer evaluatorUserId, Integer evaluatedUserId,
-            String activityCode, String activityType, String evaluatorName, List<String> roles,
-            String sourceType, String sourceStatus, Boolean ascendingOrder, Integer idPeriodoAcademico,
-            Pageable pageable) {
-
-        logger.info(
-                "🔵 [FIND_BY_EVALUADOR] Buscando actividades para evaluador con parámetros: evaluatorUserId={}, evaluatedUserId={}, activityCode={}",
-                evaluatorUserId, evaluatedUserId, activityCode);
-
-        try {
-            Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                    activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
-
-            Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
-
-            if (activitiesPage == null) {
-                logger.warn("⚠️ [FIND_BY_EVALUADOR] La consulta devolvió NULL, revisa los filtros y el repositorio.");
-                return new ApiResponse<>(500, "Error en la consulta: la base de datos devolvió NULL.", Page.empty());
-            }
-
-            if (activitiesPage.isEmpty()) {
-                return new ApiResponse<>(200, "No se encontraron actividades para los parámetros proporcionados.", Page.empty());
-            }
-
-            List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
-                    .map(activity -> (sourceType != null || sourceStatus != null)
-                            ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
-                            : actividadDTOService.convertToDTOWithEvaluado(activity))
-                    .collect(Collectors.toList());
-
-            Page<ActividadDTOEvaluador> responsePage = new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements());
-
-            logger.info("✅ [FIND_BY_EVALUADOR] Se encontraron {} actividades.", responsePage.getTotalElements());
-
-            return new ApiResponse<>(200, "Actividades obtenidas correctamente.", responsePage);
-
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error en findActivitiesByEvaluador: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, "Error inesperado al obtener actividades para evaluador: " + e.getMessage(), Page.empty());
-        }
-    }
-
-    public Specification<Actividad> filtrarActividades(
-            Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType,
-            String evaluatorName, List<String> roles, String sourceType, String sourceStatus, Boolean ascendingOrder,
-            Integer idPeriodoAcademico) {
-
-        return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            Integer finalIdPeriodoAcademico;
-            try {
-                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico
-                        : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
-            } catch (IllegalStateException e) {
-                logger.warn("⚠️ [PERIODO] No se encontró un período académico activo antes de ejecutar la consulta.");
-                throw new EntityNotFoundException("No se encontró un período académico activo.");
-            }
-            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"),
-                    finalIdPeriodoAcademico));
-
-            if (userEvaluatorId != null) {
-                predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
-            }
-
-            if (userEvaluatedId != null) {
-                predicates.add(cb.equal(root.join("proceso").join("evaluado").get("oidUsuario"), userEvaluatedId));
-            }
-
-            if (activityCode != null && !activityCode.isEmpty()) {
-                predicates.add(cb.like(root.get("nombreActividad"), "%" + activityCode + "%"));
-            }
-
-            if (activityType != null && !activityType.isEmpty()) {
-                predicates.add(
-                        cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
-            }
-
-            if (evaluatorName != null && !evaluatorName.isEmpty()) {
-                predicates.add(cb.like(cb.concat(
-                        root.join("proceso").join("evaluador").get("nombres"),
-                        root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
-            }
-
-            query.distinct(true);
-
-            aplicarOrdenacion(query, cb, root, ascendingOrder, sourceType, sourceStatus);
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-    }
-
-    private void aplicarOrdenacion(CriteriaQuery<?> query, CriteriaBuilder cb, Root<Actividad> root,
-            Boolean ascendingOrder, String sourceType, String sourceStatus) {
-        boolean isAscending = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
-        List<Order> orderList = new ArrayList<>();
-
-        boolean ordenarPorFuente = (sourceType != null && !sourceType.isEmpty())
-                || (sourceStatus != null && !sourceStatus.isEmpty());
-
-        if (ordenarPorFuente) {
-            Join<Actividad, Fuente> fuenteJoin = root.join("fuentes", JoinType.LEFT);
-
-            if (sourceType != null && !sourceType.isEmpty()) {
-                orderList.add(
-                        isAscending ? cb.asc(fuenteJoin.get("tipoFuente")) : cb.desc(fuenteJoin.get("tipoFuente")));
-            }
-
-            if (sourceStatus != null && !sourceStatus.isEmpty()) {
-                orderList.add(isAscending ? cb.asc(fuenteJoin.get("estadoFuente").get("oidEstadoFuente"))
-                        : cb.desc(fuenteJoin.get("estadoFuente").get("oidEstadoFuente")));
-            }
-        } else {
-            orderList.add(isAscending ? cb.asc(root.get("nombreActividad")) : cb.desc(root.get("nombreActividad")));
-        }
-
-        if (!orderList.isEmpty()) {
-            query.orderBy(orderList);
-        }
-    }
-
-    public Page<Actividad> obtenerActividadesPorProcesosPaginadas(List<Proceso> procesos, Pageable pageable) {
-        List<Integer> procesoIds = procesos.stream().map(Proceso::getOidProceso).collect(Collectors.toList());
-        return actividadRepository.findByProcesos(procesoIds, pageable);
-    }
+    /**
+     * Ordena una lista de actividades por el nombre del tipo de actividad.
+     *
+     * @param actividades    Lista de actividades en formato DTO.
+     * @param ascendingOrder Indica si el orden debe ser ascendente (true) o descendente (false).
+     * @return Lista de actividades ordenadas según el criterio especificado.
+     */
+    List<ActividadBaseDTO> ordenarActividadesPorTipo(List<ActividadBaseDTO> actividades, Boolean ascendingOrder);
 }

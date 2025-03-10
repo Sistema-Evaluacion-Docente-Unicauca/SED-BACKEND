@@ -7,8 +7,8 @@ import java.util.Map;
 @Data
 public class ActividadPaginadaDTO {
     private Map<String, List<Map<String, Object>>> actividades;
-    private int currentPage;
-    private int pageSize;
-    private int totalItems;
-    private int totalPages;
+    private int paginaActual;
+    private int tamanoPagina;
+    private int totalElementos;
+    private int totalPaginas;
 }

@@ -72,7 +72,7 @@ public class ActividadController {
             @RequestParam(required = false) Boolean orden,
             @RequestParam(required = false) Integer idPeriodo) {
 
-        ApiResponse<Page<ActividadBaseDTO>> response = actividadQueryService.findActivitiesByEvaluado(
+        ApiResponse<Page<ActividadBaseDTO>> response = actividadQueryService.buscarActividadesPorEvaluado(
                 idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador,
                 roles, tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
 
@@ -97,7 +97,7 @@ public class ActividadController {
             @RequestParam(required = false) Integer idPeriodo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        ApiResponse<Page<ActividadDTOEvaluador>> response = actividadQueryService.findActivitiesByEvaluador(
+        ApiResponse<Page<ActividadDTOEvaluador>> response = actividadQueryService.buscarActividadesPorEvaluador(
                 idEvaluador, idEvaluado, codigoActividad, tipoActividad, nombreEvaluador, roles,
                 tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
 
