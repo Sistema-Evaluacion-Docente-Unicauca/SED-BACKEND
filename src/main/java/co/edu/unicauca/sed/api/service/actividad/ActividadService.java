@@ -7,34 +7,34 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Interface para definir los métodos del servicio de actividad.
+ * Interfaz para definir los métodos del servicio de actividad.
  */
 public interface ActividadService {
 
     /**
      * Obtiene todas las actividades paginadas con opción de orden ascendente o descendente.
      *
-     * @param pageable       Paginación y ordenamiento.
-     * @param ascendingOrder Define si el orden es ascendente o descendente.
+     * @param paginacion     Configuración de paginación.
+     * @param ordenAscendente Define si el orden es ascendente o descendente.
      * @return ApiResponse con la lista paginada de actividades.
      */
-    ApiResponse<Page<ActividadBaseDTO>> findAll(Pageable pageable, Boolean ascendingOrder);
+    ApiResponse<Page<ActividadBaseDTO>> obtenerTodas(Pageable paginacion, Boolean ordenAscendente);
 
     /**
      * Busca una actividad por su ID.
      *
-     * @param oid Identificador único de la actividad.
+     * @param id Identificador único de la actividad.
      * @return La actividad encontrada o null si no existe.
      */
-    Actividad findByOid(Integer oid);
+    Actividad buscarPorId(Integer id);
 
     /**
      * Busca una actividad y devuelve su DTO.
      *
-     * @param oid Identificador de la actividad.
+     * @param id Identificador de la actividad.
      * @return ApiResponse con la actividad en formato DTO.
      */
-    ApiResponse<ActividadBaseDTO> findDTOByOid(Integer oid);
+    ApiResponse<ActividadBaseDTO> buscarDTOPorId(Integer id);
 
     /**
      * Guarda una nueva actividad en la base de datos.
@@ -42,7 +42,7 @@ public interface ActividadService {
      * @param actividadDTO Datos de la actividad a guardar.
      * @return ApiResponse con la actividad guardada.
      */
-    ApiResponse<Actividad> save(ActividadBaseDTO actividadDTO);
+    ApiResponse<Actividad> guardar(ActividadBaseDTO actividadDTO);
 
     /**
      * Actualiza una actividad existente en la base de datos.
@@ -51,13 +51,13 @@ public interface ActividadService {
      * @param actividadDTO Datos actualizados de la actividad.
      * @return ApiResponse con la actividad actualizada.
      */
-    ApiResponse<Actividad> update(Integer idActividad, ActividadBaseDTO actividadDTO);
+    ApiResponse<Actividad> actualizar(Integer idActividad, ActividadBaseDTO actividadDTO);
 
     /**
      * Elimina una actividad por su ID.
      *
-     * @param oid ID de la actividad a eliminar.
+     * @param id ID de la actividad a eliminar.
      * @return ApiResponse con el resultado de la eliminación.
      */
-    ApiResponse<Void> delete(Integer oid);
+    ApiResponse<Void> eliminar(Integer id);
 }

@@ -40,7 +40,7 @@ public class FuenteController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Fuente> fuentes = fuenteService.findAll(PageRequest.of(page, size));
+            Page<Fuente> fuentes = fuenteService.obtenerTodas(PageRequest.of(page, size));
             if (fuentes.hasContent()) {
                 return ResponseEntity.ok().body(fuentes);
             } else {
@@ -61,7 +61,7 @@ public class FuenteController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Fuente resultado = fuenteService.findByOid(oid);
+        Fuente resultado = fuenteService.buscarPorId(oid);
         if (resultado != null) {
             logger.info("Fuente con ID {} encontrada", oid);
             return ResponseEntity.ok().body(resultado);
@@ -95,7 +95,7 @@ public class FuenteController {
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
-            fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
+            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, allFiles);
             logger.info("Fuente guardada exitosamente");
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (Exception e) {
@@ -115,7 +115,7 @@ public class FuenteController {
         logger.info("Solicitud recibida para eliminar la fuente con ID: {}", oid);
         Fuente fuente = null;
         try {
-            fuente = fuenteService.findByOid(oid);
+            fuente = fuenteService.buscarPorId(oid);
             if (fuente == null) {
                 logger.warn("Fuente con ID {} no encontrada", oid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fuente no encontrada");
@@ -126,7 +126,7 @@ public class FuenteController {
         }
 
         try {
-            fuenteService.delete(oid);
+            fuenteService.eliminar(oid);
             logger.info("Fuente con ID {} eliminada exitosamente", oid);
         } catch (Exception e) {
             logger.error("Error al eliminar la fuente con ID {}: {}", oid, e.getMessage(), e);
@@ -147,6 +147,6 @@ public class FuenteController {
             @PathVariable("id") Integer id,
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
         logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id, isReport);
-        return fuenteService.getFile(id, isReport);
+        return fuenteService.obtenerArchivo(id, isReport);
     }
 }

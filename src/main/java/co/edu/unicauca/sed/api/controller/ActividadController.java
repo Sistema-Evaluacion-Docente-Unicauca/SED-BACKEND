@@ -40,7 +40,7 @@ public class ActividadController {
             @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         logger.info("🔵 [FIND_ALL] Buscando actividades con paginación: page={}, size={}", page, size);
         
-        ApiResponse<Page<ActividadBaseDTO>> response = actividadService.findAll(PageRequest.of(page, size), ascendingOrder);
+        ApiResponse<Page<ActividadBaseDTO>> response = actividadService.obtenerTodas(PageRequest.of(page, size), ascendingOrder);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -50,7 +50,7 @@ public class ActividadController {
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<ActividadBaseDTO>> findById(@PathVariable Integer oid) {
         logger.info("🔵 [FIND_BY_ID] Buscando actividad con ID: {}", oid);
-        ApiResponse<ActividadBaseDTO> response = actividadService.findDTOByOid(oid);
+        ApiResponse<ActividadBaseDTO> response = actividadService.buscarDTOPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -109,7 +109,7 @@ public class ActividadController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Actividad>> save(@RequestBody ActividadBaseDTO actividadDTO) {
-        ApiResponse<Actividad> response = actividadService.save(actividadDTO);
+        ApiResponse<Actividad> response = actividadService.guardar(actividadDTO);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
     
@@ -121,7 +121,7 @@ public class ActividadController {
     @PutMapping("/{idActividad}")
     public ResponseEntity<ApiResponse<Actividad>> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
         logger.info("🔵 [UPDATE] Iniciando actualización de actividad con ID: {}", idActividad);
-        ApiResponse<Actividad> response = actividadService.update(idActividad, actividadDTO);
+        ApiResponse<Actividad> response = actividadService.actualizar(idActividad, actividadDTO);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -130,7 +130,7 @@ public class ActividadController {
      */
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = actividadService.delete(oid);
+        ApiResponse<Void> response = actividadService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }
