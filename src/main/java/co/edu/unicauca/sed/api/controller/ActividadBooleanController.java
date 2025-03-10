@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.ActividadBoolean;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.ActividadBooleanService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadBooleanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,13 @@ public class ActividadBooleanController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ActividadBoolean>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                      @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return actividadBooleanService.obtenerTodos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadBoolean>> obtenerPorId(@PathVariable Integer id) {
-        return actividadBooleanService.obtenerPorId(id);
+    public ResponseEntity<ApiResponse<ActividadBoolean>> buscarPorId(@PathVariable Integer id) {
+        return actividadBooleanService.buscarPorId(id);
     }
 
     @PostMapping
@@ -36,7 +36,8 @@ public class ActividadBooleanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadBoolean>> actualizar(@PathVariable Integer id, @RequestBody ActividadBoolean actividadBoolean) {
+    public ResponseEntity<ApiResponse<ActividadBoolean>> actualizar(@PathVariable Integer id,
+            @RequestBody ActividadBoolean actividadBoolean) {
         return actividadBooleanService.actualizar(id, actividadBoolean);
     }
 

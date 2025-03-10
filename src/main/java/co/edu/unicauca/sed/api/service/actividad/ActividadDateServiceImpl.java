@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.domain.ActividadDate;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
@@ -14,18 +14,17 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Servicio para gestionar ActividadDate con soporte para CRUD y paginación.
+ * Implementación del servicio para gestionar ActividadDate con soporte para
+ * CRUD y paginación.
  */
 @Service
 @RequiredArgsConstructor
-public class ActividadDateService {
+public class ActividadDateServiceImpl implements ActividadDateService {
 
     private final ActividadDateRepository actividadDateRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDateService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDateServiceImpl.class);
 
-    /**
-     * Obtiene una lista paginada de registros en ACTIVIDADDATE.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Page<ActividadDate>>> obtenerTodos(int page, int size) {
         try {
             Page<ActividadDate> actividadDates = actividadDateRepository.findAll(PageRequest.of(page, size));
@@ -36,23 +35,20 @@ public class ActividadDateService {
         }
     }
 
-    /**
-     * Obtiene un registro por su ID.
-     */
-    public ResponseEntity<ApiResponse<ActividadDate>> obtenerPorId(Integer id) {
+    @Override
+    public ResponseEntity<ApiResponse<ActividadDate>> buscarPorId(Integer id) {
         try {
             Optional<ActividadDate> actividadDate = actividadDateRepository.findById(id);
             return actividadDate.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
-                    .orElseGet(() -> ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null)));
+                    .orElseGet(() -> ResponseEntity.status(404)
+                            .body(new ApiResponse<>(404, "Registro no encontrado", null)));
         } catch (Exception e) {
             LOGGER.error("❌ Error al obtener el registro ACTIVIDADDATE", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el registro", null));
         }
     }
 
-    /**
-     * Crea un nuevo registro en ACTIVIDADDATE.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadDate>> crear(ActividadDate actividadDate) {
         try {
             ActividadDate nuevoRegistro = actividadDateRepository.save(actividadDate);
@@ -64,9 +60,7 @@ public class ActividadDateService {
         }
     }
 
-    /**
-     * Actualiza un registro existente.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadDate>> actualizar(Integer id, ActividadDate actividadDate) {
         try {
             if (!actividadDateRepository.existsById(id)) {
@@ -82,9 +76,7 @@ public class ActividadDateService {
         }
     }
 
-    /**
-     * Elimina un registro por su ID.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Void>> eliminar(Integer id) {
         try {
             if (!actividadDateRepository.existsById(id)) {

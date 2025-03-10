@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.domain.ActividadBoolean;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
@@ -14,18 +14,17 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Servicio para gestionar ActividadBoolean con soporte para CRUD y paginación.
+ * Implementación del servicio para gestionar ActividadBoolean con soporte para
+ * CRUD y paginación.
  */
 @Service
 @RequiredArgsConstructor
-public class ActividadBooleanService {
+public class ActividadBooleanServiceImpl implements ActividadBooleanService {
 
     private final ActividadBooleanRepository actividadBooleanRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadBooleanService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadBooleanServiceImpl.class);
 
-    /**
-     * Obtiene una lista paginada de registros en ACTIVIDADBOOLEAN.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Page<ActividadBoolean>>> obtenerTodos(int page, int size) {
         try {
             Page<ActividadBoolean> actividadBooleans = actividadBooleanRepository.findAll(PageRequest.of(page, size));
@@ -36,23 +35,21 @@ public class ActividadBooleanService {
         }
     }
 
-    /**
-     * Obtiene un registro por su ID.
-     */
-    public ResponseEntity<ApiResponse<ActividadBoolean>> obtenerPorId(Integer id) {
+    @Override
+    public ResponseEntity<ApiResponse<ActividadBoolean>> buscarPorId(Integer id) {
         try {
             Optional<ActividadBoolean> actividadBoolean = actividadBooleanRepository.findById(id);
-            return actividadBoolean.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
-                    .orElseGet(() -> ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null)));
+            return actividadBoolean
+                    .map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
+                    .orElseGet(() -> ResponseEntity.status(404)
+                            .body(new ApiResponse<>(404, "Registro no encontrado", null)));
         } catch (Exception e) {
             LOGGER.error("❌ Error al obtener el registro ACTIVIDADBOOLEAN", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el registro", null));
         }
     }
 
-    /**
-     * Crea un nuevo registro en ACTIVIDADBOOLEAN.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadBoolean>> crear(ActividadBoolean actividadBoolean) {
         try {
             ActividadBoolean nuevoRegistro = actividadBooleanRepository.save(actividadBoolean);
@@ -64,9 +61,7 @@ public class ActividadBooleanService {
         }
     }
 
-    /**
-     * Actualiza un registro existente.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadBoolean>> actualizar(Integer id, ActividadBoolean actividadBoolean) {
         try {
             if (!actividadBooleanRepository.existsById(id)) {
@@ -82,9 +77,7 @@ public class ActividadBooleanService {
         }
     }
 
-    /**
-     * Elimina un registro por su ID.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Void>> eliminar(Integer id) {
         try {
             if (!actividadBooleanRepository.existsById(id)) {

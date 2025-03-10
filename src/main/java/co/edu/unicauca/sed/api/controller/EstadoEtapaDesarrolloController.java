@@ -21,13 +21,13 @@ public class EstadoEtapaDesarrolloController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EstadoEtapaDesarrollo>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                           @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return estadoEtapaDesarrolloService.obtenerTodos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> obtenerPorId(@PathVariable Integer id) {
-        return estadoEtapaDesarrolloService.obtenerPorId(id);
+    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> buscarPorId(@PathVariable Integer id) {
+        return estadoEtapaDesarrolloService.buscarPorId(id);
     }
 
     @PostMapping

@@ -33,11 +33,12 @@ public class EstadoConsolidadoService {
         }
     }
 
-    public ResponseEntity<ApiResponse<EstadoConsolidado>> obtenerPorId(Integer id) {
+    public ResponseEntity<ApiResponse<EstadoConsolidado>> buscarPorId(Integer id) {
         try {
             Optional<EstadoConsolidado> estado = estadoConsolidadoRepository.findById(id);
             return estado.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
-                    .orElseGet(() -> ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null)));
+                    .orElseGet(() -> ResponseEntity.status(404)
+                            .body(new ApiResponse<>(404, "Registro no encontrado", null)));
         } catch (Exception e) {
             LOGGER.error("❌ Error al obtener el registro ESTADOCONSOLIDADO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el registro", null));

@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.domain.ActividadDecimal;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
@@ -14,18 +14,16 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Servicio para gestionar ActividadDecimal con soporte para CRUD y paginación.
+ * Implementación del servicio para gestionar ActividadDecimal con soporte para CRUD y paginación.
  */
 @Service
 @RequiredArgsConstructor
-public class ActividadDecimalService {
+public class ActividadDecimalServiceImpl implements ActividadDecimalService {
 
     private final ActividadDecimalRepository actividadDecimalRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDecimalService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDecimalServiceImpl.class);
 
-    /**
-     * Obtiene una lista paginada de registros en ACTIVIDADDECIMAL.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Page<ActividadDecimal>>> obtenerTodos(int page, int size) {
         try {
             Page<ActividadDecimal> actividadDecimals = actividadDecimalRepository.findAll(PageRequest.of(page, size));
@@ -36,10 +34,8 @@ public class ActividadDecimalService {
         }
     }
 
-    /**
-     * Obtiene un registro por su ID.
-     */
-    public ResponseEntity<ApiResponse<ActividadDecimal>> obtenerPorId(Integer id) {
+    @Override
+    public ResponseEntity<ApiResponse<ActividadDecimal>> buscarPorId(Integer id) {
         try {
             Optional<ActividadDecimal> actividadDecimal = actividadDecimalRepository.findById(id);
             return actividadDecimal.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
@@ -50,9 +46,7 @@ public class ActividadDecimalService {
         }
     }
 
-    /**
-     * Crea un nuevo registro en ACTIVIDADDECIMAL.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadDecimal>> crear(ActividadDecimal actividadDecimal) {
         try {
             ActividadDecimal nuevoRegistro = actividadDecimalRepository.save(actividadDecimal);
@@ -64,9 +58,7 @@ public class ActividadDecimalService {
         }
     }
 
-    /**
-     * Actualiza un registro existente.
-     */
+    @Override
     public ResponseEntity<ApiResponse<ActividadDecimal>> actualizar(Integer id, ActividadDecimal actividadDecimal) {
         try {
             if (!actividadDecimalRepository.existsById(id)) {
@@ -82,9 +74,7 @@ public class ActividadDecimalService {
         }
     }
 
-    /**
-     * Elimina un registro por su ID.
-     */
+    @Override
     public ResponseEntity<ApiResponse<Void>> eliminar(Integer id) {
         try {
             if (!actividadDecimalRepository.existsById(id)) {

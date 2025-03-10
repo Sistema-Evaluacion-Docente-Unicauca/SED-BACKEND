@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.ActividadInt;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.ActividadIntService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadIntService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,13 @@ public class ActividadIntController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ActividadInt>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return actividadIntService.obtenerTodos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadInt>> obtenerPorId(@PathVariable Integer id) {
-        return actividadIntService.obtenerPorId(id);
+    public ResponseEntity<ApiResponse<ActividadInt>> buscarPorId(@PathVariable Integer id) {
+        return actividadIntService.buscarPorId(id);
     }
 
     @PostMapping
@@ -36,7 +36,8 @@ public class ActividadIntController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadInt>> actualizar(@PathVariable Integer id, @RequestBody ActividadInt actividadInt) {
+    public ResponseEntity<ApiResponse<ActividadInt>> actualizar(@PathVariable Integer id,
+            @RequestBody ActividadInt actividadInt) {
         return actividadIntService.actualizar(id, actividadInt);
     }
 

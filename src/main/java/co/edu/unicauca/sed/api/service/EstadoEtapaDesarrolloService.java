@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Servicio para gestionar EstadoEtapaDesarrollo con soporte para CRUD y paginación.
+ * Servicio para gestionar EstadoEtapaDesarrollo con soporte para CRUD y
+ * paginación.
  */
 @Service
 @RequiredArgsConstructor
@@ -33,11 +34,12 @@ public class EstadoEtapaDesarrolloService {
         }
     }
 
-    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> obtenerPorId(Integer id) {
+    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> buscarPorId(Integer id) {
         try {
             Optional<EstadoEtapaDesarrollo> estado = estadoEtapaDesarrolloRepository.findById(id);
             return estado.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
-                    .orElseGet(() -> ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null)));
+                    .orElseGet(() -> ResponseEntity.status(404)
+                            .body(new ApiResponse<>(404, "Registro no encontrado", null)));
         } catch (Exception e) {
             LOGGER.error("❌ Error al obtener el registro ESTADOETAPADESARROLLO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el registro", null));
