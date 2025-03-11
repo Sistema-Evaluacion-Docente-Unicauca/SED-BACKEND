@@ -2,16 +2,16 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.EstadoFuenteService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import co.edu.unicauca.sed.api.service.fuente.EstadoFuenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controlador para gestionar EstadoFuente.
+ */
 @RestController
 @RequestMapping("/api/estado-fuente")
 public class EstadoFuenteController {
@@ -19,69 +19,59 @@ public class EstadoFuenteController {
     @Autowired
     private EstadoFuenteService estadoFuenteService;
 
-    private static final Logger logger = LoggerFactory.getLogger(EstadoFuenteController.class);
-
     /**
-     * Listar todos los registros de EstadoFuente con paginación.
+     * Obtiene una lista paginada de EstadoFuente.
      *
-     * @param pageable objeto de paginación.
-     * @return Página de EstadoFuente.
+     * @param pageable Configuración de paginación.
+     * @return ApiResponse con la lista paginada.
      */
     @GetMapping
-    public ResponseEntity<Page<EstadoFuente>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(estadoFuenteService.findAll(pageable));
+    public ResponseEntity<ApiResponse<Page<EstadoFuente>>> obtenerTodos(Pageable pageable) {
+        return ResponseEntity.ok(estadoFuenteService.buscarTodos(pageable));
     }
 
     /**
-     * Obtener EstadoFuente por ID.
+     * Obtiene un EstadoFuente por su ID.
      *
      * @param id ID del EstadoFuente.
-     * @return EstadoFuente encontrado.
+     * @return ApiResponse con el EstadoFuente encontrado.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EstadoFuente>> getById(@PathVariable Integer id) {
-        try {
-            EstadoFuente estadoFuente = estadoFuenteService.findById(id);
-            logger.info("✅ [GET] EstadoFuente obtenido con ID: {}", id);
-            return ResponseEntity.ok(new ApiResponse<>(200, "EstadoFuente encontrado.", estadoFuente));
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] No se pudo obtener EstadoFuente con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(404, "EstadoFuente no encontrado con ID: " + id, null));
-        }
+    public ResponseEntity<ApiResponse<EstadoFuente>> obtenerPorId(@PathVariable Integer id) {
+        return ResponseEntity.ok(estadoFuenteService.buscarPorId(id));
     }
 
     /**
-     * Guardar un EstadoFuente.
+     * Crea un nuevo EstadoFuente.
      *
-     * @param estadoFuente Objeto EstadoFuente.
-     * @return EstadoFuente guardado.
+     * @param estadoFuente Objeto EstadoFuente a guardar.
+     * @return ApiResponse con el EstadoFuente creado.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<EstadoFuente>> save(@RequestBody EstadoFuente estadoFuente) {
-        return estadoFuenteService.save(estadoFuente);
+    public ResponseEntity<ApiResponse<EstadoFuente>> crear(@RequestBody EstadoFuente estadoFuente) {
+        return ResponseEntity.ok(estadoFuenteService.crear(estadoFuente));
     }
 
     /**
-     * Actualizar un EstadoFuente existente.
+     * Actualiza un EstadoFuente existente.
      *
      * @param id ID del EstadoFuente a actualizar.
-     * @param estadoFuente Objeto EstadoFuente con nuevos valores.
-     * @return EstadoFuente actualizado.
+     * @param estadoFuente Objeto EstadoFuente con datos actualizados.
+     * @return ApiResponse con el EstadoFuente actualizado.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<EstadoFuente>> update(@PathVariable Integer id, @RequestBody EstadoFuente estadoFuente) {
-        return estadoFuenteService.update(id, estadoFuente);
+    public ResponseEntity<ApiResponse<EstadoFuente>> actualizar(@PathVariable Integer id, @RequestBody EstadoFuente estadoFuente) {
+        return ResponseEntity.ok(estadoFuenteService.actualizar(id, estadoFuente));
     }
 
     /**
-     * Eliminar un EstadoFuente por ID.
+     * Elimina un EstadoFuente por su ID.
      *
      * @param id ID del EstadoFuente a eliminar.
-     * @return Respuesta de éxito.
+     * @return ApiResponse indicando el resultado de la operación.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
-        return estadoFuenteService.deleteById(id);
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
+        return ResponseEntity.ok(estadoFuenteService.eliminar(id));
     }
 }

@@ -1,17 +1,14 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoUsuario;
-import co.edu.unicauca.sed.api.service.EstadoUsuarioService;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.service.usuario.EstadoUsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("api/estado-usuario")
@@ -23,44 +20,30 @@ public class EstadoUsuarioController {
     private EstadoUsuarioService service;
 
     @PostMapping
-    public ResponseEntity<EstadoUsuario> create(@RequestBody EstadoUsuario estadoUsuario) {
-        logger.info("Solicitud recibida para crear EstadoUsuario: {}", estadoUsuario);
-        return new ResponseEntity<>(service.create(estadoUsuario), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<EstadoUsuario>> crear(@RequestBody EstadoUsuario estadoUsuario) {
+        return ResponseEntity.ok(service.crear(estadoUsuario));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EstadoUsuario> findById(@PathVariable Integer id) {
-        logger.info("Solicitud recibida para buscar EstadoUsuario con id: {}", id);
-        Optional<EstadoUsuario> estadoUsuario = service.findById(id);
-        return estadoUsuario.map(ResponseEntity::ok)
-                .orElseThrow(() -> {
-                    logger.error("EstadoUsuario no encontrado con id: {}", id);
-                    return new RuntimeException("EstadoUsuario no encontrado con id: " + id);
-                });
+    public ResponseEntity<ApiResponse<EstadoUsuario>> buscarPorId(@PathVariable Integer id) {
+        logger.info("🔍 Buscando EstadoUsuario con ID: {}", id);
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @GetMapping
-    public ResponseEntity<Page<EstadoUsuario>> findAll(Pageable pageable) {
-        logger.info("Solicitud recibida para listar EstadoUsuario con paginación");
-        return ResponseEntity.ok(service.findAll(pageable));
+    public ResponseEntity<ApiResponse<?>> buscarTodos(Pageable pageable) {
+        return ResponseEntity.ok(service.buscarTodos(pageable));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EstadoUsuario> update(@PathVariable Integer id, @RequestBody EstadoUsuario estadoUsuario) {
-        logger.info("Solicitud recibida para actualizar EstadoUsuario con id: {}", id);
-        return ResponseEntity.ok(service.update(id, estadoUsuario));
+    public ResponseEntity<ApiResponse<EstadoUsuario>> actualizar(@PathVariable Integer id, @RequestBody EstadoUsuario estadoUsuario) {
+        logger.info("🔄 Actualizando EstadoUsuario con ID: {}", id);
+        return ResponseEntity.ok(service.actualizar(id, estadoUsuario));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        logger.info("Solicitud recibida para eliminar EstadoUsuario con id: {}", id);
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Error manejado: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
+        logger.info("🗑️ Eliminando EstadoUsuario con ID: {}", id);
+        return ResponseEntity.ok(service.eliminar(id));
     }
 }

@@ -6,7 +6,6 @@ import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
-import co.edu.unicauca.sed.api.service.EstadoFuenteService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import org.slf4j.Logger;
