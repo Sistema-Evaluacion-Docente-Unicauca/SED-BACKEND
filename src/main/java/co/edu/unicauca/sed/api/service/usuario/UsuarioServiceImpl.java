@@ -1,7 +1,8 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.usuario;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +13,16 @@ import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.service.RolService;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.util.Objects;
 
+/**
+ * Implementación del servicio de usuarios.
+ */
 @Service
-public class UsuarioService {
+public class UsuarioServiceImpl implements UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -32,13 +36,11 @@ public class UsuarioService {
     @Autowired
     private UsuarioDetalleService usuarioDetalleService;
 
-    /**
-     * Encuentra usuarios filtrados y paginados.
-     */
-    public ApiResponse<Page<Usuario>> findAll(String identificacion, String nombre, String facultad,
-            String departamento,
-            String categoria, String contratacion, String dedicacion, String estudios,
-            String rol, String estado, Pageable pageable) {
+    @Override
+    public ApiResponse<Page<Usuario>> obtenerTodos(String identificacion, String nombre, String facultad,
+                                                   String departamento, String categoria, String contratacion,
+                                                   String dedicacion, String estudios, String rol, String estado,
+                                                   Pageable pageable) {
         try {
             Page<Usuario> usuarios = usuarioRepository
                 .findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
@@ -49,10 +51,8 @@ public class UsuarioService {
         }
     }
 
-    /**
-     * Encuentra un usuario por su ID.
-     */
-    public ApiResponse<Usuario> findByOid(Integer oid) {
+    @Override
+    public ApiResponse<Usuario> buscarPorId(Integer oid) {
         try {
             Usuario usuario = usuarioRepository.findById(oid)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + oid));
@@ -62,13 +62,11 @@ public class UsuarioService {
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error interno al recuperar el usuario: " + e.getMessage(), null);
         }
-    }    
+    }
 
-    /**
-     * Guarda una lista de usuarios con sus detalles, roles y estado.
-     */
+    @Override
     @Transactional
-    public ApiResponse<List<Usuario>> save(List<Usuario> usuarios) {
+    public ApiResponse<List<Usuario>> guardar(List<Usuario> usuarios) {
         List<Usuario> usuariosGuardados = new ArrayList<>();
 
         try {
@@ -76,7 +74,7 @@ public class UsuarioService {
                 validarUsuarioExistente(usuario);
                 usuario.setNombres(usuario.getNombres().toUpperCase());
                 usuario.setApellidos(usuario.getApellidos().toUpperCase());
-                generarUsername(usuario);
+                generarNombreUsuario(usuario);
                 usuarioDetalleService.procesarUsuarioDetalle(usuario);
                 procesarEstadoUsuario(usuario);
                 List<Rol> rolesAsignados = procesarRoles(usuario, null);
@@ -93,11 +91,9 @@ public class UsuarioService {
         }
     }
 
-    /**
-     * Actualiza un usuario existente con nuevos datos.
-     */
+    @Override
     @Transactional
-    public ApiResponse<Usuario> update(Integer id, Usuario usuarioActualizado) {
+    public ApiResponse<Usuario> actualizar(Integer id, Usuario usuarioActualizado) {
         try {
             Usuario usuarioExistente = usuarioRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
@@ -113,7 +109,6 @@ public class UsuarioService {
             usuarioExistente.setApellidos(usuarioActualizado.getApellidos().toUpperCase());
             usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
     
-            // Actualizar EstadoUsuario
             if (usuarioActualizado.getEstadoUsuario() != null && usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario() != null) {
                 EstadoUsuario estadoUsuario = estadoUsuarioRepository.findById(usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario())
                         .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: " + usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario()));
@@ -131,10 +126,8 @@ public class UsuarioService {
         }
     }
 
-    /**
-     * Elimina un usuario por su ID.
-     */
-    public ApiResponse<Void> delete(Integer oid) {
+    @Override
+    public ApiResponse<Void> eliminar(Integer oid) {
         try {
             if (!usuarioRepository.existsById(oid)) {
                 return new ApiResponse<>(404, "Usuario no encontrado con ID: " + oid, null);
@@ -146,12 +139,7 @@ public class UsuarioService {
         }
     }
 
-    /**
-     * Configura el campo `username` del usuario basado en su correo.
-     *
-     * @param usuario El objeto Usuario al que se configurará el `username`.
-     */
-    private void generarUsername(Usuario usuario) {
+    private void generarNombreUsuario(Usuario usuario) {
         if (usuario.getCorreo() != null && (usuario.getUsername() == null || usuario.getUsername().isEmpty())) {
             String correo = usuario.getCorreo();
             usuario.setUsername(correo.split("@")[0]);
@@ -224,5 +212,4 @@ public class UsuarioService {
     private boolean esRolDeDepartamento(String rolNombre) {
         return List.of("JEFE DE DEPARTAMENTO", "COORDINADOR", "CPD").contains(rolNombre);
     }
-    
 }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
-import co.edu.unicauca.sed.api.service.UsuarioDetalleService;
+import co.edu.unicauca.sed.api.service.usuario.UsuarioDetalleService;
 
 @Controller
 @RequestMapping("api/usuario-detalle")
@@ -30,7 +30,7 @@ public class UsuarioDetalleController {
     @GetMapping
     public ResponseEntity<?> findAll() {
         try {
-            List<UsuarioDetalle> list = usuarioDetalleService.findAll();
+            List<UsuarioDetalle> list = usuarioDetalleService.obtenerTodos();
             if (list != null && !list.isEmpty()) {
                 return ResponseEntity.ok().body(list);
             }
@@ -48,7 +48,7 @@ public class UsuarioDetalleController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        UsuarioDetalle resultado = usuarioDetalleService.findByOid(oid);
+        UsuarioDetalle resultado = usuarioDetalleService.buscarPorOid(oid);
         if (resultado != null) {
             return ResponseEntity.ok().body(resultado);
         }
@@ -64,7 +64,7 @@ public class UsuarioDetalleController {
     @PostMapping
     public ResponseEntity<?> save(@RequestBody UsuarioDetalle usuarioDetalle) {
         try {
-            UsuarioDetalle resultado = usuarioDetalleService.save(usuarioDetalle);
+            UsuarioDetalle resultado = usuarioDetalleService.guardar(usuarioDetalle);
             if (resultado != null) {
                 return ResponseEntity.ok().body(resultado);
             }
@@ -84,7 +84,7 @@ public class UsuarioDetalleController {
     public ResponseEntity<?> delete(@PathVariable Integer oid) {
         UsuarioDetalle usuarioDetalle = null;
         try {
-            usuarioDetalle = usuarioDetalleService.findByOid(oid);
+            usuarioDetalle = usuarioDetalleService.buscarPorOid(oid);
             if (usuarioDetalle == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UsuarioDetalle no encontrado");
             }
@@ -93,7 +93,7 @@ public class UsuarioDetalleController {
         }
 
         try {
-            usuarioDetalleService.delete(oid);
+            usuarioDetalleService.eliminar(oid);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");

@@ -19,10 +19,11 @@ public interface FuenteService {
     /**
      * Recupera todas las fuentes desde el repositorio con soporte de paginación.
      *
-     * @param pageable Parámetro para definir la paginación (número de página y tamaño de página).
+     * @param pageable Parámetro para definir la paginación (número de página y
+     *                 tamaño de página).
      * @return Página de entidades Fuente.
      */
-    Page<Fuente> obtenerTodas(Pageable pageable);
+    Page<Fuente> obtenerTodos(Pageable pageable);
 
     /**
      * Busca una fuente por su identificador único.
@@ -63,12 +64,13 @@ public interface FuenteService {
      * @param observacion   Observación general.
      * @param archivos      Archivos adicionales para manejar.
      */
-    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivos);
+    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion,
+            Map<String, MultipartFile> archivos);
 
     /**
      * Recupera un archivo asociado a una fuente.
      *
-     * @param id       ID de la fuente.
+     * @param id        ID de la fuente.
      * @param esInforme Indica si se debe recuperar el informe (true) o la fuente.
      * @return Respuesta con el archivo como recurso descargable.
      */

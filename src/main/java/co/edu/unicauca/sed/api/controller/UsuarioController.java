@@ -6,12 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
-
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
-import co.edu.unicauca.sed.api.service.UsuarioService;
+import co.edu.unicauca.sed.api.service.usuario.UsuarioService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class UsuarioController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String estado,
             Pageable pageable) {
-        ApiResponse<Page<Usuario>> response = usuarioService.findAll(identificacion, nombre, facultad, departamento,
+        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad, departamento,
                 categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
@@ -72,7 +71,7 @@ public class UsuarioController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<Usuario>> findByOid(@PathVariable Integer oid) {
-        ApiResponse<Usuario> response = usuarioService.findByOid(oid);
+        ApiResponse<Usuario> response = usuarioService.buscarPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -84,7 +83,7 @@ public class UsuarioController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
-        ApiResponse<List<Usuario>> response = usuarioService.save(usuarios);
+        ApiResponse<List<Usuario>> response = usuarioService.guardar(usuarios);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -97,7 +96,7 @@ public class UsuarioController {
      */
     @PutMapping("/{idUsuario}")
     public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
-        ApiResponse<Usuario> response = usuarioService.update(idUsuario, usuarioActualizado);
+        ApiResponse<Usuario> response = usuarioService.actualizar(idUsuario, usuarioActualizado);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -110,7 +109,7 @@ public class UsuarioController {
      */
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = usuarioService.delete(oid);
+        ApiResponse<Void> response = usuarioService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 

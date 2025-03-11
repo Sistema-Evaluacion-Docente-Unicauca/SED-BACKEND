@@ -2,7 +2,8 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.TipoActividadService;
+import co.edu.unicauca.sed.api.service.actividad.TipoActividadService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class TipoActividadController {
     public ResponseEntity<ApiResponse<TipoActividad>> create(@RequestBody TipoActividad tipoActividad) {
         logger.info("🔹 [POST] Solicitud para crear TipoActividad: {}", tipoActividad);
 
-        ApiResponse<TipoActividad> response = service.save(tipoActividad);
+        ApiResponse<TipoActividad> response = service.guardar(tipoActividad);
 
         // Retornar el código HTTP en base al resultado
         return ResponseEntity.status(response.getCodigo()).body(response);
@@ -50,7 +51,7 @@ public class TipoActividadController {
     @GetMapping("/{id}")
     public ResponseEntity<TipoActividad> findById(@PathVariable Integer id) {
         logger.info("Solicitud para buscar TipoActividad con ID: {}", id);
-        TipoActividad tipoActividad = service.findByOid(id);
+        TipoActividad tipoActividad = service.buscarPorOid(id);
         if (tipoActividad != null) {
             return ResponseEntity.ok(tipoActividad);
         } else {
@@ -68,7 +69,7 @@ public class TipoActividadController {
     @GetMapping
     public ResponseEntity<Page<TipoActividad>> findAll(Pageable pageable) {
         logger.info("Solicitud para listar TipoActividad con paginación");
-        return ResponseEntity.ok(service.findAll(pageable));
+        return ResponseEntity.ok(service.obtenerTodos(pageable));
     }
 
     /**
@@ -81,7 +82,7 @@ public class TipoActividadController {
     @PutMapping("/{id}")
     public ResponseEntity<TipoActividad> update(@PathVariable Integer id, @RequestBody TipoActividad tipoActividad) {
         logger.info("Solicitud para actualizar TipoActividad con ID: {}", id);
-        TipoActividad updatedTipoActividad = service.update(id, tipoActividad);
+        TipoActividad updatedTipoActividad = service.actualizar(id, tipoActividad);
         return ResponseEntity.ok(updatedTipoActividad);
     }
 
@@ -95,7 +96,7 @@ public class TipoActividadController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         logger.info("Solicitud para eliminar TipoActividad con ID: {}", id);
-        service.delete(id);
+        service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 

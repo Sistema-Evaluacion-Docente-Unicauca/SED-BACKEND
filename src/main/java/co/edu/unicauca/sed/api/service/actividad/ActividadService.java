@@ -12,13 +12,14 @@ import org.springframework.data.domain.Pageable;
 public interface ActividadService {
 
     /**
-     * Obtiene todas las actividades paginadas con opción de orden ascendente o descendente.
+     * Obtiene todas las actividades paginadas con opción de orden ascendente o
+     * descendente.
      *
-     * @param paginacion     Configuración de paginación.
+     * @param paginacion      Configuración de paginación.
      * @param ordenAscendente Define si el orden es ascendente o descendente.
      * @return ApiResponse con la lista paginada de actividades.
      */
-    ApiResponse<Page<ActividadBaseDTO>> obtenerTodas(Pageable paginacion, Boolean ordenAscendente);
+    ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente);
 
     /**
      * Busca una actividad por su ID.

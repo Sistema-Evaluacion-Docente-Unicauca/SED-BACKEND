@@ -51,7 +51,7 @@ public class FuenteServiceImpl implements FuenteService {
     private String rutaSubida;
 
     @Override
-    public Page<Fuente> obtenerTodas(Pageable pageable) {
+    public Page<Fuente> obtenerTodos(Pageable pageable) {
         return fuenteRepository.findAll(pageable);
     }
 

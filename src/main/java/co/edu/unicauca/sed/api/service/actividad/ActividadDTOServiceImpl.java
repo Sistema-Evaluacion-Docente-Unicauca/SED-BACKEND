@@ -10,7 +10,7 @@ import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
-import co.edu.unicauca.sed.api.service.FuenteDTOService;
+import co.edu.unicauca.sed.api.service.fuente.FuenteDTOService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,7 +51,7 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
                 actividad.getInformeEjecutivo(),
                 actividad.getFechaCreacion(),
                 actividad.getFechaActualizacion(),
-                fuenteDTOService.convertToFuenteDTOList(actividad.getFuentes()),
+                fuenteDTOService.convertirListaFuenteADTO(actividad.getFuentes()),
                 atributos,
                 evaluadorDTO,
                 actividad.getProceso().getEvaluado().getOidUsuario(),

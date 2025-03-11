@@ -39,8 +39,9 @@ public class ActividadController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "true") boolean ascendingOrder) {
         logger.info("🔵 [FIND_ALL] Buscando actividades con paginación: page={}, size={}", page, size);
-        
-        ApiResponse<Page<ActividadBaseDTO>> response = actividadService.obtenerTodas(PageRequest.of(page, size), ascendingOrder);
+
+        ApiResponse<Page<ActividadBaseDTO>> response = actividadService.obtenerTodos(PageRequest.of(page, size),
+                ascendingOrder);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -112,14 +113,13 @@ public class ActividadController {
         ApiResponse<Actividad> response = actividadService.guardar(actividadDTO);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
-    
-    
 
     /**
      * Actualiza una actividad existente.
      */
     @PutMapping("/{idActividad}")
-    public ResponseEntity<ApiResponse<Actividad>> update(@PathVariable Integer idActividad, @RequestBody ActividadBaseDTO actividadDTO) {
+    public ResponseEntity<ApiResponse<Actividad>> update(@PathVariable Integer idActividad,
+            @RequestBody ActividadBaseDTO actividadDTO) {
         logger.info("🔵 [UPDATE] Iniciando actualización de actividad con ID: {}", idActividad);
         ApiResponse<Actividad> response = actividadService.actualizar(idActividad, actividadDTO);
         return ResponseEntity.status(response.getCodigo()).body(response);

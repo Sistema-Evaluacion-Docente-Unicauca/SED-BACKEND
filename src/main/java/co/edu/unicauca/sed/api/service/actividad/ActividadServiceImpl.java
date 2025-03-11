@@ -57,7 +57,7 @@ public class ActividadServiceImpl implements ActividadService {
     private ProcesoService procesoService;
 
     @Override
-    public ApiResponse<Page<ActividadBaseDTO>> obtenerTodas(Pageable paginacion, Boolean ordenAscendente) {
+    public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
         boolean orden = (ordenAscendente != null) ? ordenAscendente : true;
 
         Page<Actividad> actividades = actividadRepository.findAll(paginacion);
@@ -70,7 +70,8 @@ public class ActividadServiceImpl implements ActividadService {
                 .collect(Collectors.toList());
 
         List<ActividadBaseDTO> sortedDTOs = actividadQueryService.ordenarActividadesPorTipo(actividadDTOs, orden);
-        return new ApiResponse<>(200, "Actividades obtenidas correctamente.", new PageImpl<>(sortedDTOs, paginacion, actividades.getTotalElements()));
+        return new ApiResponse<>(200, "Actividades obtenidas correctamente.",
+                new PageImpl<>(sortedDTOs, paginacion, actividades.getTotalElements()));
     }
 
     @Override
@@ -84,7 +85,8 @@ public class ActividadServiceImpl implements ActividadService {
             Actividad actividad = actividadRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + id));
 
-            return new ApiResponse<>(200, "Actividad encontrada.", actividadDTOService.buildActividadBaseDTO(actividad));
+            return new ApiResponse<>(200, "Actividad encontrada.",
+                    actividadDTOService.buildActividadBaseDTO(actividad));
         } catch (IllegalArgumentException e) {
             return new ApiResponse<>(404, e.getMessage(), null);
         }
@@ -94,8 +96,10 @@ public class ActividadServiceImpl implements ActividadService {
     @Override
     public ApiResponse<Actividad> guardar(ActividadBaseDTO actividadDTO) {
         try {
-            if (actividadDTO.getOidActividad() != null && actividadRepository.existsById(actividadDTO.getOidActividad())) {
-                return new ApiResponse<>(409, "Error: La actividad con ID " + actividadDTO.getOidActividad() + " ya existe.", null);
+            if (actividadDTO.getOidActividad() != null
+                    && actividadRepository.existsById(actividadDTO.getOidActividad())) {
+                return new ApiResponse<>(409,
+                        "Error: La actividad con ID " + actividadDTO.getOidActividad() + " ya existe.", null);
             }
 
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
@@ -120,7 +124,8 @@ public class ActividadServiceImpl implements ActividadService {
     public ApiResponse<Actividad> actualizar(Integer idActividad, ActividadBaseDTO actividadDTO) {
         try {
             Actividad actividadExistente = actividadRepository.findById(idActividad)
-                    .orElseThrow(() -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
+                    .orElseThrow(
+                            () -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
 
             actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
             estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());

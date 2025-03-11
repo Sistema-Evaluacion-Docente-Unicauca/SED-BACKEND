@@ -1,6 +1,5 @@
 package co.edu.unicauca.sed.api.controller;
 
-
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,7 +39,7 @@ public class FuenteController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Fuente> fuentes = fuenteService.obtenerTodas(PageRequest.of(page, size));
+            Page<Fuente> fuentes = fuenteService.obtenerTodos(PageRequest.of(page, size));
             if (fuentes.hasContent()) {
                 return ResponseEntity.ok().body(fuentes);
             } else {
@@ -91,7 +90,8 @@ public class FuenteController {
             logger.debug("📌 Parámetro [sources]: {}", sourcesJson);
             if (allFiles != null) {
                 logger.debug("📌 Parámetro [allFiles]: {} archivos adicionales recibidos.", allFiles.size());
-                allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes", file.getOriginalFilename(), file.getSize()));
+                allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes",
+                        file.getOriginalFilename(), file.getSize()));
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
@@ -139,14 +139,16 @@ public class FuenteController {
      * Endpoint para descargar un archivo asociado a una fuente.
      *
      * @param id       El ID de la fuente.
-     * @param isReport Bandera para determinar si se debe descargar el informe (true) o el documento fuente (false).
+     * @param isReport Bandera para determinar si se debe descargar el informe
+     *                 (true) o el documento fuente (false).
      * @return El archivo solicitado como recurso descargable.
      */
     @GetMapping("/download/{id}")
     public ResponseEntity<?> downloadFile(
             @PathVariable("id") Integer id,
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
-        logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id, isReport);
+        logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id,
+                isReport);
         return fuenteService.obtenerArchivo(id, isReport);
     }
 }
