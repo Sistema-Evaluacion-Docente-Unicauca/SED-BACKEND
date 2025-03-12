@@ -12,7 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.Proceso;
@@ -54,6 +54,9 @@ public class ActividadServiceImpl implements ActividadService {
 
     @Autowired
     private ProcesoService procesoService;
+
+    @Autowired
+    private EavAtributoService eavAtributoService;
 
     @Override
     public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
@@ -111,6 +114,7 @@ public class ActividadServiceImpl implements ActividadService {
 
             Actividad actividadGuardada = actividadRepository.save(actividad);
             fuenteService.guardarFuente(actividadGuardada);
+            eavAtributoService.guardarAtributosDinamicos(actividadDTO, actividadGuardada);
 
             return new ApiResponse<>(201, "Actividad guardada correctamente.", actividadGuardada);
         } catch (DataIntegrityViolationException e) {
@@ -128,6 +132,7 @@ public class ActividadServiceImpl implements ActividadService {
 
             actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
             estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
+            eavAtributoService.actualizarAtributosDinamicos(actividadDTO, actividadExistente);
 
             Actividad actividadActualizada = actividadRepository.save(actividadExistente);
             return new ApiResponse<>(200, "Actividad actualizada correctamente.", actividadActualizada);
