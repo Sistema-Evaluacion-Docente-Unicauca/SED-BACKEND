@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import co.edu.unicauca.sed.api.service.DocumentoService;
+import co.edu.unicauca.sed.api.service.documento.DocumentoService;
 
 @RestController
 @RequestMapping("api/documento")

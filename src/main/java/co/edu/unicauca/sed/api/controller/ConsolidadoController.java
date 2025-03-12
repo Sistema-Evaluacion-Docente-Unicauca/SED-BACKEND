@@ -15,7 +15,7 @@ import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
-import co.edu.unicauca.sed.api.service.ConsolidadoService;
+import co.edu.unicauca.sed.api.service.consolidado.ConsolidadoService;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;

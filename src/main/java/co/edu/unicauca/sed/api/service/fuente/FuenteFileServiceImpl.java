@@ -1,8 +1,9 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
-import co.edu.unicauca.sed.api.service.FileService;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
+import co.edu.unicauca.sed.api.service.documento.FileService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

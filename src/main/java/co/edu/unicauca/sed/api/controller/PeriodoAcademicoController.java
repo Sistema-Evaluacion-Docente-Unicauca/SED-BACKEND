@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
+
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

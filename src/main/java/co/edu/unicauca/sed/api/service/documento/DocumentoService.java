@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.documento;
 
 import java.io.IOException;
 import java.nio.file.Files;

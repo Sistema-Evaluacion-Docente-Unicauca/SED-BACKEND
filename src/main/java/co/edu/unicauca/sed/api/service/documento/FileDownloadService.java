@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.documento;
 
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;

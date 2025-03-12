@@ -18,7 +18,7 @@ import org.springframework.data.domain.PageRequest;
 
 import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.ProcesoService;
+import co.edu.unicauca.sed.api.service.proceso.ProcesoService;
 
 @Controller
 @RequestMapping("api/proceso")

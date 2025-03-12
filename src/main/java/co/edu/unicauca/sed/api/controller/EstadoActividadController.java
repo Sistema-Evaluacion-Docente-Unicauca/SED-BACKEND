@@ -1,7 +1,8 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoActividad;
-import co.edu.unicauca.sed.api.service.EstadoActividadService;
+import co.edu.unicauca.sed.api.service.actividad.EstadoActividadService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

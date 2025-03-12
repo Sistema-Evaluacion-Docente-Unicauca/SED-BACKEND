@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.documento;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

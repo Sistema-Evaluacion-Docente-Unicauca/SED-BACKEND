@@ -7,7 +7,7 @@ import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;

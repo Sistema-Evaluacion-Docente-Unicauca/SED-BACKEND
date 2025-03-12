@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.proceso;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -14,6 +14,7 @@ import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import co.edu.unicauca.sed.api.specification.ProcesoSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

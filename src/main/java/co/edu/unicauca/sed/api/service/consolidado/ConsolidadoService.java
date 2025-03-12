@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.consolidado;
 
 import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
@@ -9,7 +9,10 @@ import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import co.edu.unicauca.sed.api.service.documento.ExcelService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
+import co.edu.unicauca.sed.api.service.proceso.ProcesoService;
 import co.edu.unicauca.sed.api.specification.ConsolidadoSpecification;
 import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
 import jakarta.persistence.EntityNotFoundException;

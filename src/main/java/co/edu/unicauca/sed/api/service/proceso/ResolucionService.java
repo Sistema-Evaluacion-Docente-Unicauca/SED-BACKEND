@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.proceso;
 
 import java.util.ArrayList;
 import java.util.List;

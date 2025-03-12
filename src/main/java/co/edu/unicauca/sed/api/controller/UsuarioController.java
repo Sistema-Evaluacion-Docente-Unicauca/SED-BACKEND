@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
-import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
+import co.edu.unicauca.sed.api.service.fuente.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.usuario.UsuarioService;
 import java.util.List;
 import org.slf4j.Logger;

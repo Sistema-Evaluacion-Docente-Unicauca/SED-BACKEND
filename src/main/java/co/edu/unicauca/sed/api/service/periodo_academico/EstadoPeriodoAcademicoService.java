@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.periodo_academico;
 
 import co.edu.unicauca.sed.api.domain.EstadoPeriodoAcademico;
 import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;

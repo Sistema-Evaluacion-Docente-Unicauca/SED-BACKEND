@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.periodo_academico;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

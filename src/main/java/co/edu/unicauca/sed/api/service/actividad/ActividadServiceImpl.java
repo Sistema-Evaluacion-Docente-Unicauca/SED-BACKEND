@@ -22,10 +22,9 @@ import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
-import co.edu.unicauca.sed.api.service.EstadoActividadService;
-import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
-import co.edu.unicauca.sed.api.service.ProcesoService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
+import co.edu.unicauca.sed.api.service.proceso.ProcesoService;
 
 @Service
 public class ActividadServiceImpl implements ActividadService {

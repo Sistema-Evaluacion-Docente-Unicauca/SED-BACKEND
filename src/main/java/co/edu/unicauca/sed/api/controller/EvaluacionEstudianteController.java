@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
-import co.edu.unicauca.sed.api.service.EvaluacionEstudianteService;
+import co.edu.unicauca.sed.api.service.fuente.EvaluacionEstudianteService;
 
 @Controller
 @RequestMapping("api/evaluacion-estudiante")

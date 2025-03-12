@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoEtapaDesarrollo;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.EstadoEtapaDesarrolloService;
+import co.edu.unicauca.sed.api.service.encuesta.EstadoEtapaDesarrolloService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

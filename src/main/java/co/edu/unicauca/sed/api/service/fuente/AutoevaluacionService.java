@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.fuente;
 
 import co.edu.unicauca.sed.api.domain.Autoevaluacion;
 import co.edu.unicauca.sed.api.repository.AutoevaluacionRepository;

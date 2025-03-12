@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoConsolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.EstadoConsolidadoService;
+import co.edu.unicauca.sed.api.service.consolidado.EstadoConsolidadoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

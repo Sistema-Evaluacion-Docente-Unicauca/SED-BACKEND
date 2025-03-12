@@ -1,8 +1,8 @@
-package co.edu.unicauca.sed.api.service;
+package co.edu.unicauca.sed.api.service.consolidado;
 
-import co.edu.unicauca.sed.api.domain.EstadoEtapaDesarrollo;
+import co.edu.unicauca.sed.api.domain.EstadoConsolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
+import co.edu.unicauca.sed.api.repository.EstadoConsolidadoRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,59 +14,58 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Servicio para gestionar EstadoEtapaDesarrollo con soporte para CRUD y
- * paginación.
+ * Servicio para gestionar EstadoConsolidado con soporte para CRUD y paginación.
  */
 @Service
 @RequiredArgsConstructor
-public class EstadoEtapaDesarrolloService {
+public class EstadoConsolidadoService {
 
-    private final EstadoEtapaDesarrolloRepository estadoEtapaDesarrolloRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(EstadoEtapaDesarrolloService.class);
+    private final EstadoConsolidadoRepository estadoConsolidadoRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(EstadoConsolidadoService.class);
 
-    public ResponseEntity<ApiResponse<Page<EstadoEtapaDesarrollo>>> obtenerTodos(int page, int size) {
+    public ResponseEntity<ApiResponse<Page<EstadoConsolidado>>> obtenerTodos(int page, int size) {
         try {
-            Page<EstadoEtapaDesarrollo> estados = estadoEtapaDesarrolloRepository.findAll(PageRequest.of(page, size));
+            Page<EstadoConsolidado> estados = estadoConsolidadoRepository.findAll(PageRequest.of(page, size));
             return ResponseEntity.ok(new ApiResponse<>(200, "Registros obtenidos correctamente", estados));
         } catch (Exception e) {
-            LOGGER.error("❌ Error al obtener registros ESTADOETAPADESARROLLO", e);
+            LOGGER.error("❌ Error al obtener registros ESTADOCONSOLIDADO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener registros", null));
         }
     }
 
-    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> buscarPorId(Integer id) {
+    public ResponseEntity<ApiResponse<EstadoConsolidado>> buscarPorId(Integer id) {
         try {
-            Optional<EstadoEtapaDesarrollo> estado = estadoEtapaDesarrolloRepository.findById(id);
+            Optional<EstadoConsolidado> estado = estadoConsolidadoRepository.findById(id);
             return estado.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
                     .orElseGet(() -> ResponseEntity.status(404)
                             .body(new ApiResponse<>(404, "Registro no encontrado", null)));
         } catch (Exception e) {
-            LOGGER.error("❌ Error al obtener el registro ESTADOETAPADESARROLLO", e);
+            LOGGER.error("❌ Error al obtener el registro ESTADOCONSOLIDADO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el registro", null));
         }
     }
 
-    public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> crear(EstadoEtapaDesarrollo estado) {
+    public ResponseEntity<ApiResponse<EstadoConsolidado>> crear(EstadoConsolidado estado) {
         try {
-            EstadoEtapaDesarrollo nuevoEstado = estadoEtapaDesarrolloRepository.save(estado);
-            LOGGER.info("✅ Registro ESTADOETAPADESARROLLO creado correctamente: {}", nuevoEstado);
+            EstadoConsolidado nuevoEstado = estadoConsolidadoRepository.save(estado);
+            LOGGER.info("✅ Registro ESTADOCONSOLIDADO creado correctamente: {}", nuevoEstado);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoEstado));
         } catch (Exception e) {
-            LOGGER.error("❌ Error al crear el registro ESTADOETAPADESARROLLO", e);
+            LOGGER.error("❌ Error al crear el registro ESTADOCONSOLIDADO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al crear el registro", null));
         }
     }
 
     public ResponseEntity<ApiResponse<Void>> eliminar(Integer id) {
         try {
-            if (!estadoEtapaDesarrolloRepository.existsById(id)) {
+            if (!estadoConsolidadoRepository.existsById(id)) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null));
             }
-            estadoEtapaDesarrolloRepository.deleteById(id);
-            LOGGER.info("✅ Registro ESTADOETAPADESARROLLO eliminado con ID: {}", id);
+            estadoConsolidadoRepository.deleteById(id);
+            LOGGER.info("✅ Registro ESTADOCONSOLIDADO eliminado con ID: {}", id);
             return ResponseEntity.ok(new ApiResponse<>(200, "Registro eliminado correctamente", null));
         } catch (Exception e) {
-            LOGGER.error("❌ Error al eliminar el registro ESTADOETAPADESARROLLO", e);
+            LOGGER.error("❌ Error al eliminar el registro ESTADOCONSOLIDADO", e);
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al eliminar el registro", null));
         }
     }

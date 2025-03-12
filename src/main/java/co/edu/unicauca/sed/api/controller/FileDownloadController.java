@@ -1,7 +1,8 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.FileDownloadService;
+import co.edu.unicauca.sed.api.service.documento.FileDownloadService;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

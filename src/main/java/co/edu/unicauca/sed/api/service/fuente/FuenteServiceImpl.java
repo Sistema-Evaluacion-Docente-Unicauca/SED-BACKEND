@@ -6,7 +6,8 @@ import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
-import co.edu.unicauca.sed.api.service.FileService;
+import co.edu.unicauca.sed.api.service.documento.FileService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
