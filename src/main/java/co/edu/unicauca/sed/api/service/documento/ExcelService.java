@@ -143,7 +143,7 @@ public class ExcelService {
 
     private Path guardarArchivoExcel(Workbook workbook, String nombreDocumento, ConsolidadoDTO consolidadoDTO) throws IOException {
         MultipartFile multipartFile = workbookToMultipartFile(workbook, nombreDocumento);
-        return fileService.saveFile(
+        return fileService.guardarArchivo(
                 multipartFile,
                 consolidadoDTO.getPeriodoAcademico(),
                 consolidadoDTO.getTipoContratacion(),

@@ -43,12 +43,12 @@ public class FuenteFileServiceImpl implements FuenteFileService {
                         : null;
 
                 if (nombreArchivoExistente != null && !informeFuente.getOriginalFilename().equals(nombreArchivoExistente)) {
-                    fileService.deleteFile(fuenteExistente.getRutaDocumentoFuente());
+                    fileService.eliminarArchivo(fuenteExistente.getRutaDocumentoFuente());
                     logger.info("Archivo fuente existente eliminado: {}", nombreArchivoExistente);
                 }
             }
 
-            Path archivoGuardado = fileService.saveFile(informeFuente, periodoAcademico, nombreEvaluado, 
+            Path archivoGuardado = fileService.guardarArchivo(informeFuente, periodoAcademico, nombreEvaluado, 
                                                         contratacion, departamento, nombreActividad, 
                                                         idEvaluador, "fuente");
             return archivoGuardado;
@@ -70,7 +70,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
                     Fuente fuenteExistente = fuenteOpcional.get();
                     if (fuenteExistente.getRutaDocumentoInforme() != null) {
                         // Eliminar el archivo previo si existe
-                        fileService.deleteFile(fuenteExistente.getRutaDocumentoInforme());
+                        fileService.eliminarArchivo(fuenteExistente.getRutaDocumentoInforme());
                         logger.info("Informe ejecutivo previo eliminado: {}", fuenteExistente.getRutaDocumentoInforme());
 
                         // Actualizar la entidad Fuente para eliminar la referencia al archivo
@@ -98,13 +98,13 @@ public class FuenteFileServiceImpl implements FuenteFileService {
 
                 // Eliminar el archivo previo si es diferente
                 if (nombreInformeExistente != null && !fuenteDTO.getInformeEjecutivo().equals(nombreInformeExistente)) {
-                    fileService.deleteFile(fuenteExistente.getRutaDocumentoInforme());
+                    fileService.eliminarArchivo(fuenteExistente.getRutaDocumentoInforme());
                     logger.info("Informe ejecutivo previo eliminado: {}", nombreInformeExistente);
                 }
             }
 
             // Guardar el nuevo informe ejecutivo
-            Path archivoGuardado = fileService.saveFile(archivoCoincidente.get(), periodoAcademico, nombreEvaluado, 
+            Path archivoGuardado = fileService.guardarArchivo(archivoCoincidente.get(), periodoAcademico, nombreEvaluado, 
                                                         contratacion, departamento, null, null, "informe");
             return archivoGuardado;
 

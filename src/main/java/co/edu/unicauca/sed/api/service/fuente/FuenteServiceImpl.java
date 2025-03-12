@@ -120,7 +120,7 @@ public class FuenteServiceImpl implements FuenteService {
                         .body("El archivo solicitado no está disponible para esta fuente.");
             }
 
-            Resource recurso = fileService.getFileResource(rutaArchivo);
+            Resource recurso = fileService.obtenerRecursoArchivo(rutaArchivo);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")

@@ -7,7 +7,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.Resource;
-
+import lombok.RequiredArgsConstructor;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,113 +17,84 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FileService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileService.class);
 
     @Value("${document.upload-dir}")
-    private String uploadDir;
+    private String directorioSubida;
 
-    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) throws IOException {
-        return saveFile(file, periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, null);
+    public Path guardarArchivo(MultipartFile archivo, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento) throws IOException {
+        return guardarArchivo(archivo, periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, null);
     }
 
-    /**
-     * Guarda un archivo en el sistema de archivos con un prefijo para diferenciar
-     * tipos de archivo.
-     *
-     * @param file           Archivo a guardar.
-     * @param periodoAcademico Periodo académico asociado.
-     * @param nombreEvaluado  Nombre del evaluado asociado.
-     * @param prefix         Prefijo a agregar al nombre del archivo (ej. "fuente",
-     *                       "informe").
-     * @return Ruta del archivo guardado.
-     * @throws IOException Si ocurre un error al guardar.
-     */
-    public Path saveFile(MultipartFile file, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String nombreActividad, String idEvaluador, String prefix)
+    public Path guardarArchivo(MultipartFile archivo, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String nombreActividad, String idEvaluador, String prefijo)
             throws IOException {
-        // Construir la ruta dinámica utilizando uploadDir
-        Path directoryPath = buildDynamicPath(uploadDir, periodoAcademico, departamento, contratacion, nombreEvaluado, nombreActividad);
-        Files.createDirectories(directoryPath);
 
-        // Obtener el nombre original del archivo
-        String originalFilename = file.getOriginalFilename();
+        Path directorioPath = construirRutaDinamica(directorioSubida, periodoAcademico, departamento, contratacion, nombreEvaluado, nombreActividad);
+        Files.createDirectories(directorioPath);
 
-        // Validar si el archivo ya tiene el prefijo
-        String idEvaluadorSegment = (idEvaluador != null && !idEvaluador.isEmpty()) ? idEvaluador + "-" : "";
-        String prefixedFilename = (prefix != null && !prefix.isEmpty() && !originalFilename.startsWith(prefix + "-"))
-                ? prefix + "-" + idEvaluadorSegment + originalFilename
-                : originalFilename;
+        String nombreOriginal = archivo.getOriginalFilename();
 
+        String segmentoEvaluador = (idEvaluador != null && !idEvaluador.isEmpty()) ? idEvaluador + "-" : "";
+        String nombreConPrefijo = (prefijo != null && !prefijo.isEmpty() && !nombreOriginal.startsWith(prefijo + "-"))
+                ? prefijo + "-" + segmentoEvaluador + nombreOriginal
+                : nombreOriginal;
 
-        // Ruta completa del archivo
-        Path targetPath = directoryPath.resolve(prefixedFilename);
+        Path rutaDestino = directorioPath.resolve(nombreConPrefijo);
 
         try {
-            // Guardar el archivo
-            Files.write(targetPath, file.getBytes());
-            logger.info("✅ Archivo guardado correctamente en: {}", targetPath);
+            Files.write(rutaDestino, archivo.getBytes());
+            LOGGER.info("✅ Archivo guardado correctamente en: {}", rutaDestino);
         } catch (IOException e) {
-            logger.error("❌ Error al guardar el archivo: {}, Error: {}", targetPath, e.getMessage(), e);
+            LOGGER.error("❌ Error al guardar el archivo: {}, Error: {}", rutaDestino, e.getMessage(), e);
             throw e;
         }
 
-        return targetPath;
+        return rutaDestino;
     }
 
-    /**
-     * Elimina un archivo del sistema de archivos.
-     *
-     * @param filePath Ruta del archivo a eliminar.
-     */
-    public void deleteFile(String filePath) {
+    public void eliminarArchivo(String rutaArchivo) {
         try {
-            if (filePath != null) {
-                Path path = Paths.get(filePath);
+            if (rutaArchivo != null) {
+                Path path = Paths.get(rutaArchivo);
                 if (Files.exists(path)) {
                     Files.delete(path);
-                    logger.info("Archivo eliminado exitosamente: {}", filePath);
+                    LOGGER.info("✅ Archivo eliminado exitosamente: {}", rutaArchivo);
                 } else {
-                    logger.warn("Intento de eliminar archivo inexistente: {}", filePath);
+                    LOGGER.warn("⚠️ Intento de eliminar archivo inexistente: {}", rutaArchivo);
                 }
             }
         } catch (IOException e) {
-            logger.error("Error al eliminar el archivo: {}, Error: {}", filePath, e.getMessage(), e);
+            LOGGER.error("❌ Error al eliminar el archivo: {}, Error: {}", rutaArchivo, e.getMessage(), e);
         }
     }
 
-    /**
-     * Recupera un archivo como recurso del sistema de archivos.
-     *
-     * @param filePathString Ruta del archivo en el sistema.
-     * @return Recurso del archivo si existe.
-     * @throws Exception Si ocurre un error al acceder al archivo.
-     */
-    public Resource getFileResource(String filePathString) throws Exception {
-        Path filePath = Paths.get(filePathString);
+    public Resource obtenerRecursoArchivo(String rutaArchivo) throws Exception {
+        Path pathArchivo = Paths.get(rutaArchivo);
         try {
-            if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
-                logger.warn("El archivo no existe o no es accesible: {}", filePathString);
-                throw new RuntimeException("El archivo no existe o no es accesible: " + filePathString);
+            if (!Files.exists(pathArchivo) || !Files.isReadable(pathArchivo)) {
+                LOGGER.warn("⚠️ El archivo no existe o no es accesible: {}", rutaArchivo);
+                throw new RuntimeException("El archivo no existe o no es accesible: " + rutaArchivo);
             }
-            logger.info("Archivo recuperado exitosamente: {}", filePathString);
-            return new UrlResource(filePath.toUri());
+            LOGGER.info("📄 Archivo recuperado exitosamente: {}", rutaArchivo);
+            return new UrlResource(pathArchivo.toUri());
         } catch (Exception e) {
-            logger.error("Error al recuperar el archivo: {}, Error: {}", filePathString, e.getMessage(), e);
+            LOGGER.error("❌ Error al recuperar el archivo: {}, Error: {}", rutaArchivo, e.getMessage(), e);
             throw e;
         }
     }
 
-    private Path buildDynamicPath(String... segments) {
-    List<String> validSegments = Arrays.stream(segments)
-            .filter(segment -> segment != null && !segment.isEmpty())
-            .collect(Collectors.toList());
+    private Path construirRutaDinamica(String... segmentos) {
+        List<String> segmentosValidos = Arrays.stream(segmentos)
+                .filter(segmento -> segmento != null && !segmento.isEmpty())
+                .collect(Collectors.toList());
 
-    if (validSegments.isEmpty()) {
-        throw new IllegalArgumentException("The path cannot be empty or composed only of null/empty segments.");
+        if (segmentosValidos.isEmpty()) {
+            throw new IllegalArgumentException("La ruta no puede estar vacía ni compuesta solo de segmentos nulos o vacíos.");
+        }
+
+        return Paths.get(segmentosValidos.get(0), segmentosValidos.subList(1, segmentosValidos.size()).toArray(new String[0]));
     }
-
-    return Paths.get(validSegments.get(0), validSegments.subList(1, validSegments.size()).toArray(new String[0]));
-}
-
 }

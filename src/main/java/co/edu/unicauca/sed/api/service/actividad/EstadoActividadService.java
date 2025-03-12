@@ -2,83 +2,63 @@ package co.edu.unicauca.sed.api.service.actividad;
 
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.EstadoActividad;
-import co.edu.unicauca.sed.api.repository.EstadoActividadRepository;
-import co.edu.unicauca.sed.api.utils.StringUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import java.util.Optional;
+import org.springframework.http.ResponseEntity;
 
-@Service
-public class EstadoActividadService {
+/**
+ * Interfaz para definir los métodos del servicio de gestión de Estados de Actividad.
+ */
+public interface EstadoActividadService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EstadoActividadService.class);
-
-    @Autowired
-    private EstadoActividadRepository repository;
-
-    @Autowired
-    private StringUtils stringUtils;
-
-    public EstadoActividad create(EstadoActividad estadoActividad) {
-        logger.info("Creando EstadoActividad: {}", estadoActividad);
-        estadoActividad.setNombre(stringUtils.safeToUpperCase(estadoActividad.getNombre()));
-        return repository.save(estadoActividad);
-    }
-
-    public Optional<EstadoActividad> findById(Integer id) {
-        logger.info("Buscando EstadoActividad con id: {}", id);
-        return repository.findById(id);
-    }
-
-    public Page<EstadoActividad> findAll(Pageable pageable) {
-        logger.info("Listando EstadoActividad con paginación");
-        return repository.findAll(pageable);
-    }
-
-    public EstadoActividad update(Integer id, EstadoActividad estadoActividad) {
-        try {
-            logger.info("Actualizando EstadoActividad con id: {}", id);
-            return repository.findById(id).map(existing -> {
-                existing.setNombre(estadoActividad.getNombre().toUpperCase());
-                return repository.save(existing);
-            }).orElseThrow(() -> {
-                logger.error("EstadoActividad no encontrado con id: {}", id);
-                return new RuntimeException("EstadoActividad no encontrado con id: " + id);
-            });
-        } catch (Exception e) {
-            logger.error("Error actualizando EstadoActividad con id: {}", id, e);
-            throw new RuntimeException("Error actualizando EstadoActividad con id: " + id, e);
-        }
-    }
-
-    public void delete(Integer id) {
-        try {
-            logger.info("Eliminando EstadoActividad con id: {}", id);
-            if (!repository.existsById(id)) {
-                logger.error("EstadoActividad no encontrado para eliminar con id: {}", id);
-                throw new RuntimeException("EstadoActividad no encontrado para eliminar con id: " + id);
-            }
-            repository.deleteById(id);
-        } catch (Exception e) {
-            logger.error("Error eliminando EstadoActividad con id: {}", id, e);
-            throw new RuntimeException("Error eliminando EstadoActividad con id: " + id, e);
-        }
-    }
-
-        /**
-     * Asigna el estado de la actividad si es válido.
+    /**
+     * Recupera todos los estados de actividad con soporte de paginación.
      *
-     * @param actividad          La actividad a actualizar.
-     * @param oidEstadoActividad El ID del estado de actividad.
+     * @param pageable Configuración de la paginación.
+     * @return ApiResponse con la página de estados de actividad disponibles.
      */
-    public void asignarEstadoActividad(Actividad actividad, Integer oidEstadoActividad) {
-        EstadoActividad estadoExistente = repository.findById(oidEstadoActividad)
-                .orElseThrow(() -> new IllegalArgumentException("Estado de actividad no válido."));
-        actividad.setEstadoActividad(estadoExistente);
-    }
+    ResponseEntity<ApiResponse<Page<EstadoActividad>>> obtenerTodos(Pageable pageable);
+
+    /**
+     * Busca un estado de actividad por su identificador único (OID).
+     *
+     * @param oid El identificador del estado de actividad.
+     * @return ApiResponse con el estado de actividad si es encontrado.
+     */
+    ResponseEntity<ApiResponse<EstadoActividad>> buscarPorOid(Integer oid);
+
+    /**
+     * Guarda un nuevo estado de actividad en la base de datos.
+     *
+     * @param estadoActividad El objeto EstadoActividad que se desea guardar.
+     * @return ApiResponse con el objeto guardado o un mensaje de error.
+     */
+    ResponseEntity<ApiResponse<EstadoActividad>> guardar(EstadoActividad estadoActividad);
+
+    /**
+     * Actualiza un estado de actividad existente.
+     *
+     * @param oid             El identificador del estado de actividad a actualizar.
+     * @param estadoActividad Datos actualizados del estado de actividad.
+     * @return ApiResponse con el objeto actualizado o un mensaje de error.
+     */
+    ResponseEntity<ApiResponse<EstadoActividad>> actualizar(Integer oid, EstadoActividad estadoActividad);
+
+    /**
+     * Elimina un estado de actividad por su identificador único (OID).
+     *
+     * @param oid El identificador del estado de actividad que se desea eliminar.
+     * @return ApiResponse con el resultado de la eliminación.
+     */
+    ResponseEntity<ApiResponse<Void>> eliminar(Integer oid);
+
+    /**
+     * Asigna un estado de actividad a una actividad.
+     *
+     * @param actividad          La actividad a la que se asignará el estado.
+     * @param oidEstadoActividad El identificador del estado de actividad.
+     * @return ApiResponse con el resultado de la asignación.
+     */
+    ResponseEntity<ApiResponse<Void>> asignarEstadoActividad(Actividad actividad, Integer oidEstadoActividad);
 }
