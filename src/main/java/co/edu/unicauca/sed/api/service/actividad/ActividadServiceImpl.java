@@ -107,6 +107,11 @@ public class ActividadServiceImpl implements ActividadService {
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
             asignarPeriodoAcademicoActivo(actividad);
 
+            if (actividad.getProceso().getNombreProceso() == null
+                    || actividad.getProceso().getNombreProceso().isEmpty()) {
+                actividad.getProceso().setNombreProceso("ACTIVIDAD");
+            }
+
             actividad.getProceso().setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
             actividad.getProceso().setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
 
