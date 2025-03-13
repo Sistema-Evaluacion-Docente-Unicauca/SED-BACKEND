@@ -156,9 +156,24 @@ public class ActividadServiceImpl implements ActividadService {
     }
 
     private void asignarPeriodoAcademicoActivo(Actividad actividad) {
-        Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
-        PeriodoAcademico periodoAcademico = new PeriodoAcademico();
-        periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
-        actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
+        try {
+            Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+            logger.info("🔵 [PERIODO] Asignando periodo académico activo con ID: {}", idPeriodoAcademico);
+
+            if (actividad.getProceso() == null) {
+                logger.warn("⚠️ [PERIODO] La actividad no tiene un proceso asociado. Se creará uno nuevo.");
+                actividad.setProceso(new Proceso());
+            }
+
+            PeriodoAcademico periodoAcademico = new PeriodoAcademico();
+            periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
+            actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
+
+            logger.info("✅ [PERIODO] Periodo académico asignado con ID: {}", idPeriodoAcademico);
+
+        } catch (Exception e) {
+            logger.error("❌ [ERROR] Error al asignar periodo académico activo: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al asignar periodo académico: " + e.getMessage(), e);
+        }
     }
 }
