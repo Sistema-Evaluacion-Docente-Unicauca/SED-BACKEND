@@ -1,66 +1,52 @@
 package co.edu.unicauca.sed.api.service.periodo_academico;
 
 import co.edu.unicauca.sed.api.domain.EstadoPeriodoAcademico;
-import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
-public class EstadoPeriodoAcademicoService {
+public interface EstadoPeriodoAcademicoService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EstadoPeriodoAcademicoService.class);
+    /**
+     * Guarda un nuevo estado de período académico en la base de datos.
+     *
+     * @param estadoPeriodoAcademico Datos del estado a guardar.
+     * @return ApiResponse con el estado de período académico guardado.
+     */
+    ApiResponse<EstadoPeriodoAcademico> guardar(EstadoPeriodoAcademico estadoPeriodoAcademico);
 
-    @Autowired
-    private EstadoPeriodoAcademicoRepository repository;
+    /**
+     * Busca un estado de período académico por su identificador único (ID).
+     *
+     * @param id Identificador del estado de período académico.
+     * @return ApiResponse con el estado de período académico encontrado.
+     */
+    ApiResponse<EstadoPeriodoAcademico> buscarPorId(Integer id);
 
-    public EstadoPeriodoAcademico create(EstadoPeriodoAcademico estadoPeriodoAcademico) {
-        logger.info("Creando EstadoPeriodoAcademico: {}", estadoPeriodoAcademico);
-        return repository.save(estadoPeriodoAcademico);
-    }
+    /**
+     * Obtiene una lista paginada de todos los estados de períodos académicos.
+     *
+     * @param pageable Configuración de la paginación.
+     * @return ApiResponse con la lista de estados de períodos académicos.
+     */
+    ApiResponse<Page<EstadoPeriodoAcademico>> buscarTodos(Pageable pageable);
 
-    public Optional<EstadoPeriodoAcademico> findById(Integer id) {
-        logger.info("Buscando EstadoPeriodoAcademico con id: {}", id);
-        return repository.findById(id);
-    }
+    /**
+     * Actualiza un estado de período académico existente.
+     *
+     * @param id                     Identificador del estado a actualizar.
+     * @param estadoPeriodoAcademico Datos actualizados del estado.
+     * @return ApiResponse con el estado de período académico actualizado.
+     */
+    ApiResponse<EstadoPeriodoAcademico> actualizar(Integer id, EstadoPeriodoAcademico estadoPeriodoAcademico);
 
-    public Page<EstadoPeriodoAcademico> findAll(Pageable pageable) {
-        logger.info("Listando EstadoPeriodoAcademico con paginación");
-        return repository.findAll(pageable);
-    }
-
-    public EstadoPeriodoAcademico update(Integer id, EstadoPeriodoAcademico estadoPeriodoAcademico) {
-        try {
-            logger.info("Actualizando EstadoPeriodoAcademico con id: {}", id);
-            return repository.findById(id).map(existing -> {
-                existing.setNombre(estadoPeriodoAcademico.getNombre());
-                return repository.save(existing);
-            }).orElseThrow(() -> {
-                logger.error("EstadoPeriodoAcademico no encontrado con id: {}", id);
-                return new RuntimeException("EstadoPeriodoAcademico no encontrado con id: " + id);
-            });
-        } catch (Exception e) {
-            logger.error("Error actualizando EstadoPeriodoAcademico con id: {}", id, e);
-            throw new RuntimeException("Error actualizando EstadoPeriodoAcademico con id: " + id, e);
-        }
-    }
-
-    public void delete(Integer id) {
-        try {
-            logger.info("Eliminando EstadoPeriodoAcademico con id: {}", id);
-            if (!repository.existsById(id)) {
-                logger.error("EstadoPeriodoAcademico no encontrado para eliminar con id: {}", id);
-                throw new RuntimeException("EstadoPeriodoAcademico no encontrado para eliminar con id: " + id);
-            }
-            repository.deleteById(id);
-        } catch (Exception e) {
-            logger.error("Error eliminando EstadoPeriodoAcademico con id: {}", id, e);
-            throw new RuntimeException("Error eliminando EstadoPeriodoAcademico con id: " + id, e);
-        }
-    }
+    /**
+     * Elimina un estado de período académico por su identificador.
+     *
+     * @param id Identificador del estado de período académico a eliminar.
+     * @return ApiResponse indicando el resultado de la eliminación.
+     */
+    ApiResponse<Void> eliminar(Integer id);
 }
