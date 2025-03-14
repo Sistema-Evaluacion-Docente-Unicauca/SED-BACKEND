@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service.encuesta;
+package co.edu.unicauca.sed.api.service.evaluacion_docente;
 
 import co.edu.unicauca.sed.api.domain.Encuesta;
 import co.edu.unicauca.sed.api.repository.EncuestaRepository;

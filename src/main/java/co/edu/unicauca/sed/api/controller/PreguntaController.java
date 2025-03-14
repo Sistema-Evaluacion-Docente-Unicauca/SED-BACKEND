@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.Pregunta;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.encuesta.PreguntaService;
+import co.edu.unicauca.sed.api.service.evaluacion_docente.PreguntaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

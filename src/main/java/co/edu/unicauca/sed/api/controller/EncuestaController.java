@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import co.edu.unicauca.sed.api.domain.Encuesta;
-import co.edu.unicauca.sed.api.service.encuesta.EncuestaService;
+import co.edu.unicauca.sed.api.service.evaluacion_docente.EncuestaService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
