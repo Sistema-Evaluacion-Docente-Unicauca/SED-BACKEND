@@ -1,57 +1,54 @@
 package co.edu.unicauca.sed.api.service.encuesta;
 
 import co.edu.unicauca.sed.api.domain.Pregunta;
-import co.edu.unicauca.sed.api.repository.PreguntaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+/**
+ * Interfaz para la gestión de preguntas en el sistema.
+ */
 @Service
-public class PreguntaService {
+public interface PreguntaService {
 
-    @Autowired
-    private PreguntaRepository preguntaRepository;
+    /**
+     * Obtiene todas las preguntas registradas.
+     *
+     * @return ApiResponse con la lista de preguntas.
+     */
+    ApiResponse<Page<Pregunta>> obtenerTodos(Pageable pageable);
 
-    public List<Pregunta> findAll() {
-        List<Pregunta> list = new ArrayList<>();
-        this.preguntaRepository.findAll().forEach(list::add);
-        return list;
-    }
+    /**
+     * Busca una pregunta por su identificador único (OID).
+     *
+     * @param oid Identificador de la pregunta.
+     * @return ApiResponse con la pregunta encontrada.
+     */
+    ApiResponse<Pregunta> buscarPorOid(Integer oid);
 
-    public Pregunta findByOid(Integer oid) {
-        Optional<Pregunta> resultado = this.preguntaRepository.findById(oid);
+    /**
+     * Guarda una nueva pregunta en la base de datos.
+     *
+     * @param pregunta Datos de la pregunta a guardar.
+     * @return ApiResponse con la pregunta guardada.
+     */
+    ApiResponse<Pregunta> guardar(Pregunta pregunta);
 
-        if (resultado.isPresent()) {
-            return resultado.get();
-        }
+    /**
+     * Guarda una lista de preguntas en la base de datos.
+     *
+     * @param preguntas Lista de preguntas a guardar.
+     * @return ApiResponse con la lista de preguntas guardadas.
+     */
+    ApiResponse<List<Pregunta>> guardarTodas(List<Pregunta> preguntas);
 
-        return null;
-    }
-
-    public Pregunta save(Pregunta pregunta) {
-        Pregunta result = null;
-        try {
-            if (pregunta.getPregunta() != null) {
-                pregunta.setPregunta(pregunta.getPregunta().toUpperCase());
-            }
-            result = this.preguntaRepository.save(pregunta);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        return result;
-    }
-
-    public List<Pregunta> saveAll(List<Pregunta> preguntas) {
-        List<Pregunta> savedPreguntas = new ArrayList<>();
-        preguntaRepository.saveAll(preguntas).forEach(savedPreguntas::add);
-        return savedPreguntas;
-    }
-
-    public void delete(Integer oid) {
-        this.preguntaRepository.deleteById(oid);
-    }
+    /**
+     * Elimina una pregunta por su identificador.
+     *
+     * @param oid Identificador de la pregunta a eliminar.
+     * @return ApiResponse indicando el resultado de la eliminación.
+     */
+    ApiResponse<Void> eliminar(Integer oid);
 }
