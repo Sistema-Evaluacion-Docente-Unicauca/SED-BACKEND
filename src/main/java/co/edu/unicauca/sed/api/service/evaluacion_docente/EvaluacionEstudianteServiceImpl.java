@@ -155,9 +155,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
                 fuente.setNombreDocumentoFuente(Paths.get(rutaDocumento).getFileName().toString());
             }
             
-    
-            
-
             // 🔄 Actualizar la calificación de la fuente
             actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion());
 
