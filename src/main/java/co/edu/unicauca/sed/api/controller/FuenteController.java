@@ -82,6 +82,7 @@ public class FuenteController {
     public ResponseEntity<?> saveFuente(
             @RequestParam("informeFuente") MultipartFile informeFuente,
             @RequestParam("observation") String observation,
+            @RequestParam(required = false) String tipoCalificacion,
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
@@ -95,7 +96,7 @@ public class FuenteController {
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
-            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, allFiles);
+            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, tipoCalificacion, allFiles);
             logger.info("Fuente guardada exitosamente");
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (Exception e) {

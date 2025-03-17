@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
+import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,4 +27,12 @@ public interface FuenteIntegrationService {
      * @return Un mapa que contiene únicamente los archivos de informes ejecutivos.
      */
     Map<String, MultipartFile> filtrarArchivosEjecutivos(Map<String, MultipartFile> todosLosArchivos);
+
+    /**
+     * Convierte un JSON en un objeto EvaluacionDocenteDTO.
+     *
+     * @param evaluacionJson JSON que contiene los datos de la evaluación docente.
+     * @return Objeto EvaluacionDocenteDTO.
+     */
+    EvaluacionDocenteDTO convertirJsonAEvaluacion(String evaluacionJson);
 }

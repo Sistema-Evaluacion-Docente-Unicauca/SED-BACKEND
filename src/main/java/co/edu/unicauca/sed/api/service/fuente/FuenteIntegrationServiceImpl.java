@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
+import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -47,6 +48,17 @@ public class FuenteIntegrationServiceImpl implements FuenteIntegrationService {
         } catch (Exception e) {
             logger.error("Error al filtrar los archivos adicionales", e);
             throw new RuntimeException("Error al filtrar los archivos adicionales: " + e.getMessage(), e);
+        }
+    }
+
+     @Override
+    public EvaluacionDocenteDTO convertirJsonAEvaluacion(String evaluacionJson) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(evaluacionJson, EvaluacionDocenteDTO.class);
+        } catch (Exception e) {
+            logger.error("❌ Error al convertir JSON a EvaluacionDocenteDTO: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al procesar la evaluación: JSON inválido.");
         }
     }
 }

@@ -28,7 +28,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
     @Override
     public Path manejarArchivoFuente(Optional<Fuente> fuenteOpcional, MultipartFile informeFuente, String periodoAcademico, 
                                      String nombreEvaluado, String contratacion, String departamento, 
-                                     String nombreActividad, String idEvaluador) {
+                                     String nombreActividad, String idEvaluador, String prefijo) {
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");
@@ -48,9 +48,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
                 }
             }
 
-            Path archivoGuardado = fileService.guardarArchivo(informeFuente, periodoAcademico, nombreEvaluado, 
-                                                        contratacion, departamento, nombreActividad, 
-                                                        idEvaluador, "fuente");
+            Path archivoGuardado = fileService.guardarArchivo(informeFuente, periodoAcademico, nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador, prefijo);
             return archivoGuardado;
 
         } catch (Exception e) {

@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
+import co.edu.unicauca.sed.api.utils.StringUtils;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
     private NotificacionDocumentoService notificacionDocumentoService;
 
     @Override
-    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion,
+    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, String tipoCalificacion,
                                Map<String, MultipartFile> archivosEjecutivos) {
         try {
             String mensajeTipoFuente;
@@ -53,12 +54,12 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
                             "No se encontró una actividad con el ID: " + fuenteDTO.getOidActividad()));
 
             String periodoAcademico = actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo();
-            String nombres = actividad.getProceso().getEvaluado().getNombres().replaceAll("\\s+", "_");
-            String apellidos = actividad.getProceso().getEvaluado().getApellidos().replaceAll("\\s+", "_");
+            String nombres = StringUtils.formatearCadena(actividad.getProceso().getEvaluado().getNombres());
+            String apellidos = StringUtils.formatearCadena(actividad.getProceso().getEvaluado().getApellidos());
             String nombreEvaluado = nombres + "_" + apellidos;
             String contratacion = actividad.getProceso().getEvaluado().getUsuarioDetalle().getContratacion();
             String departamento = actividad.getProceso().getEvaluado().getUsuarioDetalle().getDepartamento();
-            String nombreActividad = actividad.getNombreActividad().replace("-", "").replaceAll("\\s+", "_");
+            String nombreActividad = StringUtils.formatearCadena(actividad.getNombreActividad());
             String idEvaluador = actividad.getProceso().getEvaluador().getIdentificacion();
 
             // Garantizar que el repositorio no devuelva null
@@ -77,12 +78,12 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             if ("2".equals(fuenteDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 2";
                 rutaArchivoComun = fileService.manejarArchivoFuente(fuenteOpcional, informeFuente, periodoAcademico,
-                        nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador);
+                        nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador, "fuente");
                 notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
             } else if ("1".equals(fuenteDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 1 (Autoevaluación)";
                 rutaArchivoComun = fileService.manejarArchivoFuente(fuenteOpcional, informeFuente, periodoAcademico,
-                        nombreEvaluado, contratacion, departamento, null, null);
+                        nombreEvaluado, contratacion, departamento, null, null,null);
                 rutaInformeEjecutivo = fileService.manejarInformeEjecutivo(fuenteOpcional, fuenteDTO,
                         archivosEjecutivos, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else {
@@ -94,8 +95,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             EstadoFuente estadoFuente = determinarEstadoFuente(fuente);
 
             // Asignar valores a la fuente
-            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, estadoFuente, actividad,
-                    rutaInformeEjecutivo);
+            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, tipoCalificacion, estadoFuente, actividad, rutaInformeEjecutivo);
             fuenteRepository.save(fuente);
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", fuenteDTO, e);
@@ -137,7 +137,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
      * @param rutaInformeEjecutivo Ruta del informe ejecutivo.
      */
     private void asignarValoresFuente(Fuente fuente, FuenteCreateDTO fuenteDTO, Path rutaArchivoComun,
-                                      String observacion, EstadoFuente estadoFuente, Actividad actividad, Path rutaInformeEjecutivo) {
+                                      String observacion, String tipoCalificacion, EstadoFuente estadoFuente, Actividad actividad, Path rutaInformeEjecutivo) {
         try {
             fuente.setTipoFuente(fuenteDTO.getTipoFuente());
             fuente.setCalificacion(fuenteDTO.getCalificacion());
@@ -146,6 +146,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             fuente.setRutaDocumentoFuente(
                     rutaArchivoComun != null ? rutaArchivoComun.toString() : fuente.getRutaDocumentoFuente());
             fuente.setObservacion(observacion);
+            fuente.setTipoCalificacion(tipoCalificacion);
             fuente.setActividad(actividad);
             fuente.setEstadoFuente(estadoFuente);
 

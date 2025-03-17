@@ -153,7 +153,6 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
 
         return periodoAcademicoRepository.findByEstadoPeriodoAcademicoNombre(nombreEstadoActivo)
             .map(periodo -> {
-                logger.info("✅ Período académico activo encontrado: {}", periodo.getIdPeriodo());
                 return new ApiResponse<>(200, "Período académico activo encontrado", periodo);
             })
             .orElseGet(() -> {

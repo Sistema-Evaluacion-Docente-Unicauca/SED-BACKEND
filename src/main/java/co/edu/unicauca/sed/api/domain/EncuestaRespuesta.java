@@ -12,15 +12,15 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "ENCUESTAPREGUNTA")
+@Table(name = "ENCUESTARESPUESTA")
 @Data
-public class EncuestaPregunta {
+public class EncuestaRespuesta {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "encuestaPreguntaSeq")
-    @SequenceGenerator(name = "encuestaPreguntaSeq", sequenceName = "SEQ_OIDENCUESTAPREGUNTA", allocationSize = 1)
-    @Column(name = "OIDENCUESTAPREGUNTA")
-    private Integer oidEncuestaPregunta;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "encuestaRespuestaSeq")
+    @SequenceGenerator(name = "encuestaRespuestaSeq", sequenceName = "SEQ_OIDENCUESTARESPUESTA", allocationSize = 1)
+    @Column(name = "OIDENCUESTARESPUESTA")
+    private Integer oidEncuestaRespuesta;
 
     @ManyToOne
     @JoinColumn(name = "OIDENCUESTA", nullable = false)

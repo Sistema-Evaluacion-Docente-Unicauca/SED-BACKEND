@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public interface FuenteService {
      * @param observacion   Observación general.
      * @param archivos      Archivos adicionales para manejar.
      */
-    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion,
+    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, String tipoCalificacion,
             Map<String, MultipartFile> archivos);
 
     /**
@@ -81,4 +82,6 @@ public interface FuenteService {
      * @param actividad Actividad para la cual se crearán las fuentes.
      */
     void guardarFuente(Actividad actividad);
+    
+    String guardarDocumentoFuente(Fuente fuente, MultipartFile documentoFuente, String prefijo) throws IOException;
 }

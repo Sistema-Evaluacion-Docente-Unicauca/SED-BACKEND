@@ -3,10 +3,14 @@ package co.edu.unicauca.sed.api.service.fuente;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.Usuario;
+import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.documento.FileService;
+import co.edu.unicauca.sed.api.utils.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementación del servicio para el manejo de fuentes y sus archivos
@@ -45,6 +51,9 @@ public class FuenteServiceImpl implements FuenteService {
 
     @Autowired
     private EstadoFuenteRepository estadoFuenteRepository;
+
+    @Autowired
+    private FuenteFileService fuenteFileService;
 
     private static final Logger logger = LoggerFactory.getLogger(FuenteServiceImpl.class);
 
@@ -77,7 +86,7 @@ public class FuenteServiceImpl implements FuenteService {
     }
 
     @Override
-    public void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion,
+    public void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, String tipoCalificacion,
             Map<String, MultipartFile> archivos) {
         try {
             List<FuenteCreateDTO> fuentes = integrationService.convertirJsonAFuentes(fuentesJson);
@@ -98,7 +107,12 @@ public class FuenteServiceImpl implements FuenteService {
                     observacion = observacion.toUpperCase();
                 }
 
-                businessService.procesarFuente(fuenteDTO, informeFuente, observacion, archivosEjecutivos);
+                tipoCalificacion = "DOCUMENTO";
+                if (tipoCalificacion != null) {
+                    tipoCalificacion = tipoCalificacion.toUpperCase();
+                }
+
+                businessService.procesarFuente(fuenteDTO, informeFuente, observacion, tipoCalificacion, archivosEjecutivos);
             }
         } catch (Exception e) {
             logger.error("Error al guardar fuentes", e);
@@ -109,25 +123,22 @@ public class FuenteServiceImpl implements FuenteService {
     @Override
     public ResponseEntity<?> obtenerArchivo(Integer id, boolean esInforme) {
         try {
-            Fuente fuente = fuenteRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Fuente con ID " + id + " no encontrada."));
+            Fuente fuente = fuenteRepository.findById(id).orElseThrow(() -> new RuntimeException("Fuente con ID " + id + " no encontrada."));
 
             String rutaArchivo = esInforme ? fuente.getRutaDocumentoInforme() : fuente.getRutaDocumentoFuente();
             String nombreArchivo = esInforme ? fuente.getNombreDocumentoInforme() : fuente.getNombreDocumentoFuente();
 
             if (rutaArchivo == null || rutaArchivo.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("El archivo solicitado no está disponible para esta fuente.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El archivo solicitado no está disponible para esta fuente.");
             }
 
             Resource recurso = fileService.obtenerRecursoArchivo(rutaArchivo);
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"")
-                    .body(recurso);
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"").body(recurso);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
+                .body("Ocurrió un error al procesar la solicitud. Error: " + e.getMessage());
         }
     }
 
@@ -155,4 +166,32 @@ public class FuenteServiceImpl implements FuenteService {
         fuente.setCalificacion(null);
         fuenteRepository.save(fuente);
     }
+
+    public String guardarDocumentoFuente(Fuente fuente, MultipartFile documentoFuente, String prefijo) throws IOException {
+        Actividad actividad = fuente.getActividad();
+        Proceso proceso = actividad.getProceso();
+        Usuario evaluado = proceso.getEvaluado();
+        Usuario evaluador = proceso.getEvaluador();
+        UsuarioDetalle usuarioDetalle = evaluado.getUsuarioDetalle();
+    
+        String nombreActividad = StringUtils.formatearCadena(actividad.getNombreActividad());
+        String nombreEvaluado = StringUtils.formatearCadena(evaluado.getNombres() + " " + evaluado.getApellidos());
+    
+        Optional<Fuente> fuenteOpcional = Optional.of(fuente);
+    
+        Path ruta = fuenteFileService.manejarArchivoFuente(
+                fuenteOpcional, 
+                documentoFuente, 
+                proceso.getOidPeriodoAcademico().getIdPeriodo().toString(),
+                nombreEvaluado, 
+                usuarioDetalle.getContratacion(), 
+                usuarioDetalle.getDepartamento(), 
+                nombreActividad, 
+                evaluador.getIdentificacion(),
+                prefijo
+        );
+    
+        return ruta.toString();
+    }    
+    
 }

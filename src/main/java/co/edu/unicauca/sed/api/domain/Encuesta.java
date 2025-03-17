@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -26,9 +28,10 @@ public class Encuesta {
     @Column(name = "NOMBRE", nullable = false)
     private String nombre;
 
-    @Column(name = "ESTADO", nullable = false)
-    private Integer estado;
+    @ManyToOne
+    @JoinColumn(name = "OIDEVALUACIONESTUDIANTE", nullable = false)
+    private EvaluacionEstudiante evaluacionEstudiante;
 
     @OneToMany(mappedBy = "encuesta", cascade = CascadeType.ALL)
-    private List<EncuestaPregunta> encuestaPreguntas;
+    private List<EncuestaRespuesta> encuestaRespuestas;
 }

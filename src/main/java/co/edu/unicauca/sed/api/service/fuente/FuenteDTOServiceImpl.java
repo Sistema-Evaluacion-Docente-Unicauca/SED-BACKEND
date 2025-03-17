@@ -24,6 +24,7 @@ public class FuenteDTOServiceImpl implements FuenteDTOService {
                 fuente.getOidFuente(),
                 fuente.getTipoFuente(),
                 fuente.getCalificacion(),
+                fuente.getTipoCalificacion(),
                 fuente.getNombreDocumentoFuente(),
                 fuente.getNombreDocumentoInforme(),
                 fuente.getObservacion(),

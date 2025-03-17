@@ -28,7 +28,7 @@ public interface FuenteFileService {
      */
     Path manejarArchivoFuente(Optional<Fuente> fuenteOpcional, MultipartFile informeFuente, String periodoAcademico, 
                               String nombreEvaluado, String contratacion, String departamento, 
-                              String nombreActividad, String idEvaluador);
+                              String nombreActividad, String idEvaluador, String prefijo);
 
     /**
      * Maneja el informe ejecutivo de una fuente, eliminando el anterior si es necesario.

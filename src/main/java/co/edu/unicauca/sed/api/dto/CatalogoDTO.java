@@ -16,4 +16,5 @@ public class CatalogoDTO {
     private List<Map<String, Object>> roles;
     private List<Map<String, Object>> tipoActividades;
     private List<Map<String, Object>> preguntaEvaluacionDocente;
+    private List<Map<String, Object>> estadoEtapaDesarrollo;
 }

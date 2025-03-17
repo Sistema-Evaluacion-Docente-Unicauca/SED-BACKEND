@@ -9,6 +9,7 @@ public class FuenteDTO {
     private Integer oidFuente;
     private String tipoFuente;
     private Float calificacion;
+    private String tipoCalificacion;
     private String nombreDocumentoFuente;
     private String nombreDocumentoInforme;
     private String observacion;
@@ -17,10 +18,11 @@ public class FuenteDTO {
     private String estadoFuente;
 
     // Constructor
-    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String nombreDocumentoFuente, String nombreDocumentoInforme, String observacion, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
+    public FuenteDTO(Integer oidFuente, String tipoFuente, Float calificacion, String tipoCalificacion, String nombreDocumentoFuente, String nombreDocumentoInforme, String observacion, LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion, String estadoFuente) {
         this.oidFuente = oidFuente;
         this.tipoFuente = tipoFuente;
         this.calificacion = calificacion;
+        this.tipoCalificacion = tipoCalificacion;
         this.nombreDocumentoFuente = nombreDocumentoFuente;
         this.nombreDocumentoInforme = nombreDocumentoInforme;
         this.observacion = observacion;

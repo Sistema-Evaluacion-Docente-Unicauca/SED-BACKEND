@@ -1,130 +1,72 @@
 package co.edu.unicauca.sed.api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.domain.Encuesta;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.service.evaluacion_docente.EncuestaService;
-
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controlador para la gestión de encuestas.
- * Proporciona endpoints para realizar operaciones CRUD sobre las encuestas.
  */
-@Controller
+@RestController
 @RequestMapping("api/encuesta")
+@RequiredArgsConstructor
 public class EncuestaController {
 
-    private static final Logger logger = LoggerFactory.getLogger(EncuestaController.class);
-
-    @Autowired
-    private EncuestaService encuestaService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(EncuestaController.class);
+    private final EncuestaService encuestaService;
 
     /**
-     * Recupera todas las encuestas disponibles con paginación y ordenamiento.
+     * Recupera todas las encuestas disponibles con paginación.
      *
-     * @param page           Número de página.
-     * @param size           Tamaño de página.
-     * @param ascendingOrder Indica si el orden es ascendente.
+     * @param pageable Objeto de paginación.
      * @return Página de encuestas.
      */
     @GetMapping
-    public ResponseEntity<?> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        logger.info("Solicitud para recuperar todas las encuestas con paginación.");
-        try {
-            Page<Encuesta> encuestas = encuestaService.findAll(PageRequest.of(page, size));
-            if (encuestas.hasContent()) {
-                logger.info("Se recuperaron {} encuestas exitosamente.", encuestas.getTotalElements());
-                return ResponseEntity.ok().body(encuestas);
-            } else {
-                logger.warn("No se encontraron encuestas.");
-                return ResponseEntity.noContent().build();
-            }
-        } catch (Exception e) {
-            logger.error("Error al recuperar las encuestas: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
+    public ResponseEntity<ApiResponse<Page<Encuesta>>> buscarTodos(Pageable pageable) {
+        LOGGER.info("📌 Buscando todas las encuestas con paginación...");
+        return ResponseEntity.ok(encuestaService.buscarTodos(pageable));
     }
 
     /**
      * Recupera una encuesta específica por su ID.
      *
      * @param oid ID de la encuesta.
-     * @return La encuesta encontrada o un mensaje de error si no existe.
+     * @return Encuesta encontrada o mensaje de error si no existe.
      */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
-        logger.info("Solicitud para buscar la encuesta con ID: {}", oid);
-        Encuesta encuesta = encuestaService.findByOid(oid);
-        if (encuesta != null) {
-            logger.info("Encuesta con ID {} encontrada exitosamente.", oid);
-            return ResponseEntity.ok().body(encuesta);
-        }
-        logger.warn("Encuesta con ID {} no encontrada.", oid);
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Encuesta>> buscarPorId(@PathVariable Integer oid) {
+        LOGGER.info("📌 Buscando encuesta con ID: {}", oid);
+        return ResponseEntity.ok(encuestaService.buscarPorId(oid));
     }
 
     /**
      * Guarda una nueva encuesta.
      *
      * @param encuesta Objeto Encuesta a guardar.
-     * @return La encuesta guardada o un mensaje de error si ocurre algún problema.
+     * @return Encuesta guardada o mensaje de error si ocurre algún problema.
      */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody Encuesta encuesta) {
-        try {
-            Encuesta resultado = encuestaService.save(encuesta);
-            if (resultado != null) {
-                logger.info("Encuesta guardada exitosamente con ID: {}", resultado.getOidEncuesta());
-                return ResponseEntity.ok().body(resultado);
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar la encuesta: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.error("El guardado de la encuesta devolvió un resultado nulo.");
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo.");
+    public ResponseEntity<ApiResponse<Encuesta>> guardar(@RequestBody Encuesta encuesta) {
+        LOGGER.info("📌 Guardando nueva encuesta...");
+        return ResponseEntity.ok(encuestaService.guardar(encuesta));
     }
 
     /**
      * Elimina una encuesta por su ID.
      *
      * @param oid ID de la encuesta a eliminar.
-     * @return Confirmación de eliminación o un mensaje de error si ocurre un
-     *         problema.
+     * @return Confirmación de eliminación o mensaje de error si ocurre un problema.
      */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        logger.info("Solicitud para eliminar la encuesta con ID: {}", oid);
-        Encuesta encuesta = null;
-        try {
-            encuesta = encuestaService.findByOid(oid);
-            if (encuesta == null) {
-                logger.warn("Encuesta con ID {} no encontrada.", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encuesta no encontrada");
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar la encuesta con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encuesta no encontrada");
-        }
-
-        try {
-            encuestaService.delete(oid);
-            logger.info("Encuesta con ID {} eliminada exitosamente.", oid);
-        } catch (Exception e) {
-            logger.error("Error al eliminar la encuesta con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("No se puede borrar por conflictos con otros datos.");
-        }
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer oid) {
+        LOGGER.info("📌 Eliminando encuesta con ID: {}", oid);
+        return ResponseEntity.ok(encuestaService.eliminar(oid));
     }
 }

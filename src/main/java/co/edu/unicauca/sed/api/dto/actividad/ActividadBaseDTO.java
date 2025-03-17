@@ -7,7 +7,9 @@ import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
+import lombok.Data;
 
+@Data
 public class ActividadBaseDTO {
 
     private Integer oidActividad;
@@ -45,130 +47,6 @@ public class ActividadBaseDTO {
         this.atributos = atributos;
         this.evaluador = evaluador;
         this.oidEvaluado = oidEvaluado;
-        this.oidEvaluador = oidEvaluador;
-    }
-
-    // Constructor vacío
-    public ActividadBaseDTO() {}
-
-    // Getters y Setters
-    public Integer getOidActividad() {
-        return oidActividad;
-    }
-
-    public void setOidActividad(Integer oidActividad) {
-        this.oidActividad = oidActividad;
-    }
-
-    public TipoActividad getTipoActividad() {
-        return tipoActividad;
-    }
-
-    public void setTipoActividad(TipoActividad tipoActividad) {
-        this.tipoActividad = tipoActividad;
-    }
-
-    public Integer getOidProceso() {
-        return oidProceso;
-    }
-
-    public void setOidProceso(Integer oidProceso) {
-        this.oidProceso = oidProceso;
-    }
-
-    public Integer getOidEstadoActividad() {
-        return oidEstadoActividad;
-    }
-
-    public void setOidEstadoActividad(Integer oidEstadoActividad) {
-        this.oidEstadoActividad = oidEstadoActividad;
-    }
-
-    public String getNombreActividad() {
-        return nombreActividad;
-    }
-
-    public void setNombreActividad(String nombreActividad) {
-        this.nombreActividad = nombreActividad;
-    }
-
-    public Float getHoras() {
-        return horas;
-    }
-
-    public void setHoras(Float horas) {
-        this.horas = horas;
-    }
-
-    public Float getSemanas() {
-        return semanas;
-    }
-
-    public void setSemanas(Float semanas) {
-        this.semanas = semanas;
-    }
-
-    public Boolean getInformeEjecutivo() {
-        return informeEjecutivo;
-    }
-
-    public void setInformeEjecutivo(Boolean informeEjecutivo) {
-        this.informeEjecutivo = informeEjecutivo;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public List<FuenteDTO> getFuentes() {
-        return fuentes;
-    }
-
-    public void setFuentes(List<FuenteDTO> fuentes) {
-        this.fuentes = fuentes;
-    }
-
-    public List<AtributoDTO> getAtributos() {
-        return atributos;
-    }
-
-    public void setAtributos(List<AtributoDTO> atributos) {
-        this.atributos = atributos;
-    }
-
-    public UsuarioDTO getEvaluador() {
-        return evaluador;
-    }
-
-    public void setEvaluador(UsuarioDTO evaluador) {
-        this.evaluador = evaluador;
-    }
-
-    public Integer getOidEvaluado() {
-        return oidEvaluado;
-    }
-
-    public void setOidEvaluado(Integer oidEvaluado) {
-        this.oidEvaluado = oidEvaluado;
-    }
-
-    public Integer getOidEvaluador() {
-        return oidEvaluador;
-    }
-
-    public void setOidEvaluador(Integer oidEvaluador) {
         this.oidEvaluador = oidEvaluador;
     }
 }
