@@ -9,6 +9,8 @@ import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.utils.StringUtils;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Implementación del servicio para manejar la lógica de negocio relacionada con fuentes.
+ * Implementación del servicio para manejar la lógica de negocio relacionada con
+ * fuentes.
  */
 @Service
 public class FuenteBusinessServiceImpl implements FuenteBusinessService {
@@ -44,9 +47,13 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
     @Autowired
     private NotificacionDocumentoService notificacionDocumentoService;
 
+    @Autowired
+    private EstadoFuenteRepository estadoFuenteRepository;
+
     @Override
-    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, String tipoCalificacion,
-                               Map<String, MultipartFile> archivosEjecutivos) {
+    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion,
+            String tipoCalificacion,
+            Map<String, MultipartFile> archivosEjecutivos) {
         try {
             String mensajeTipoFuente;
             Actividad actividad = actividadRepository.findById(fuenteDTO.getOidActividad())
@@ -83,7 +90,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             } else if ("1".equals(fuenteDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 1 (Autoevaluación)";
                 rutaArchivoComun = fileService.manejarArchivoFuente(fuenteOpcional, informeFuente, periodoAcademico,
-                        nombreEvaluado, contratacion, departamento, null, null,null);
+                        nombreEvaluado, contratacion, departamento, null, null, null);
                 rutaInformeEjecutivo = fileService.manejarInformeEjecutivo(fuenteOpcional, fuenteDTO,
                         archivosEjecutivos, periodoAcademico, nombreEvaluado, contratacion, departamento);
             } else {
@@ -95,7 +102,8 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             EstadoFuente estadoFuente = determinarEstadoFuente(fuente);
 
             // Asignar valores a la fuente
-            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, tipoCalificacion, estadoFuente, actividad, rutaInformeEjecutivo);
+            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, tipoCalificacion, estadoFuente,
+                    actividad, rutaInformeEjecutivo);
             fuenteRepository.save(fuente);
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", fuenteDTO, e);
@@ -109,10 +117,16 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
      * @param fuente La fuente cuyo estado será determinado.
      * @return El estado actualizado o conservado de la fuente.
      */
-    private EstadoFuente determinarEstadoFuente(Fuente fuente) {
+    @Override
+    public EstadoFuente determinarEstadoFuente(Fuente fuente) {
         try {
-            if (fuente.getEstadoFuente() != null && fuente.getEstadoFuente().getOidEstadoFuente() == 1) {
-                return estadoFuenteService.createEstadoFuente(2); // Estado diligenciado
+            EstadoFuente estadoFuentePendiente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
+                    .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
+            if (fuente.getEstadoFuente() != null
+                    && fuente.getEstadoFuente().getOidEstadoFuente() == estadoFuentePendiente.getOidEstadoFuente()) {
+                EstadoFuente estadoFuenteDiligenciado = estadoFuenteRepository.findByNombreEstado("DILIGENCIADO")
+                        .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
+                return estadoFuenteService.createEstadoFuente(estadoFuenteDiligenciado.getOidEstadoFuente());
             } else if (fuente.getEstadoFuente() != null) {
                 return fuente.getEstadoFuente();
             } else {
@@ -128,16 +142,17 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
      * Asigna valores a una entidad Fuente, actualizando o configurando información
      * como el estado, actividad y archivos asociados.
      *
-     * @param fuente              La entidad Fuente a modificar.
-     * @param fuenteDTO           Datos provenientes del DTO.
-     * @param rutaArchivoComun    Ruta del archivo común.
-     * @param observacion         Observación a asociar.
-     * @param estadoFuente        Estado de la fuente.
-     * @param actividad           Actividad vinculada.
+     * @param fuente               La entidad Fuente a modificar.
+     * @param fuenteDTO            Datos provenientes del DTO.
+     * @param rutaArchivoComun     Ruta del archivo común.
+     * @param observacion          Observación a asociar.
+     * @param estadoFuente         Estado de la fuente.
+     * @param actividad            Actividad vinculada.
      * @param rutaInformeEjecutivo Ruta del informe ejecutivo.
      */
     private void asignarValoresFuente(Fuente fuente, FuenteCreateDTO fuenteDTO, Path rutaArchivoComun,
-                                      String observacion, String tipoCalificacion, EstadoFuente estadoFuente, Actividad actividad, Path rutaInformeEjecutivo) {
+            String observacion, String tipoCalificacion, EstadoFuente estadoFuente, Actividad actividad,
+            Path rutaInformeEjecutivo) {
         try {
             fuente.setTipoFuente(fuenteDTO.getTipoFuente());
             fuente.setCalificacion(fuenteDTO.getCalificacion());

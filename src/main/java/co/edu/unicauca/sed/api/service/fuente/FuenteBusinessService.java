@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,4 +21,6 @@ public interface FuenteBusinessService {
      * @param archivosEjecutivos   Archivos adicionales (informes ejecutivos).
      */
     void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, String tipoCalificacion, Map<String, MultipartFile> archivosEjecutivos);
+
+    EstadoFuente determinarEstadoFuente(Fuente fuente);
 }

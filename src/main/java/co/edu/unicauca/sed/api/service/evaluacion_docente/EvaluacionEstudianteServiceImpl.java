@@ -3,18 +3,19 @@ package co.edu.unicauca.sed.api.service.evaluacion_docente;
 import co.edu.unicauca.sed.api.domain.Encuesta;
 import co.edu.unicauca.sed.api.domain.EncuestaRespuesta;
 import co.edu.unicauca.sed.api.domain.EstadoEtapaDesarrollo;
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Pregunta;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EncuestaPreguntaDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
-import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import co.edu.unicauca.sed.api.repository.EncuestaRespuestaRepository;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
 import co.edu.unicauca.sed.api.repository.EvaluacionEstudianteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.repository.PreguntaRepository;
+import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessServiceImpl;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -56,6 +57,9 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     @Autowired
     private PreguntaRepository preguntaRepository;
+
+    @Autowired
+    private FuenteBusinessServiceImpl fuenteBussines;
 
     @Override
     @Transactional(readOnly = true)
@@ -215,7 +219,8 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
     private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion) {
         fuente.setCalificacion(nuevaCalificacion);
         fuente.setTipoCalificacion(tipoCalificacion.toUpperCase());
+        EstadoFuente estadoFuente = fuenteBussines.determinarEstadoFuente(fuente);
+        fuente.setEstadoFuente(estadoFuente);
         fuenteRepository.save(fuente);
     }
-
 }
