@@ -54,17 +54,19 @@ public class DocenteEvaluacionService {
                 evaluados = filtrarPorDepartamento(evaluados, departamento);
                 if (evaluados.isEmpty() && idEvaluado == null) {
                     return new ApiResponse<>(404, "No se encontraron docentes para el departamento: " + departamento,
-                            Page.empty());
+                        Page.empty());
                 }
             }
 
             List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
-                    .map(evaluado -> {
-                        List<Actividad> actividades = procesoRepository
-                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado.getOidUsuario(), periodoFinal)
-                            .stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
-                        return DocenteEvaluacionMapper.toDto(evaluado, actividades);
-                    }).collect(Collectors.toList());
+                .map(evaluado -> {
+                    List<Actividad> actividades = procesoRepository
+                        .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
+                                evaluado.getOidUsuario(), periodoFinal)
+                        .stream().flatMap(proceso -> proceso.getActividades().stream())
+                        .collect(Collectors.toList());
+                    return DocenteEvaluacionMapper.toDto(evaluado, actividades);
+                }).collect(Collectors.toList());
 
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
@@ -82,7 +84,6 @@ public class DocenteEvaluacionService {
                     Page.empty());
         }
     }
-
 
     /**
      * Filtra la lista de evaluados según el departamento proporcionado.
@@ -109,27 +110,27 @@ public class DocenteEvaluacionService {
     private List<Usuario> obtenerUsuariosEvaluados(Integer idEvaluado, Integer idPeriodoAcademico) {
 
         final int ROL_DOCENTE_ID = 1;
-    
+
         if (idEvaluado != null) {
             Usuario usuario = usuarioRepository.findById(idEvaluado)
-                .orElseThrow(() -> new IllegalArgumentException("Evaluado no encontrado."));
-    
+                    .orElseThrow(() -> new IllegalArgumentException("Evaluado no encontrado."));
+
             boolean esDocente = usuario.getRoles().stream()
-                .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID));
-    
+                    .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID));
+
             if (!esDocente) {
                 throw new IllegalArgumentException("El usuario no tiene rol docente.");
             }
-    
+
             return List.of(usuario);
         }
-    
+
         return procesoRepository.findByOidPeriodoAcademico_OidPeriodoAcademico(idPeriodoAcademico)
-            .stream()
-            .map(Proceso::getEvaluado)
-            .filter(usuario -> usuario.getRoles().stream()
-                .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID)))
-            .distinct()
-            .collect(Collectors.toList());
+                .stream()
+                .map(Proceso::getEvaluado)
+                .filter(usuario -> usuario.getRoles().stream()
+                        .anyMatch(rol -> rol.getOid().equals(ROL_DOCENTE_ID)))
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

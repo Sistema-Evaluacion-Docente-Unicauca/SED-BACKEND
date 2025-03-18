@@ -20,7 +20,7 @@ public interface FuenteBusinessService {
      * @param observacion          Observación general.
      * @param archivosEjecutivos   Archivos adicionales (informes ejecutivos).
      */
-    void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, String tipoCalificacion, Map<String, MultipartFile> archivosEjecutivos);
+    void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivosEjecutivos);
 
     EstadoFuente determinarEstadoFuente(Fuente fuente);
 }

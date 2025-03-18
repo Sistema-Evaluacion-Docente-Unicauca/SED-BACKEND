@@ -64,8 +64,7 @@ public interface FuenteService {
      * @param observacion   Observación general.
      * @param archivos      Archivos adicionales para manejar.
      */
-    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, String tipoCalificacion,
-            Map<String, MultipartFile> archivos);
+    void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivos);
 
     /**
      * Recupera un archivo asociado a una fuente.

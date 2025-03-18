@@ -51,9 +51,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
     private EstadoFuenteRepository estadoFuenteRepository;
 
     @Override
-    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion,
-            String tipoCalificacion,
-            Map<String, MultipartFile> archivosEjecutivos) {
+    public void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivosEjecutivos) {
         try {
             String mensajeTipoFuente;
             Actividad actividad = actividadRepository.findById(fuenteDTO.getOidActividad())
@@ -102,8 +100,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             EstadoFuente estadoFuente = determinarEstadoFuente(fuente);
 
             // Asignar valores a la fuente
-            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, tipoCalificacion, estadoFuente,
-                    actividad, rutaInformeEjecutivo);
+            asignarValoresFuente(fuente, fuenteDTO, rutaArchivoComun, observacion, estadoFuente, actividad, rutaInformeEjecutivo);
             fuenteRepository.save(fuente);
         } catch (Exception e) {
             logger.error("Error inesperado al procesar la fuente: {}", fuenteDTO, e);
@@ -151,7 +148,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
      * @param rutaInformeEjecutivo Ruta del informe ejecutivo.
      */
     private void asignarValoresFuente(Fuente fuente, FuenteCreateDTO fuenteDTO, Path rutaArchivoComun,
-            String observacion, String tipoCalificacion, EstadoFuente estadoFuente, Actividad actividad,
+            String observacion, EstadoFuente estadoFuente, Actividad actividad,
             Path rutaInformeEjecutivo) {
         try {
             fuente.setTipoFuente(fuenteDTO.getTipoFuente());
@@ -161,7 +158,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             fuente.setRutaDocumentoFuente(
                     rutaArchivoComun != null ? rutaArchivoComun.toString() : fuente.getRutaDocumentoFuente());
             fuente.setObservacion(observacion);
-            fuente.setTipoCalificacion(tipoCalificacion);
+            fuente.setTipoCalificacion(fuenteDTO.getTipoCalificacion());
             fuente.setActividad(actividad);
             fuente.setEstadoFuente(estadoFuente);
 

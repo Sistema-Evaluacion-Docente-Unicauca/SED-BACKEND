@@ -57,7 +57,8 @@ public class UsuarioController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String estado,
             Pageable pageable) {
-        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad, departamento,
+        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,
+                departamento,
                 categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
@@ -79,7 +80,8 @@ public class UsuarioController {
      * Guarda uno o varios usuarios en el sistema.
      * 
      * @param usuarios Lista de objetos Usuario a guardar.
-     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún problema.
+     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún
+     *         problema.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
@@ -91,11 +93,14 @@ public class UsuarioController {
      * Actualiza un usuario existente en el sistema.
      * 
      * @param idUsuario          ID del usuario a actualizar.
-     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
-     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
+     * @param usuarioActualizado Objeto que contiene los datos actualizados del
+     *                           usuario.
+     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre
+     *         un problema.
      */
     @PutMapping("/{idUsuario}")
-    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
+    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario,
+            @RequestBody Usuario usuarioActualizado) {
         ApiResponse<Usuario> response = usuarioService.actualizar(idUsuario, usuarioActualizado);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
@@ -128,16 +133,7 @@ public class UsuarioController {
             @RequestParam(required = false) String departamento,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,
-                    idPeriodoAcademico, departamento, PageRequest.of(page, size));
-            return ResponseEntity.status(response.getCodigo()).body(response);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error en los parámetros proporcionados: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
-        } catch (Exception e) {
-            logger.error("Error inesperado al obtener evaluaciones de docentes: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(new ApiResponse<>(500, "Error inesperado: " + e.getMessage(), null));
-        }
+        ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,idPeriodoAcademico, departamento, PageRequest.of(page, size));
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

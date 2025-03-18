@@ -86,8 +86,7 @@ public class FuenteServiceImpl implements FuenteService {
     }
 
     @Override
-    public void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, String tipoCalificacion,
-            Map<String, MultipartFile> archivos) {
+    public void guardarFuente(String fuentesJson, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivos) {
         try {
             List<FuenteCreateDTO> fuentes = integrationService.convertirJsonAFuentes(fuentesJson);
             Map<String, MultipartFile> archivosEjecutivos = null;
@@ -107,12 +106,11 @@ public class FuenteServiceImpl implements FuenteService {
                     observacion = observacion.toUpperCase();
                 }
 
-                tipoCalificacion = "DOCUMENTO";
-                if (tipoCalificacion != null) {
-                    tipoCalificacion = tipoCalificacion.toUpperCase();
+                if (fuenteDTO.getTipoCalificacion() != null) {
+                    fuenteDTO.setTipoCalificacion(fuenteDTO.getTipoCalificacion().toUpperCase());
                 }
 
-                businessService.procesarFuente(fuenteDTO, informeFuente, observacion, tipoCalificacion, archivosEjecutivos);
+                businessService.procesarFuente(fuenteDTO, informeFuente, observacion, archivosEjecutivos);
             }
         } catch (Exception e) {
             logger.error("Error al guardar fuentes", e);

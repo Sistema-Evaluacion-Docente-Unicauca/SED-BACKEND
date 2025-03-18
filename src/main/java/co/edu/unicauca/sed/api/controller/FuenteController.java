@@ -96,7 +96,7 @@ public class FuenteController {
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
-            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, tipoCalificacion, allFiles);
+            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, allFiles);
             logger.info("Fuente guardada exitosamente");
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (Exception e) {
