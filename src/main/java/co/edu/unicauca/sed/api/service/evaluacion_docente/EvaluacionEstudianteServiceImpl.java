@@ -166,21 +166,18 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
     }
 
     private Fuente obtenerFuente(Integer oidFuente) {
-        return fuenteRepository.findById(oidFuente)
-                .orElseThrow(() -> new EntityNotFoundException("Fuente no encontrada con ID: " + oidFuente));
+        return fuenteRepository.findById(oidFuente).orElseThrow(() -> new EntityNotFoundException("Fuente no encontrada con ID: " + oidFuente));
     }
 
     private EvaluacionEstudiante guardarEvaluacionEstudiante(EvaluacionDocenteDTO dto, Fuente fuente) {
-        EvaluacionEstudiante evaluacionEstudiante = evaluacionEstudianteRepository.findByFuente(fuente)
-                .orElse(new EvaluacionEstudiante());
+        EvaluacionEstudiante evaluacionEstudiante = evaluacionEstudianteRepository.findByFuente(fuente).orElse(new EvaluacionEstudiante());
 
         evaluacionEstudiante.setFuente(fuente);
         evaluacionEstudiante.setObservacion(dto.getObservacion().toUpperCase());
         evaluacionEstudiante.setFirma(dto.getFirma());
 
         EstadoEtapaDesarrollo estado = estadoEtapaDesarrolloRepository.findById(dto.getOidEstadoEtapaDesarrollo())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "EstadoEtapaDesarrollo no encontrado con ID: " + dto.getOidEstadoEtapaDesarrollo()));
+            .orElseThrow(() -> new EntityNotFoundException("EstadoEtapaDesarrollo no encontrado con ID: " + dto.getOidEstadoEtapaDesarrollo()));
 
         evaluacionEstudiante.setEstadoEtapaDesarrollo(estado);
         return evaluacionEstudianteRepository.save(evaluacionEstudiante);
