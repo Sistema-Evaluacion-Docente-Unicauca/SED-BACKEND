@@ -51,15 +51,15 @@ public class ActividadTransformacionServiceImpl implements ActividadTransformaci
     @Override
     public List<FuenteDTO> transformarFuentes(List<Fuente> fuentes) {
         return fuentes.stream()
-                .sorted(Comparator.comparing(Fuente::getTipoFuente))
-                .map(fuente -> new FuenteDTO(
-                        fuente.getOidFuente(),
-                        fuente.getEstadoFuente() != null
-                                ? fuente.getEstadoFuente().getNombreEstado()
-                                : null,
-                        fuente.getCalificacion(),
-                        fuente.getTipoFuente() != null ? fuente.getTipoFuente() : "Sin tipo"))
-                .collect(Collectors.toList());
+			.sorted(Comparator.comparing(Fuente::getTipoFuente))
+			.map(fuente -> new FuenteDTO(
+				fuente.getOidFuente(),
+				fuente.getEstadoFuente() != null
+						? fuente.getEstadoFuente().getNombreEstado()
+						: null,
+				fuente.getCalificacion(),
+				fuente.getTipoFuente() != null ? fuente.getTipoFuente() : "Sin tipo"))
+			.collect(Collectors.toList());
     }
 
     @Override
@@ -71,10 +71,10 @@ public class ActividadTransformacionServiceImpl implements ActividadTransformaci
 
         ActividadPaginadaDTO actividadPaginadaDTO = new ActividadPaginadaDTO();
         actividadPaginadaDTO.setActividades(actividadesPorTipo);
-        actividadPaginadaDTO.setPaginaActual(actividadPage.getNumber());
-        actividadPaginadaDTO.setTamanoPagina(actividadPage.getSize());
-        actividadPaginadaDTO.setTotalElementos((int) actividadPage.getTotalElements());
-        actividadPaginadaDTO.setTotalPaginas(actividadPage.getTotalPages());
+        actividadPaginadaDTO.setCurrentPage(actividadPage.getNumber());
+        actividadPaginadaDTO.setPageSize(actividadPage.getSize());
+        actividadPaginadaDTO.setTotalItems((int) actividadPage.getTotalElements());
+        actividadPaginadaDTO.setTotalPages(actividadPage.getTotalPages());
 
         return actividadPaginadaDTO;
     }
@@ -82,11 +82,11 @@ public class ActividadTransformacionServiceImpl implements ActividadTransformaci
     @Override
     public Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
         return actividades.stream()
-                .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
-                .collect(Collectors.groupingBy(
-                        actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
-                        Collectors.mapping(
-                                actividad -> (Map<String, Object>) transformarActividad(actividad, totalHoras),
-                                Collectors.toList())));
-    }
+			.sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
+			.collect(Collectors.groupingBy(
+				actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
+				Collectors.mapping(
+					actividad -> (Map<String, Object>) transformarActividad(actividad, totalHoras),
+					Collectors.toList())));
+}
 }

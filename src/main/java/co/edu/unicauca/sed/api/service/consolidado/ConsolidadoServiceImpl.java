@@ -231,8 +231,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
                     idTipoFuente, idEstadoFuente, true, idPeriodoAcademico);
 
             Page<Actividad> actividadPage = actividadRepository.findAll(spec, pageable);
-            ActividadPaginadaDTO actividadPaginadaDTO = transformacionService
-                    .construirActividadPaginadaDTO(actividadPage);
+            ActividadPaginadaDTO actividadPaginadaDTO = transformacionService.construirActividadPaginadaDTO(actividadPage);
             return new ApiResponse<>(200, "Actividades obtenidas correctamente.", actividadPaginadaDTO);
 
         } catch (Exception e) {
