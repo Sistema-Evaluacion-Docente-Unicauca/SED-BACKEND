@@ -18,5 +18,7 @@ public interface EvaluacionEstudianteService {
     ApiResponse<Void> guardarEvaluacionDocente(EvaluacionDocenteDTO dto, MultipartFile documentoFuente, MultipartFile firmaEstudiante);
 
     ApiResponse<Void> eliminar(Integer oid);
+
+    ApiResponse<Object> buscarPorFuente(Integer oidFuente);
 }
 

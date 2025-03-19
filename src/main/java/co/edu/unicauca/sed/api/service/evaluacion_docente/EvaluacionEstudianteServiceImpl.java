@@ -10,6 +10,7 @@ import co.edu.unicauca.sed.api.domain.Pregunta;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EncuestaPreguntaDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
+import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import co.edu.unicauca.sed.api.repository.EncuestaRespuestaRepository;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
 import co.edu.unicauca.sed.api.repository.EvaluacionEstudianteRepository;
@@ -18,7 +19,6 @@ import co.edu.unicauca.sed.api.repository.PreguntaRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessServiceImpl;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import jakarta.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +27,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteService {
@@ -57,6 +59,9 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     @Autowired
     private PreguntaRepository preguntaRepository;
+
+    @Autowired
+    private EncuestaRepository encuestaRepository;
 
     @Autowired
     private FuenteBusinessServiceImpl fuenteBussines;
@@ -209,6 +214,77 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
         return (sumaPesos > 0) ? calificacionTotal / sumaPesos : 0;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<Object> buscarPorFuente(Integer oidFuente) {
+        try {
+            LOGGER.info("🔍 Buscando Evaluación de Estudiante por Fuente con ID: {}", oidFuente);
+
+            Fuente fuente = obtenerFuente(oidFuente);
+            EvaluacionEstudiante evaluacionEstudiante = obtenerEvaluacionEstudiantePorFuente(fuente, oidFuente);
+            Encuesta encuesta = obtenerEncuestaPorEvaluacion(evaluacionEstudiante);
+            List<Map<String, Object>> preguntas = obtenerPreguntasDeEncuesta(encuesta);
+
+            Map<String, Object> resultado = construirResultado(fuente, evaluacionEstudiante, encuesta, preguntas);
+
+            return new ApiResponse<>(200, "Encuesta encontrada correctamente.", resultado);
+        } catch (EntityNotFoundException e) {
+            LOGGER.warn("⚠️ {}", e.getMessage());
+            return new ApiResponse<>(404, e.getMessage(), null);
+        } catch (Exception e) {
+            LOGGER.error("❌ Error al buscar Encuesta por Fuente", e);
+            return new ApiResponse<>(500, "Error inesperado al buscar la encuesta.", null);
+        }
+    }
+
+    private EvaluacionEstudiante obtenerEvaluacionEstudiantePorFuente(Fuente fuente, Integer oidFuente) {
+        return evaluacionEstudianteRepository.findByFuente(fuente)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No se encontró Evaluación de Estudiante para la fuente con ID: " + oidFuente));
+    }
+
+    private Encuesta obtenerEncuestaPorEvaluacion(EvaluacionEstudiante evaluacionEstudiante) {
+        return encuestaRepository.findByEvaluacionEstudiante(evaluacionEstudiante)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró Encuesta para la evaluación con ID: "
+                        + evaluacionEstudiante.getOidEvaluacionEstudiante()));
+    }
+
+    private List<Map<String, Object>> obtenerPreguntasDeEncuesta(Encuesta encuesta) {
+        List<EncuestaRespuesta> respuestas = encuestaRespuestaRepository.findByEncuesta(encuesta);
+        return respuestas.stream().map(respuesta -> {
+            Map<String, Object> preguntaMap = new HashMap<>();
+            preguntaMap.put("oidPregunta", respuesta.getPregunta().getOidPregunta());
+            preguntaMap.put("respuesta", Integer.parseInt(respuesta.getRespuesta())); // Convertir a número
+            return preguntaMap;
+        }).collect(Collectors.toList());
+    }
+
+    private Map<String, Object> construirResultado(Fuente fuente, EvaluacionEstudiante evaluacionEstudiante, Encuesta encuesta, List<Map<String, Object>> preguntas) {
+        Map<String, Object> resultado = new HashMap<>();
+        resultado.put("oidFuente", fuente.getOidFuente());
+        resultado.put("tipoCalificacion", evaluacionEstudiante.getFuente().getTipoCalificacion());
+        resultado.put("observacion", fuente.getObservacion());
+    
+        Map<String, Object> estadoEtapaDesarrolloMap = new HashMap<>();
+        estadoEtapaDesarrolloMap.put("oidEstadoEtapaDesarrollo", evaluacionEstudiante.getEstadoEtapaDesarrollo().getOidEstadoEtapaDesarrollo());
+        estadoEtapaDesarrolloMap.put("nombre", evaluacionEstudiante.getEstadoEtapaDesarrollo().getNombre());
+        resultado.put("estadoEtapaDesarrollo", estadoEtapaDesarrolloMap);
+    
+        // Datos de EvaluacionEstudiante
+        Map<String, Object> evaluacionMap = new HashMap<>();
+        evaluacionMap.put("observacion", evaluacionEstudiante.getObservacion());
+    
+        // Datos de Encuesta
+        Map<String, Object> encuestaMap = new HashMap<>();
+        encuestaMap.put("nombre", encuesta.getNombre());
+    
+        resultado.put("evaluacionEstudiante", evaluacionMap);
+        resultado.put("encuesta", encuestaMap);
+        resultado.put("preguntas", preguntas);
+    
+        return resultado;
+    }    
 
     private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
         fuente.setCalificacion(nuevaCalificacion);

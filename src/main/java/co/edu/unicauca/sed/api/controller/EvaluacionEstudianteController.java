@@ -85,4 +85,10 @@ public class EvaluacionEstudianteController {
         LOGGER.info("📌 Eliminando evaluación de estudiante con ID: {}", oid);
         return ResponseEntity.ok(evaluacionEstudianteService.eliminar(oid));
     }
+
+    @GetMapping("/fuente/{oidFuente}")
+    public ResponseEntity<ApiResponse<Object>> buscarPorFuente(@PathVariable Integer oidFuente) {
+        LOGGER.info("📌 Buscando evaluación de estudiante por fuente con ID: {}", oidFuente);
+        return ResponseEntity.ok(evaluacionEstudianteService.buscarPorFuente(oidFuente));
+    }
 }
