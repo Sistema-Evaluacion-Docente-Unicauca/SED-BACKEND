@@ -9,6 +9,7 @@ import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 public class EvaluacionDocenteDTO {
     private Integer oidFuente;
     private String tipoCalificacion;
+    private String observacion;
     private String firma;
     private Integer oidEstadoEtapaDesarrollo;
     private EvaluacionEstudiante evaluacionEstudiante;

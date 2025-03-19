@@ -156,7 +156,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             }
             
             // 🔄 Actualizar la calificación de la fuente
-            actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion());
+            actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion(), dto.getObservacion());
 
             return new ApiResponse<>(200, "Evaluación docente guardada correctamente.", null);
         } catch (Exception e) {
@@ -213,11 +213,12 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         return (sumaPesos > 0) ? calificacionTotal / sumaPesos : 0;
     }
 
-    private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion) {
+    private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
         fuente.setCalificacion(nuevaCalificacion);
         fuente.setTipoCalificacion(tipoCalificacion.toUpperCase());
         EstadoFuente estadoFuente = fuenteBussines.determinarEstadoFuente(fuente);
         fuente.setEstadoFuente(estadoFuente);
+        fuente.setObservacion(observacion.toUpperCase());
         fuenteRepository.save(fuente);
     }
 }
