@@ -175,7 +175,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
                 .orElse(new EvaluacionEstudiante());
 
         evaluacionEstudiante.setFuente(fuente);
-        evaluacionEstudiante.setObservacion(dto.getEvaluacionEstudiante().getObservacion());
+        evaluacionEstudiante.setObservacion(dto.getObservacion().toUpperCase());
         evaluacionEstudiante.setFirma(dto.getFirma());
 
         EstadoEtapaDesarrollo estado = estadoEtapaDesarrolloRepository.findById(dto.getOidEstadoEtapaDesarrollo())
