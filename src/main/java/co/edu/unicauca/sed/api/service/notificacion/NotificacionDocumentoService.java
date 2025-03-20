@@ -41,24 +41,22 @@ public class NotificacionDocumentoService {
             String departamento = evaluado.getUsuarioDetalle().getDepartamento();
 
             Optional<Usuario> jefeDepartamento = usuarioRepository
-                    .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
-                            departamento, "JEFE DE DEPARTAMENTO");
+                .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(departamento, "CPD");
 
             if (jefeDepartamento.isPresent() && jefeDepartamento.get().getCorreo() != null) {
                 String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
                 String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador,
                         evaluado, departamento);
 
-                notificationClient.enviarNotificacion(Collections.singletonList(jefeDepartamento.get().getCorreo()),
-                        asunto, mensaje);
+                notificationClient.enviarNotificacion(Collections.singletonList(jefeDepartamento.get().getCorreo()), asunto, mensaje);
 
-                logger.info("✅ Notificación enviada al jefe de departamento {} ({}) sobre el documento: {}",
+                logger.info("✅ Notificación enviada al CPD {} ({}) sobre el documento: {}",
                         departamento, jefeDepartamento.get().getCorreo(), tipoDocumento);
             } else {
-                logger.warn("⚠️ No se encontró jefe de departamento para el departamento: {}", departamento);
+                logger.warn("⚠️ No se encontró CPD para el departamento: {}", departamento);
             }
         } catch (Exception e) {
-            logger.error("❌ Error notificando al jefe de departamento: {}", e.getMessage(), e);
+            logger.error("❌ Error notificando al CPD: {}", e.getMessage(), e);
         }
     }
 
