@@ -31,10 +31,10 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
         TipoActividad tipoActividad = tipoActividadRepository.findById(idTipoActividad)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Tipo de actividad no encontrado con ID: " + idTipoActividad));
-
+    
         String nombreTipoActividad = tipoActividad.getNombre();
         List<AtributoDTO> atributos = actividadDTO.getAtributos();
-
+    
         // Buscar valores específicos de los atributos según el tipo de actividad
         String codigo = obtenerValorAtributo(atributos, "CODIGO");
         String materia = obtenerValorAtributo(atributos, "MATERIA");
@@ -42,31 +42,41 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
         String actoAdministrativo = obtenerValorAtributo(atributos, "ACTO_ADMINISTRATIVO");
         String vri = obtenerValorAtributo(atributos, "VRI");
         String nombreProyecto = obtenerValorAtributo(atributos, "NOMBRE_PROYECTO");
-
+    
         Integer idUsuario = actividadDTO.getOidEvaluador();
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario));
         String identificacion = usuario.getIdentificacion();
-
+    
         // Generar el nombre de la actividad según el tipo de actividad
+        String nombreGenerado;
         switch (nombreTipoActividad) {
             case "DOCENCIA":
-                return String.format("%s-%s-%s", codigo, materia, grupo);
+                nombreGenerado = String.format("%s-%s-%s", codigo, materia, grupo);
+                break;
             case "TRABAJO DE DOCENCIA":
             case "TRABAJO DE INVESTIGACIÓN":
-                return String.format("%s-%s", actoAdministrativo, identificacion);
+                nombreGenerado = String.format("%s-%s", actoAdministrativo, identificacion);
+                break;
             case "PROYECTO DE INVESTIGACIÓN":
-                return String.format("%s-%s", vri, nombreProyecto);
+                nombreGenerado = String.format("%s-%s", vri, nombreProyecto);
+                break;
             case "ADMINISTRACIÓN":
             case "OTRO SERVICIO":
             case "CAPACITACIÓN":
-                return String.format("%s-ACTIVIDAD", actoAdministrativo);
+                nombreGenerado = String.format("%s-ACTIVIDAD", actoAdministrativo);
+                break;
             case "EXTENSIÓN":
-                return String.format("%s-%s", actoAdministrativo, nombreProyecto);
+                nombreGenerado = String.format("%s-%s", actoAdministrativo, nombreProyecto);
+                break;
             default:
-                throw new IllegalArgumentException("Tipo de actividad no reconocido: " + nombreTipoActividad);
+                // Nombre genérico por defecto si no se reconoce el tipo de actividad
+                nombreGenerado = "ACTIVIDAD-GENERICA-" + idTipoActividad;
+                break;
         }
-    }
+        
+        return nombreGenerado;
+    }    
 
     private String obtenerValorAtributo(List<AtributoDTO> atributos, String codigoAtributo) {
         return atributos.stream()

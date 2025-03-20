@@ -6,7 +6,6 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.domain.Usuario;
@@ -16,7 +15,9 @@ import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.RolService;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 /**
  * Implementación del servicio de usuarios.
@@ -42,9 +43,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                                                    String dedicacion, String estudios, String rol, String estado,
                                                    Pageable pageable) {
         try {
-            Page<Usuario> usuarios = usuarioRepository
-                .findAll(UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
-                        categoria, contratacion, dedicacion, estudios, rol, estado), pageable);
+            Page<Usuario> usuarios = usuarioRepository.findAll(
+                    UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
+                            categoria, contratacion, dedicacion, estudios, rol, estado),
+                    PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                            Sort.by("fechaCreacion").descending()));
             return new ApiResponse<>(200, "Usuarios encontrados correctamente.", usuarios);
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error al recuperar los usuarios: " + e.getMessage(), null);

@@ -120,6 +120,10 @@ public class ActividadServiceImpl implements ActividadService {
 
             procesoService.guardarProceso(actividad);
 
+            if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
+                actividad.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
+            }
+
             Actividad actividadGuardada = actividadRepository.save(actividad);
             fuenteService.guardarFuente(actividadGuardada);
             eavAtributoService.guardarAtributosDinamicos(actividadDTO, actividadGuardada);
