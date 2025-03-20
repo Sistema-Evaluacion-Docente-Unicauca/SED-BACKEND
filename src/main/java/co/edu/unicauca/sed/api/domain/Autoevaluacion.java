@@ -1,38 +1,37 @@
 package co.edu.unicauca.sed.api.domain;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "AUTOEVALUACION")
-@Data
 public class Autoevaluacion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "autoevaluacionSeq")
     @SequenceGenerator(name = "autoevaluacionSeq", sequenceName = "SEQ_OIDAUTOEVALUACION", allocationSize = 1)
-    @Column(name = "OIDAUTOEVALUACION", nullable = false)
+    @Column(name = "OIDAUTOEVALUACION")
     private Integer oidAutoevaluacion;
 
     @ManyToOne
     @JoinColumn(name = "OIDFUENTE", nullable = false)
     private Fuente fuente;
 
-    @Column(name = "FIRMA", nullable = false)
+    @Column(name = "FIRMA")
     private String firma;
 
     @Column(name = "SCREENSHOTSIMCA")
     private String screenshotSimca;
 
-    @Column(name = "FECHACREACION", updatable = false)
+    @Column(name = "FECHACREACION", updatable = false, nullable = false)
     @CreationTimestamp
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "FECHAACTUALIZACION")
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
     @UpdateTimestamp
     private LocalDateTime fechaActualizacion;
 }

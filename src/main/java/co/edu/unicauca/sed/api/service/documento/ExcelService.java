@@ -75,7 +75,7 @@ public class ExcelService {
 
         String nombre = (String) actividad.get("nombre");
         float horas = Optional.ofNullable((Float) actividad.get("horas")).orElse(0.0f);
-        float porcentaje = Optional.ofNullable((Float) actividad.get("porcentaje")).orElse(0.0f);
+        double porcentaje = Optional.ofNullable((Double) actividad.get("porcentaje")).orElse(0.0);
         double promedio = Optional.ofNullable((Double) actividad.get("promedio")).orElse(0.0);
         double acumulado = Optional.ofNullable((Double) actividad.get("acumulado")).orElse(0.0);
 

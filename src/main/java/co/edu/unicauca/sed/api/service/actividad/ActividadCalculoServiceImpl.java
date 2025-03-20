@@ -5,6 +5,8 @@ import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.utils.MathUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -22,8 +24,13 @@ public class ActividadCalculoServiceImpl implements ActividadCalculoService {
     }
 
     @Override
-    public int calcularPorcentaje(float horasActividad, float horasTotales) {
-        return horasTotales > 0 ? Math.round((horasActividad / horasTotales) * 100) : 0;
+    public double calcularPorcentaje(float horasActividad, float horasTotales) {
+        if (horasTotales <= 0)
+            return 0.0;
+
+        return BigDecimal.valueOf((horasActividad / horasTotales) * 100)
+                .setScale(1, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
     @Override
@@ -38,7 +45,7 @@ public class ActividadCalculoServiceImpl implements ActividadCalculoService {
     }
 
     @Override
-    public double calcularAcumulado(double promedio, float porcentaje) {
+    public double calcularAcumulado(double promedio, double porcentaje) {
         if (porcentaje <= 0) {
             return 0;
         }

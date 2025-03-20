@@ -19,6 +19,7 @@ import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.repository.PreguntaRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessServiceImpl;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
+import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,9 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     @Autowired
     private FuenteBusinessServiceImpl fuenteBussines;
+
+    @Autowired
+    private NotificacionDocumentoService notificacionDocumentoService;
 
     @Override
     @Transactional(readOnly = true)
@@ -118,7 +122,10 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             
             // 🔄 Actualizar la calificación de la fuente
             actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion(), dto.getObservacion());
-
+            String mensajeTipoFuente = "Fuente 2";
+            Usuario evaluado = fuente.getActividad().getProceso().getEvaluado();
+            Usuario evaluador = fuente.getActividad().getProceso().getEvaluador();
+            notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
             return new ApiResponse<>(200, "Evaluación docente guardada correctamente.", null);
         } catch (Exception e) {
             LOGGER.error("❌ Error al guardar la evaluación docente.", e);

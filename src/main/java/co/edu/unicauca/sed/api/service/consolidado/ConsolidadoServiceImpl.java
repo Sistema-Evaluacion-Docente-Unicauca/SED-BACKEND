@@ -191,13 +191,11 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
         try {
             BaseConsolidadoDataDTO baseData = consolidadoHelper.obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
 
-            List<Actividad> actividades = baseData.getProcesos().stream()
-                    .flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+            List<Actividad> actividades = baseData.getProcesos().stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
 
             float totalHoras = calculoService.calcularTotalHoras(actividades);
 
-            Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService
-                    .agruparActividadesPorTipo(actividades, totalHoras);
+            Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
 
             double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
             double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);

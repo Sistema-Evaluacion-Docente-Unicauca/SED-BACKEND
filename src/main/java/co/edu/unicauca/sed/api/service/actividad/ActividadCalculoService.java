@@ -26,7 +26,7 @@ public interface ActividadCalculoService {
      * @param horasTotales   Horas totales.
      * @return Porcentaje calculado redondeado a 2 decimales.
      */
-    int calcularPorcentaje(float horasActividad, float horasTotales);
+    double calcularPorcentaje(float horasActividad, float horasTotales);
 
     /**
      * Calcula el promedio de calificaciones de una lista de fuentes.
@@ -43,7 +43,7 @@ public interface ActividadCalculoService {
      * @param porcentaje Porcentaje asociado.
      * @return Valor acumulado redondeado a 2 decimales.
      */
-    double calcularAcumulado(double promedio, float porcentaje);
+    double calcularAcumulado(double promedio, double porcentaje);
 
     /**
      * Calcula el total del porcentaje de actividades por tipo.

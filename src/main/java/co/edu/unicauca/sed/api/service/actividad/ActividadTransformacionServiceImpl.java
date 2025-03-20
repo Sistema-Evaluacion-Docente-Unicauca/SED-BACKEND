@@ -26,7 +26,7 @@ public class ActividadTransformacionServiceImpl implements ActividadTransformaci
 
     @Override
     public Map<String, Object> transformarActividad(Actividad actividad, float horasTotales) {
-        float porcentaje = calculoService.calcularPorcentaje(actividad.getHoras(), horasTotales);
+        double porcentaje = calculoService.calcularPorcentaje(actividad.getHoras(), horasTotales);
         double promedio = calculoService.calcularPromedio(actividad.getFuentes());
         double acumulado = calculoService.calcularAcumulado(promedio, porcentaje);
 
@@ -80,13 +80,14 @@ public class ActividadTransformacionServiceImpl implements ActividadTransformaci
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades, float totalHoras) {
+    public Map<String, List<Map<String, Object>>> agruparActividadesPorTipo(List<Actividad> actividades,
+            float totalHoras) {
         return actividades.stream()
-			.sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
-			.collect(Collectors.groupingBy(
-				actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
-				Collectors.mapping(
-					actividad -> (Map<String, Object>) transformarActividad(actividad, totalHoras),
-					Collectors.toList())));
-}
+                .sorted(Comparator.comparing(a -> a.getTipoActividad().getNombre()))
+                .collect(Collectors.groupingBy(
+                        actividad -> String.valueOf(actividad.getTipoActividad().getNombre()),
+                        Collectors.mapping(
+                                actividad -> (Map<String, Object>) transformarActividad(actividad, totalHoras),
+                                Collectors.toList())));
+    }
 }

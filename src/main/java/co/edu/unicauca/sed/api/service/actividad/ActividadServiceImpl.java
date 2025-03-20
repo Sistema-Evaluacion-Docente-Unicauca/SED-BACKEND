@@ -58,6 +58,9 @@ public class ActividadServiceImpl implements ActividadService {
     @Autowired
     private EavAtributoService eavAtributoService;
 
+    @Autowired
+    private ActividadDetalleService actividadDetalleService;
+
     @Override
     public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
         boolean orden = (ordenAscendente != null) ? ordenAscendente : true;
@@ -132,8 +135,16 @@ public class ActividadServiceImpl implements ActividadService {
     public ApiResponse<Actividad> actualizar(Integer idActividad, ActividadBaseDTO actividadDTO) {
         try {
             Actividad actividadExistente = actividadRepository.findById(idActividad)
-                    .orElseThrow(
-                            () -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
+                .orElseThrow(() -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
+
+            if (actividadDTO.getOidActividad() != null && !actividadDTO.getOidActividad().equals(idActividad)
+                    && actividadRepository.existsById(actividadDTO.getOidActividad())) {
+                return new ApiResponse<>(409, "Error: Ya existe una actividad con ID " + actividadDTO.getOidActividad(), null);
+            }
+
+            if (actividadDTO.getNombreActividad() == null || actividadDTO.getNombreActividad().isEmpty()) {
+                actividadDTO.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
+            }
 
             actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
             estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
