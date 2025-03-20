@@ -108,6 +108,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             usuarioExistente.setNombres(usuarioActualizado.getNombres().toUpperCase());
             usuarioExistente.setApellidos(usuarioActualizado.getApellidos().toUpperCase());
             usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
+            usuarioExistente.setIdentificacion(usuarioActualizado.getIdentificacion());
     
             if (usuarioActualizado.getEstadoUsuario() != null && usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario() != null) {
                 EstadoUsuario estadoUsuario = estadoUsuarioRepository.findById(usuarioActualizado.getEstadoUsuario().getOidEstadoUsuario())
