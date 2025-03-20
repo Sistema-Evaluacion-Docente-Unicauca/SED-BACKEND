@@ -117,10 +117,29 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
 
             if (userEvaluatorId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
+                if (roles != null && !roles.isEmpty()) {
+                    Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluado").join("roles");
+                    predicates.add(joinRoles.get("oid").in(roles));
+                }
+                if (evaluatorName != null && !evaluatorName.isEmpty()) {
+                    predicates.add(cb.like(cb.concat(
+                            root.join("proceso").join("evaluado").get("nombres"),
+                            root.join("proceso").join("evaluado").get("apellidos")), "%" + evaluatorName + "%"));
+                }
             }
 
             if (userEvaluatedId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluado").get("oidUsuario"), userEvaluatedId));
+                if (evaluatorName != null && !evaluatorName.isEmpty()) {
+                    predicates.add(cb.like(cb.concat(
+                            root.join("proceso").join("evaluador").get("nombres"),
+                            root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
+                }
+    
+                if (roles != null && !roles.isEmpty()) {
+                    Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluador").join("roles");
+                    predicates.add(joinRoles.get("oid").in(roles));
+                }
             }
 
             if (activityCode != null && !activityCode.isEmpty()) {
@@ -130,17 +149,6 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
             if (activityType != null && !activityType.isEmpty()) {
                 predicates.add(
                         cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
-            }
-
-            if (evaluatorName != null && !evaluatorName.isEmpty()) {
-                predicates.add(cb.like(cb.concat(
-                        root.join("proceso").join("evaluador").get("nombres"),
-                        root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
-            }
-
-            if (roles != null && !roles.isEmpty()) {
-                Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluador").join("roles");
-                predicates.add(joinRoles.get("oid").in(roles));
             }
 
             query.distinct(true);
