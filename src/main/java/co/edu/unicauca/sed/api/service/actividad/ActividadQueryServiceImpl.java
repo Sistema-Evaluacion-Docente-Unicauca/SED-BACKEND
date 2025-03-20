@@ -3,6 +3,8 @@ package co.edu.unicauca.sed.api.service.actividad;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.Rol;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
@@ -134,6 +136,11 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
                 predicates.add(cb.like(cb.concat(
                         root.join("proceso").join("evaluador").get("nombres"),
                         root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
+            }
+
+            if (roles != null && !roles.isEmpty()) {
+                Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluador").join("roles");
+                predicates.add(joinRoles.get("oid").in(roles));
             }
 
             query.distinct(true);
