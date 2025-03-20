@@ -43,18 +43,6 @@ public class EvaluacionEstudianteController {
     }
 
     /**
-     * Recupera una evaluación específica por su ID.
-     *
-     * @param oid ID de la evaluación.
-     * @return Evaluación encontrada o mensaje de error si no existe.
-     */
-    @GetMapping("/{oid}")
-    public ResponseEntity<ApiResponse<EvaluacionEstudiante>> buscarPorId(@PathVariable Integer oid) {
-        LOGGER.info("📌 Buscando evaluación de estudiante con ID: {}", oid);
-        return ResponseEntity.ok(evaluacionEstudianteService.buscarPorId(oid));
-    }
-
-    /**
      * Guarda una evaluación de estudiante.
      *
      * @param dto Datos de la evaluación.
@@ -72,18 +60,6 @@ public class EvaluacionEstudianteController {
         ApiResponse<Void> response = evaluacionEstudianteService.guardarEvaluacionDocente(dto, documentoFuente, firmaEstudiante);
 
         return ResponseEntity.status(response.getCodigo()).body(response);
-    }
-
-    /**
-     * Elimina una evaluación de estudiante por su ID.
-     *
-     * @param oid ID de la evaluación a eliminar.
-     * @return Confirmación de eliminación o mensaje de error si ocurre un problema.
-     */
-    @DeleteMapping("/{oid}")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer oid) {
-        LOGGER.info("📌 Eliminando evaluación de estudiante con ID: {}", oid);
-        return ResponseEntity.ok(evaluacionEstudianteService.eliminar(oid));
     }
 
     @GetMapping("/fuente/{oidFuente}")

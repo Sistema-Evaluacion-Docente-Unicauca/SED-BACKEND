@@ -11,13 +11,7 @@ public interface EvaluacionEstudianteService {
     
     ApiResponse<Page<EvaluacionEstudiante>> buscarTodos(Pageable pageable);
 
-    ApiResponse<EvaluacionEstudiante> buscarPorId(Integer oid);
-
-    ApiResponse<EvaluacionEstudiante> guardar(EvaluacionEstudiante evaluacionEstudiante);
-
     ApiResponse<Void> guardarEvaluacionDocente(EvaluacionDocenteDTO dto, MultipartFile documentoFuente, MultipartFile firmaEstudiante);
-
-    ApiResponse<Void> eliminar(Integer oid);
 
     ApiResponse<Object> buscarPorFuente(Integer oidFuente);
 }

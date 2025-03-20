@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Pregunta;
+import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EncuestaPreguntaDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,52 +78,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         } catch (Exception e) {
             LOGGER.error("❌ Error al listar Evaluaciones de Estudiantes", e);
             return new ApiResponse<>(500, "Error al listar evaluaciones: " + e.getMessage(), null);
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ApiResponse<EvaluacionEstudiante> buscarPorId(Integer oid) {
-        try {
-            LOGGER.info("🔍 Buscando EvaluacionEstudiante con ID: {}", oid);
-            Optional<EvaluacionEstudiante> evaluacion = evaluacionEstudianteRepository.findById(oid);
-            return evaluacion.map(value -> new ApiResponse<>(200, "Evaluación de estudiante encontrada.", value))
-                    .orElseGet(() -> new ApiResponse<>(404, "Evaluación de estudiante no encontrada.", null));
-        } catch (Exception e) {
-            LOGGER.error("❌ Error al buscar EvaluacionEstudiante con ID: {}", oid, e);
-            return new ApiResponse<>(500, "Error al buscar la evaluación: " + e.getMessage(), null);
-        }
-    }
-
-    @Override
-    @Transactional
-    public ApiResponse<EvaluacionEstudiante> guardar(EvaluacionEstudiante evaluacionEstudiante) {
-        try {
-            LOGGER.info("✅ Guardando EvaluacionEstudiante.");
-            if (evaluacionEstudiante.getObservacion() != null) {
-                evaluacionEstudiante.setObservacion(evaluacionEstudiante.getObservacion().toUpperCase());
-            }
-            EvaluacionEstudiante resultado = evaluacionEstudianteRepository.save(evaluacionEstudiante);
-            return new ApiResponse<>(201, "Evaluación de estudiante guardada exitosamente.", resultado);
-        } catch (Exception e) {
-            LOGGER.error("❌ Error al guardar EvaluacionEstudiante", e);
-            return new ApiResponse<>(500, "Error al guardar la evaluación: " + e.getMessage(), null);
-        }
-    }
-
-    @Override
-    @Transactional
-    public ApiResponse<Void> eliminar(Integer oid) {
-        try {
-            LOGGER.info("🗑️ Eliminando EvaluacionEstudiante con ID: {}", oid);
-            if (!evaluacionEstudianteRepository.existsById(oid)) {
-                return new ApiResponse<>(404, "Evaluación de estudiante no encontrada.", null);
-            }
-            evaluacionEstudianteRepository.deleteById(oid);
-            return new ApiResponse<>(200, "Evaluación de estudiante eliminada correctamente.", null);
-        } catch (Exception e) {
-            LOGGER.error("❌ Error al eliminar EvaluacionEstudiante con ID: {}", oid, e);
-            return new ApiResponse<>(500, "Error al eliminar la evaluación: " + e.getMessage(), null);
         }
     }
 
@@ -261,30 +217,49 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
     }
 
     private Map<String, Object> construirResultado(Fuente fuente, EvaluacionEstudiante evaluacionEstudiante, Encuesta encuesta, List<Map<String, Object>> preguntas) {
-        Map<String, Object> resultado = new HashMap<>();
+        Map<String, Object> resultado = new LinkedHashMap<>();
+    
         resultado.put("oidFuente", fuente.getOidFuente());
-        resultado.put("tipoCalificacion", evaluacionEstudiante.getFuente().getTipoCalificacion());
+        resultado.put("evaluado", construirUsuarioMap(fuente.getActividad().getProceso().getEvaluado()));
+        resultado.put("evaluador", construirUsuarioMap(fuente.getActividad().getProceso().getEvaluador()));
         resultado.put("observacion", fuente.getObservacion());
-    
-        Map<String, Object> estadoEtapaDesarrolloMap = new HashMap<>();
-        estadoEtapaDesarrolloMap.put("oidEstadoEtapaDesarrollo", evaluacionEstudiante.getEstadoEtapaDesarrollo().getOidEstadoEtapaDesarrollo());
-        estadoEtapaDesarrolloMap.put("nombre", evaluacionEstudiante.getEstadoEtapaDesarrollo().getNombre());
-        resultado.put("estadoEtapaDesarrollo", estadoEtapaDesarrolloMap);
-    
-        // Datos de EvaluacionEstudiante
-        Map<String, Object> evaluacionMap = new HashMap<>();
-        evaluacionMap.put("observacion", evaluacionEstudiante.getObservacion());
-    
-        // Datos de Encuesta
-        Map<String, Object> encuestaMap = new HashMap<>();
-        encuestaMap.put("nombre", encuesta.getNombre());
-    
-        resultado.put("evaluacionEstudiante", evaluacionMap);
-        resultado.put("encuesta", encuestaMap);
+        resultado.put("nombreArchivo", fuente.getNombreDocumentoFuente());
+        resultado.put("tipoCalificacion", obtenerTipoCalificacion(evaluacionEstudiante));
+        resultado.put("encuesta", construirEncuesta(encuesta));
+        resultado.put("estadoEtapaDesarrollo", construirEstadoEtapaDesarrollo(evaluacionEstudiante));
+        resultado.put("fechaCreacion", fuente.getFechaCreacion());
+        resultado.put("fechaActualizacion", fuente.getFechaActualizacion());
         resultado.put("preguntas", preguntas);
     
         return resultado;
-    }    
+    }
+    
+    private Map<String, Object> construirUsuarioMap(Usuario usuario) {
+        Map<String, Object> usuarioMap = new LinkedHashMap<>();
+        usuarioMap.put("oidUsuario", usuario.getOidUsuario());
+        usuarioMap.put("nombreCompleto", usuario.getNombres() + " " + usuario.getApellidos());
+        return usuarioMap;
+    }
+    
+    // Obtiene el tipo de calificación
+    private String obtenerTipoCalificacion(EvaluacionEstudiante evaluacionEstudiante) {
+        return evaluacionEstudiante.getFuente().getTipoCalificacion();
+    }
+    
+    // Construye el mapa de Encuesta
+    private Map<String, Object> construirEncuesta(Encuesta encuesta) {
+        Map<String, Object> encuestaMap = new LinkedHashMap<>();
+        encuestaMap.put("nombre", encuesta.getNombre());
+        return encuestaMap;
+    }
+    
+    // Construye el mapa de EstadoEtapaDesarrollo
+    private Map<String, Object> construirEstadoEtapaDesarrollo(EvaluacionEstudiante evaluacionEstudiante) {
+        Map<String, Object> estadoEtapaDesarrolloMap = new LinkedHashMap<>();
+        estadoEtapaDesarrolloMap.put("oidEstadoEtapaDesarrollo", evaluacionEstudiante.getEstadoEtapaDesarrollo().getOidEstadoEtapaDesarrollo());
+        estadoEtapaDesarrolloMap.put("nombre", evaluacionEstudiante.getEstadoEtapaDesarrollo().getNombre());
+        return estadoEtapaDesarrolloMap;
+    }
 
     private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
         fuente.setCalificacion(nuevaCalificacion);
