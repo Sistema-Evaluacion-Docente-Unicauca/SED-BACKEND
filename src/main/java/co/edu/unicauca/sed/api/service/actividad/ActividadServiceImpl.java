@@ -150,6 +150,21 @@ public class ActividadServiceImpl implements ActividadService {
                 actividadDTO.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
             }
 
+            Proceso proceso = actividadExistente.getProceso();
+            if (proceso == null) {
+                throw new ValidationException(400, "Error: La actividad no tiene un proceso asociado.");
+            }
+
+            proceso.setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
+            proceso.setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
+
+            // Si el nombre del proceso está vacío, asignar un valor por defecto
+            if (proceso.getNombreProceso() == null || proceso.getNombreProceso().isEmpty()) {
+                proceso.setNombreProceso("ACTUALIZADO - ACTIVIDAD");
+            }
+
+            procesoService.actualizar(actividadExistente.getProceso().getOidProceso(), proceso);
+
             actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
             estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
             eavAtributoService.actualizarAtributosDinamicos(actividadDTO, actividadExistente);

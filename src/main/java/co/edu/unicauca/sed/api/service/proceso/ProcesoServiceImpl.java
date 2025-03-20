@@ -92,9 +92,9 @@ public class ProcesoServiceImpl implements ProcesoService {
             existingProceso.setOidPeriodoAcademico(proceso.getOidPeriodoAcademico());
             existingProceso.setNombreProceso(proceso.getNombreProceso().toUpperCase());
             existingProceso.setResolucion(proceso.getResolucion());
-            existingProceso.setOficio(proceso.getOficio());
-            existingProceso.setConsolidado(proceso.getConsolidado());
-            existingProceso.setActividades(proceso.getActividades());
+            //existingProceso.setOficio(proceso.getOficio());
+            //existingProceso.setConsolidado(proceso.getConsolidado());
+            //existingProceso.setActividades(proceso.getActividades());
 
             Proceso updatedProceso = procesoRepository.save(existingProceso);
             LOGGER.info("✅ [UPDATE] Proceso actualizado con ID: {}", updatedProceso.getOidProceso());
