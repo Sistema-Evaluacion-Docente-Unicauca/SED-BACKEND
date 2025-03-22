@@ -1,119 +1,54 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.domain.Autoevaluacion;
-import co.edu.unicauca.sed.api.service.fuente.AutoevaluacionService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import co.edu.unicauca.sed.api.dto.AutoevaluacionDTO;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.service.evaluacion_docente.AutoevaluacionService;
+import co.edu.unicauca.sed.api.service.fuente.FuenteIntegrationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-
-/**
- * Controlador para la gestión de las Autoevaluaciones.
- * Proporciona endpoints para realizar operaciones CRUD sobre Autoevaluaciones.
- */
-@Controller
-@RequestMapping("api/autoevaluacion")
+@RestController
+@RequestMapping("/api/autoevaluacion")
+@RequiredArgsConstructor
 public class AutoevaluacionController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AutoevaluacionController.class);
+    private final AutoevaluacionService autoevaluacionService;
 
-    @Autowired
-    private AutoevaluacionService service;
-
-    /**
-     * Recupera todas las autoevaluaciones.
-     *
-     * @return Lista de autoevaluaciones o un error si ocurre algún problema.
-     */
-    @GetMapping
-    public ResponseEntity<?> findAll() {
-        try {
-            List<Autoevaluacion> list = service.findAll();
-            if (list != null && !list.isEmpty()) {
-                logger.info("Se recuperaron {} autoevaluaciones exitosamente", list.size());
-                return ResponseEntity.ok().body(list);
-            }
-        } catch (Exception e) {
-            logger.error("Error al recuperar las autoevaluaciones: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.warn("No se encontraron autoevaluaciones");
-        return ResponseEntity.notFound().build();
-    }
+    private final FuenteIntegrationService integrationService;
 
     /**
-     * Recupera una autoevaluación específica por su ID.
+     * Guarda una autoevaluación con los archivos de firma, screenshot y documento de notas.
      *
-     * @param oid ID de la autoevaluación a buscar.
-     * @return La autoevaluación encontrada o un error 404 si no existe.
-     */
-    @GetMapping("/{oid}")
-    public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        Autoevaluacion autoevaluacion = service.findByOid(oid);
-        if (autoevaluacion != null) {
-            logger.info("Autoevaluación con ID {} encontrada", oid);
-            return ResponseEntity.ok().body(autoevaluacion);
-        }
-        logger.warn("Autoevaluación con ID {} no encontrada", oid);
-        return ResponseEntity.notFound().build();
-    }
-
-    /**
-     * Guarda una nueva autoevaluación.
-     *
-     * @param autoevaluacion Objeto Autoevaluacion a guardar.
-     * @return La autoevaluación guardada o un error si ocurre algún problema.
+     * @param dto            Objeto con los datos de la autoevaluación.
+     * @param firma          Archivo con la firma digital.
+     * @param screenshotSimca Captura de pantalla del SIMCA.
+     * @param documentoNotas Documento con las notas diligenciadas.
+     * @return ApiResponse con el resultado de la operación.
      */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody Autoevaluacion autoevaluacion) {
-        try {
-            Autoevaluacion resultado = service.save(autoevaluacion);
-            if (resultado != null) {
-                return ResponseEntity.ok().body(resultado);
-            }
-        } catch (Exception e) {
-            logger.error("Error al guardar la autoevaluación: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
-        }
-        logger.error("La operación de guardado devolvió una respuesta nula");
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    public ResponseEntity<ApiResponse<Void>> guardarAutoevaluacion(
+            @RequestParam("data") String autoevaluacionJson,
+            @RequestParam(value = "firma", required = false) MultipartFile firma,
+            @RequestParam(value = "screenshotSimca", required = false) MultipartFile screenshotSimca,
+            @RequestParam(value = "documentoNotas", required = false) MultipartFile documentoNotas) {
+    
+        AutoevaluacionDTO dto = integrationService.convertirJsonAAutoevaluacion(autoevaluacionJson);
+        ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoNotas);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
+    
 
     /**
-     * Elimina una autoevaluación por su ID.
+     * Consulta la información de una autoevaluación asociada a una fuente.
      *
-     * @param oid ID de la autoevaluación a eliminar.
-     * @return Confirmación de eliminación o un error si ocurre un problema.
+     * @param oidFuente ID de la fuente.
+     * @return ApiResponse con la información encontrada o error.
      */
-    @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        logger.info("Solicitud recibida para eliminar la autoevaluación con ID: {}", oid);
-        Autoevaluacion autoevaluacion = null;
-        try {
-            autoevaluacion = service.findByOid(oid);
-            if (autoevaluacion == null) {
-                logger.warn("Autoevaluación con ID {} no encontrada", oid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Autoevaluación no encontrada");
-            }
-        } catch (Exception e) {
-            logger.error("Error al buscar la autoevaluación con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Autoevaluación no encontrada");
-        }
-
-        try {
-            service.delete(oid);
-            logger.info("Autoevaluación con ID {} eliminada exitosamente", oid);
-        } catch (Exception e) {
-            logger.error("Error al eliminar la autoevaluación con ID {}: {}", oid, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
-        return ResponseEntity.ok().build();
+    @GetMapping("/fuente/{oidFuente}")
+    public ResponseEntity<ApiResponse<Object>> buscarPorFuente(@PathVariable Integer oidFuente) {
+        ApiResponse<Object> response = autoevaluacionService.buscarPorFuente(oidFuente);
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

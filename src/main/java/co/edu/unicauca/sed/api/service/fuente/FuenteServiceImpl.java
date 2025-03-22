@@ -11,7 +11,7 @@ import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.documento.FileService;
 import co.edu.unicauca.sed.api.utils.StringUtils;
-
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -190,6 +190,10 @@ public class FuenteServiceImpl implements FuenteService {
         );
     
         return ruta.toString();
-    }    
-    
+    }
+
+    @Override
+    public Fuente obtenerFuente(Integer oidFuente) {
+        return fuenteRepository.findById(oidFuente).orElseThrow(() -> new EntityNotFoundException("Fuente no encontrada con ID: " + oidFuente));
+    }
 }

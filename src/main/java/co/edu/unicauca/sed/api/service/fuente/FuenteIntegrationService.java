@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.service.fuente;
 
+import co.edu.unicauca.sed.api.dto.AutoevaluacionDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,4 +36,6 @@ public interface FuenteIntegrationService {
      * @return Objeto EvaluacionDocenteDTO.
      */
     EvaluacionDocenteDTO convertirJsonAEvaluacion(String evaluacionJson);
+    
+    AutoevaluacionDTO convertirJsonAAutoevaluacion(String evaluacionJson);
 }

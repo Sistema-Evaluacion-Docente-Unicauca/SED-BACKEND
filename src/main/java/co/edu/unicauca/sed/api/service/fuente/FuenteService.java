@@ -83,4 +83,6 @@ public interface FuenteService {
     void guardarFuente(Actividad actividad);
     
     String guardarDocumentoFuente(Fuente fuente, MultipartFile documentoFuente, String prefijo) throws IOException;
+
+    Fuente obtenerFuente(Integer oidFuente);
 }

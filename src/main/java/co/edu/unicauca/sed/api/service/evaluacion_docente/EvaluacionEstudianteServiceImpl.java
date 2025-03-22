@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -184,7 +183,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         try {
             LOGGER.info("🔍 Buscando Evaluación de Estudiante por Fuente con ID: {}", oidFuente);
 
-            Fuente fuente = obtenerFuente(oidFuente);
+            Fuente fuente = fuenteService.obtenerFuente(oidFuente);
             EvaluacionEstudiante evaluacionEstudiante = obtenerEvaluacionEstudiantePorFuente(fuente, oidFuente);
             Encuesta encuesta = obtenerEncuestaPorEvaluacion(evaluacionEstudiante);
             List<Map<String, Object>> preguntas = obtenerPreguntasDeEncuesta(encuesta);
