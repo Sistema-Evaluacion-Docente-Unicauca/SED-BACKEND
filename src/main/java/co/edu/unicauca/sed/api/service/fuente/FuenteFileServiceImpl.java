@@ -39,9 +39,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
             if (fuenteOpcional.isPresent()) {
                 Fuente fuenteExistente = fuenteOpcional.get();
                 String nombreArchivoExistente = fuenteExistente.getRutaDocumentoFuente() != null
-                        ? Path.of(fuenteExistente.getRutaDocumentoFuente()).getFileName().toString()
-                        : null;
-
+                        ? Path.of(fuenteExistente.getRutaDocumentoFuente()).getFileName().toString() : null;
                 if (nombreArchivoExistente != null && !informeFuente.getOriginalFilename().equals(nombreArchivoExistente)) {
                     fileService.eliminarArchivo(fuenteExistente.getRutaDocumentoFuente());
                     logger.info("Archivo fuente existente eliminado: {}", nombreArchivoExistente);
@@ -81,12 +79,10 @@ public class FuenteFileServiceImpl implements FuenteFileService {
 
             // Buscar el archivo correspondiente en los archivos adicionales
             Optional<MultipartFile> archivoCoincidente = archivosEjecutivos.values().stream()
-                    .filter(file -> file.getOriginalFilename().equalsIgnoreCase(fuenteDTO.getInformeEjecutivo()))
-                    .findFirst();
+                .filter(file -> file.getOriginalFilename().equalsIgnoreCase(fuenteDTO.getInformeEjecutivo())).findFirst();
 
             if (archivoCoincidente.isEmpty()) {
-                logger.warn("No se encontró un archivo coincidente para el informe ejecutivo: {}",
-                        fuenteDTO.getInformeEjecutivo());
+                logger.warn("No se encontró un archivo coincidente para el informe ejecutivo: {}", fuenteDTO.getInformeEjecutivo());
                 return null;
             }
 
@@ -103,7 +99,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
 
             // Guardar el nuevo informe ejecutivo
             Path archivoGuardado = fileService.guardarArchivo(archivoCoincidente.get(), periodoAcademico, nombreEvaluado, 
-                                                        contratacion, departamento, null, null, "informe");
+                                                            contratacion, departamento, null, null, "informe");
             return archivoGuardado;
 
         } catch (Exception e) {

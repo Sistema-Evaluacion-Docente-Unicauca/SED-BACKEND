@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -42,29 +41,59 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
     @Override
     @Transactional
-    public ApiResponse<Void> guardarAutoevaluacion(AutoevaluacionDTO dto, MultipartFile firma, MultipartFile screenshotSimca, MultipartFile documentoNotas) {
+    public ApiResponse<Void> guardarAutoevaluacion(
+            AutoevaluacionDTO dto,
+            MultipartFile firma,
+            MultipartFile screenshotSimca,
+            MultipartFile documentoNotas,
+            Map<String, MultipartFile> archivosOds) {
         try {
-            LOGGER.info("📥 Iniciando guardado de autoevaluación para la fuente ID: {}", dto.getOidFuente());
+            LOGGER.info("📥 Procesando autoevaluación para la fuente ID: {}", dto.getOidFuente());
 
             Fuente fuente = fuenteService.obtenerFuente(dto.getOidFuente());
-            Autoevaluacion autoevaluacion = new Autoevaluacion();
-            autoevaluacion.setFuente(fuente);
 
-            guardarArchivo(firma, fuente, PREFIJO_FIRMA, autoevaluacion::setFirma);
-            guardarArchivo(screenshotSimca, fuente, PREFIJO_SCREENSHOT, autoevaluacion::setScreenshotSimca);
+            // Verificar si ya existe autoevaluación
+            Optional<Autoevaluacion> autoevaluacionOpt = autoevaluacionRepository.findByFuente(fuente);
+            Autoevaluacion autoevaluacion = autoevaluacionOpt.orElseGet(() -> {
+                Autoevaluacion nueva = new Autoevaluacion();
+                nueva.setFuente(fuente);
+                return nueva;
+            });
 
+            // Guardar archivos principales
+            String rutaFirma = guardarArchivo(firma, fuente, PREFIJO_FIRMA, autoevaluacion::setFirma);
+            if (rutaFirma != null)
+                autoevaluacion.setRutaDocumentoFirma(rutaFirma);
+
+            String rutaScreenshot = guardarArchivo(screenshotSimca, fuente, PREFIJO_SCREENSHOT, autoevaluacion::setScreenshotSimca);
+            if (rutaScreenshot != null)
+                autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
+
+            // Guardar la autoevaluación (nuevo o actualizada)
             autoevaluacion = autoevaluacionRepository.save(autoevaluacion);
-            LOGGER.info("✅ Autoevaluación guardada con ID: {}", autoevaluacion.getOidAutoevaluacion());
 
-            guardarOds(dto.getOdsSeleccionados(), autoevaluacion);
+            Map<Integer, MultipartFile> archivosOdsMap = filtrarArchivosOds(archivosOds);
+
+            // Guardar ODS con sus evidencias
+            guardarOds(dto.getOdsSeleccionados(), autoevaluacion, archivosOdsMap, fuente);
+
+            // Guardar lecciones y mejoras
             guardarLecciones(dto.getLeccionesAprendidas(), autoevaluacion);
             guardarMejoras(dto.getOportunidadesMejora(), autoevaluacion);
-            String rutaFuente = guardarArchivo(documentoNotas, fuente, PREFIJO_DOCUMENTO, fuente::setNombreDocumentoFuente);
-            fuente.setRutaDocumentoFuente(rutaFuente);
 
+            // Guardar documento de notas
+            String rutaNotas = guardarArchivo(documentoNotas, fuente, PREFIJO_DOCUMENTO,
+                    fuente::setNombreDocumentoFuente);
+            if (rutaNotas != null) {
+                fuente.setRutaDocumentoFuente(rutaNotas);
+            }
+
+            // Actualizar información de la fuente
             actualizarFuenteConDatos(dto, fuente);
 
+            LOGGER.info("✅ Autoevaluación {} correctamente.", autoevaluacionOpt.isPresent() ? "actualizada" : "creada");
             return new ApiResponse<>(200, MSG_AUTOEVALUACION_OK, null);
+
         } catch (Exception e) {
             LOGGER.error("❌ " + MSG_AUTOEVALUACION_ERROR, e);
             return new ApiResponse<>(500, MSG_AUTOEVALUACION_ERROR, null);
@@ -111,26 +140,60 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
                 String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, prefijo);
                 String nombreArchivo = Paths.get(ruta).getFileName().toString();
                 setter.accept(nombreArchivo);
-                return ruta; // retorna la ruta completa
+                return ruta;
             } catch (IOException e) {
                 LOGGER.error("❌ Error al guardar el archivo '{}' para la fuente ID: {}", prefijo, fuente.getOidFuente(), e);
                 throw new RuntimeException("Error al guardar el archivo: " + prefijo, e);
             }
         }
         return null;
-    }    
+    }
 
-    private void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion) {
-        odsList.forEach(odsDTO -> {
+    private void guardarOds(List<OdsDTO> odsList,
+            Autoevaluacion autoevaluacion,
+            Map<Integer, MultipartFile> archivosOds,
+            Fuente fuente) {
+
+        for (OdsDTO odsDTO : odsList) {
             ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds())
                     .orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
+
             AutoevaluacionOds entidad = new AutoevaluacionOds();
             entidad.setAutoevaluacion(autoevaluacion);
             entidad.setOds(ods);
             entidad.setResultado(odsDTO.getResultado());
+
+            MultipartFile archivo = archivosOds.get(odsDTO.getOidOds());
+            if (archivo != null && !archivo.isEmpty()) {
+                try {
+                String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo,  "ods");
+                String nombreArchivo = Paths.get(ruta).getFileName().toString();
+
+                    entidad.setNombreDocumento(nombreArchivo);
+                    entidad.setRutaDocumento(ruta.toString());
+                    LOGGER.info("📎 Evidencia ODS {} guardada en {}", odsDTO.getOidOds(), ruta);
+
+                } catch (IOException e) {
+                    LOGGER.error("❌ Error al guardar evidencia del ODS {}: {}", odsDTO.getOidOds(), e.getMessage());
+                    throw new RuntimeException("Error al guardar evidencia del ODS " + odsDTO.getOidOds(), e);
+                }
+            }
+
             autoevaluacionOdsRepository.save(entidad);
-        });
+        }
     }
+
+    private Map<Integer, MultipartFile> filtrarArchivosOds(Map<String, MultipartFile> archivos) {
+        if (archivos == null || archivos.isEmpty()) return Map.of();
+    
+        return archivos.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith("ods-"))
+            .collect(Collectors.toMap(
+                entry -> Integer.parseInt(entry.getKey().replace("ods-", "")),
+                Map.Entry::getValue
+            ));
+    }
+    
 
     private void guardarLecciones(List<LeccionDTO> lecciones, Autoevaluacion autoevaluacion) {
         lecciones.forEach(leccion -> {

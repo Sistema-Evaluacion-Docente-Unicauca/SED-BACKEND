@@ -21,11 +21,20 @@ public class Autoevaluacion {
     @JoinColumn(name = "OIDFUENTE", nullable = false)
     private Fuente fuente;
 
+    @Column(name = "DESCRIPCION")
+    private String descripcion;
+
     @Column(name = "FIRMA")
     private String firma;
 
+    @Column(name = "RUTADOCUMENTOFIRMA")
+    private String rutaDocumentoFirma;
+
     @Column(name = "SCREENSHOTSIMCA")
     private String screenshotSimca;
+
+    @Column(name = "RUTADOCUMENTOSC")
+    private String rutaDocumentoSc;
 
     @Column(name = "FECHACREACION", updatable = false, nullable = false)
     @CreationTimestamp

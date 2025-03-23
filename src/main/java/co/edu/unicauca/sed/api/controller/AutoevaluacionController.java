@@ -9,6 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.http.MediaType;
+
 @RestController
 @RequestMapping("/api/autoevaluacion")
 @RequiredArgsConstructor
@@ -19,26 +24,33 @@ public class AutoevaluacionController {
     private final FuenteIntegrationService integrationService;
 
     /**
-     * Guarda una autoevaluación con los archivos de firma, screenshot y documento de notas.
+     * Guarda o actualiza una autoevaluación con sus respectivos documentos
+     * adjuntos.
      *
-     * @param dto            Objeto con los datos de la autoevaluación.
-     * @param firma          Archivo con la firma digital.
-     * @param screenshotSimca Captura de pantalla del SIMCA.
-     * @param documentoNotas Documento con las notas diligenciadas.
+     * @param autoevaluacionJson JSON plano con la información de la autoevaluación.
+     * @param firma              Archivo de firma del docente.
+     * @param screenshotSimca    Captura de pantalla del sistema SIMCA.
+     * @param documentoNotas     Documento con las calificaciones diligenciadas.
+     * @param archivosOds        Archivos de evidencia por cada ODS (clave:
+     *                           ods-<oidOds>).
      * @return ApiResponse con el resultado de la operación.
      */
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> guardarAutoevaluacion(
             @RequestParam("data") String autoevaluacionJson,
             @RequestParam(value = "firma", required = false) MultipartFile firma,
             @RequestParam(value = "screenshotSimca", required = false) MultipartFile screenshotSimca,
-            @RequestParam(value = "documentoNotas", required = false) MultipartFile documentoNotas) {
-    
+            @RequestParam(value = "documentoNotas", required = false) MultipartFile documentoNotas,
+            @RequestParam Map<String, MultipartFile> allFiles) {
+
+        Map<String, MultipartFile> archivosOds = allFiles.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith("ods-"))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         AutoevaluacionDTO dto = integrationService.convertirJsonAAutoevaluacion(autoevaluacionJson);
-        ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoNotas);
+        ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoNotas, archivosOds);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
-    
 
     /**
      * Consulta la información de una autoevaluación asociada a una fuente.

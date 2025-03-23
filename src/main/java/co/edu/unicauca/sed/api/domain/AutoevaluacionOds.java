@@ -24,4 +24,10 @@ public class AutoevaluacionOds {
 
     @Column(name = "RESULTADO", length = 255)
     private String resultado;
+
+    @Column(name = "NOMBREDOCUMENTO", length = 255)
+    private String nombreDocumento;
+
+    @Column(name = "RUTADOCUMENTO", length = 255)
+    private String rutaDocumento;
 }
