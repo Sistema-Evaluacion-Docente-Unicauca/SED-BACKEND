@@ -152,6 +152,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     private List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion) {
         return autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion).stream().map(item -> {
             Map<String, Object> map = new LinkedHashMap<>();
+            map.put("oidAutoevaluacionOds", item.getOidAutoevaluacionOds());
             map.put("oidOds", item.getOds().getOidObjetivoDesarrolloSostenible());
             map.put("nombre", item.getOds().getNombre());
             map.put("resultado", item.getResultado());

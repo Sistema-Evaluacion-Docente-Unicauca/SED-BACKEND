@@ -26,13 +26,29 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
         }
 
         mejoras.forEach(mejora -> {
-            if (mejora.getDescripcion() != null && !mejora.getDescripcion().isBlank()) {
-                OportunidadMejora entidad = new OportunidadMejora();
-                entidad.setAutoevaluacion(autoevaluacion);
-                entidad.setDescripcion(mejora.getDescripcion());
-                oportunidadMejoraRepository.save(entidad);
-                LOGGER.debug("✅ Oportunidad de mejora guardada: {}", mejora.getDescripcion());
+            if (mejora.getDescripcion() == null || mejora.getDescripcion().isBlank()) {
+                return;
             }
+
+            OportunidadMejora entidad;
+
+            // Actualizar si viene el ID, sino crear nueva
+            if (mejora.getOidOportunidadMejora() != null) {
+                entidad = oportunidadMejoraRepository.findById(mejora.getOidOportunidadMejora())
+                .orElseGet(() -> {
+                    LOGGER.warn("❗ ID {} no encontrado, se creará una nueva mejora.", mejora.getOidOportunidadMejora());
+                    return new OportunidadMejora();
+                });
+            } else {
+                entidad = new OportunidadMejora();
+            }
+
+            entidad.setAutoevaluacion(autoevaluacion);
+            entidad.setDescripcion(mejora.getDescripcion());
+
+            oportunidadMejoraRepository.save(entidad);
+
+            LOGGER.debug("✅ Oportunidad de mejora {}: {}", mejora.getOidOportunidadMejora() == null ? "creada" : "actualizada", mejora.getDescripcion());
         });
     }
 }

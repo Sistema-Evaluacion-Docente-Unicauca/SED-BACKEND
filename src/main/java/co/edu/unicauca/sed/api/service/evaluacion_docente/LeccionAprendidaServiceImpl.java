@@ -24,15 +24,31 @@ public class LeccionAprendidaServiceImpl implements LeccionAprendidaService {
             LOGGER.info("📌 No se recibieron lecciones para guardar.");
             return;
         }
-
+    
         lecciones.forEach(leccion -> {
-            if (leccion.getDescripcion() != null && !leccion.getDescripcion().isBlank()) {
-                LeccionAprendida entidad = new LeccionAprendida();
-                entidad.setAutoevaluacion(autoevaluacion);
-                entidad.setDescripcion(leccion.getDescripcion());
-                leccionAprendidaRepository.save(entidad);
-                LOGGER.debug("✅ Lección guardada: {}", leccion.getDescripcion());
+            if (leccion.getDescripcion() == null || leccion.getDescripcion().isBlank()) {
+                return;
             }
+    
+            LeccionAprendida entidad;
+    
+            // Si tiene ID, intentamos actualizar
+            if (leccion.getOidLeccionAprendida() != null) {
+                entidad = leccionAprendidaRepository.findById(leccion.getOidLeccionAprendida())
+                    .orElseGet(() -> {
+                        LOGGER.warn("❗ ID {} no encontrado, se creará una nueva lección.", leccion.getOidLeccionAprendida());
+                        return new LeccionAprendida();
+                    });
+            } else {
+                entidad = new LeccionAprendida();
+            }
+    
+            entidad.setAutoevaluacion(autoevaluacion);
+            entidad.setDescripcion(leccion.getDescripcion());
+    
+            leccionAprendidaRepository.save(entidad);
+    
+            LOGGER.debug("✅ Lección {}: {}", leccion.getOidLeccionAprendida() == null ? "creada" : "actualizada",  leccion.getDescripcion());
         });
-    }
+    }    
 }

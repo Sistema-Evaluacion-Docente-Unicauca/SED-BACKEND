@@ -29,12 +29,23 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoevaluacionServiceImpl.class);
 
     @Override
-    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
+    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion,
+            Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
 
         for (OdsDTO odsDTO : odsList) {
             ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds()).orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
 
-            AutoevaluacionOds entidad = new AutoevaluacionOds();
+            AutoevaluacionOds entidad;
+
+            if (odsDTO.getOidAutoevaluacionOds() != null) {
+                entidad = autoevaluacionOdsRepository.findById(odsDTO.getOidAutoevaluacionOds()).orElseGet(() -> {
+                    LOGGER.warn("❗ ODS con ID {} no encontrado. Se creará nuevo.", odsDTO.getOidAutoevaluacionOds());
+                    return new AutoevaluacionOds();
+                });
+            } else {
+                entidad = new AutoevaluacionOds();
+            }
+
             entidad.setAutoevaluacion(autoevaluacion);
             entidad.setOds(ods);
             entidad.setResultado(odsDTO.getResultado());
@@ -56,6 +67,8 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
             }
 
             autoevaluacionOdsRepository.save(entidad);
+
+            LOGGER.debug("✅ ODS {} {}", odsDTO.getOidAutoevaluacionOds() == null ? "creado" : "actualizado", odsDTO.getOidOds());
         }
     }
 }
