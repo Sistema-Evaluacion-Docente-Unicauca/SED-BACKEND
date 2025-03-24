@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
@@ -55,8 +54,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
         try {
             String mensajeTipoFuente;
             Actividad actividad = actividadRepository.findById(fuenteDTO.getOidActividad())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "No se encontró una actividad con el ID: " + fuenteDTO.getOidActividad()));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + fuenteDTO.getOidActividad()));
 
             String periodoAcademico = actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo();
             String nombres = StringUtils.formatearCadena(actividad.getProceso().getEvaluado().getNombres());
@@ -69,8 +67,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
 
             // Garantizar que el repositorio no devuelva null
             Optional<Fuente> fuenteOpcional = Optional.ofNullable(
-                    fuenteRepository.findByActividadAndTipoFuente(actividad, fuenteDTO.getTipoFuente()))
-                    .orElse(Optional.empty());
+                fuenteRepository.findByActividadAndTipoFuente(actividad, fuenteDTO.getTipoFuente())).orElse(Optional.empty());
 
             Fuente fuente = fuenteOpcional.orElse(new Fuente());
 
@@ -133,6 +130,17 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
             logger.error("Error al determinar el estado de la fuente", e);
             throw new RuntimeException("Error al determinar el estado de la fuente: " + e.getMessage(), e);
         }
+    }
+
+    
+    @Override
+    public void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
+        fuente.setCalificacion(nuevaCalificacion);
+        fuente.setTipoCalificacion(tipoCalificacion.toUpperCase());
+        EstadoFuente estadoFuente = determinarEstadoFuente(fuente);
+        fuente.setEstadoFuente(estadoFuente);
+        fuente.setObservacion(observacion.toUpperCase());
+        fuenteRepository.save(fuente);
     }
 
     /**

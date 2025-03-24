@@ -29,6 +29,7 @@ public class FuenteFileServiceImpl implements FuenteFileService {
     public Path manejarArchivoFuente(Optional<Fuente> fuenteOpcional, MultipartFile informeFuente, String periodoAcademico, 
                                      String nombreEvaluado, String contratacion, String departamento, 
                                      String nombreActividad, String idEvaluador, String prefijo) {
+        
         try {
             if (informeFuente == null || informeFuente.isEmpty()) {
                 logger.warn("El archivo fuente no fue proporcionado.");

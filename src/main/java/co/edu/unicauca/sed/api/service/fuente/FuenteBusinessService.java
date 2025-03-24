@@ -6,6 +6,7 @@ import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Interfaz para manejar la lógica de negocio relacionada con fuentes.
@@ -23,4 +24,5 @@ public interface FuenteBusinessService {
     void procesarFuente(FuenteCreateDTO fuenteDTO, MultipartFile informeFuente, String observacion, Map<String, MultipartFile> archivosEjecutivos);
 
     EstadoFuente determinarEstadoFuente(Fuente fuente);
-}
+
+    void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion);}

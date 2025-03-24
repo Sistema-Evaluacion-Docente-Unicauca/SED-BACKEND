@@ -50,8 +50,8 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
         try {
             LOGGER.info("🔍 Buscando EncuestaRespuesta con ID: {}", oid);
             return encuestaPreguntaRepository.findById(oid)
-                    .map(encuestaPregunta -> new ApiResponse<>(200, "Encuesta-Pregunta encontrada.", encuestaPregunta))
-                    .orElseGet(() -> new ApiResponse<>(404, "Encuesta-Pregunta no encontrada.", null));
+                .map(encuestaPregunta -> new ApiResponse<>(200, "Encuesta-Pregunta encontrada.", encuestaPregunta))
+                .orElseGet(() -> new ApiResponse<>(404, "Encuesta-Pregunta no encontrada.", null));
         } catch (Exception e) {
             LOGGER.error("❌ Error al buscar EncuestaRespuesta con ID: {}", oid, e);
             return new ApiResponse<>(500, "Error al buscar EncuestaRespuesta: " + e.getMessage(), null);
@@ -66,16 +66,13 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
             LOGGER.info("✅ Guardando EncuestaRespuesta.");
 
             Encuesta encuesta = encuestaRepository.findById(oidEncuesta)
-                    .orElseThrow(
-                            () -> new EntityNotFoundException("Encuesta con ID " + oidEncuesta + " no encontrada."));
+                .orElseThrow(() -> new EntityNotFoundException("Encuesta con ID " + oidEncuesta + " no encontrada."));
 
             Pregunta pregunta = preguntaRepository.findById(oidPregunta)
-                    .orElseThrow(
-                            () -> new EntityNotFoundException("Pregunta con ID " + oidPregunta + " no encontrada."));
+                .orElseThrow(() -> new EntityNotFoundException("Pregunta con ID " + oidPregunta + " no encontrada."));
 
             EncuestaRespuesta encuestaPregunta = encuestaPreguntaRepository
-                    .findByEncuestaAndPregunta(encuesta, pregunta)
-                    .orElse(new EncuestaRespuesta());
+                .findByEncuestaAndPregunta(encuesta, pregunta).orElse(new EncuestaRespuesta());
 
             encuestaPregunta.setEncuesta(encuesta);
             encuestaPregunta.setPregunta(pregunta);

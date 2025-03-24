@@ -24,7 +24,7 @@ public interface AutoevaluacionService {
             AutoevaluacionDTO dto,
             MultipartFile firma,
             MultipartFile screenshotSimca,
-            MultipartFile documentoNotas,
+            MultipartFile documentoAutoevaluacion,
             Map<String, MultipartFile> archivosOds);
 
     ApiResponse<Object> buscarPorFuente(Integer oidFuente);

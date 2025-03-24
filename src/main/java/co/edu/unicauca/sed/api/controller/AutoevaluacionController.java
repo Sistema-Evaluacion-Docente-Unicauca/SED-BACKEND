@@ -40,7 +40,7 @@ public class AutoevaluacionController {
             @RequestParam("data") String autoevaluacionJson,
             @RequestParam(value = "firma", required = false) MultipartFile firma,
             @RequestParam(value = "screenshotSimca", required = false) MultipartFile screenshotSimca,
-            @RequestParam(value = "documentoNotas", required = false) MultipartFile documentoNotas,
+            @RequestParam(value = "documentoAutoevaluacion", required = false) MultipartFile documentoAutoevaluacion,
             @RequestParam Map<String, MultipartFile> allFiles) {
 
         Map<String, MultipartFile> archivosOds = allFiles.entrySet().stream()
@@ -48,7 +48,7 @@ public class AutoevaluacionController {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         AutoevaluacionDTO dto = integrationService.convertirJsonAAutoevaluacion(autoevaluacionJson);
-        ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoNotas, archivosOds);
+        ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoAutoevaluacion, archivosOds);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -58,7 +58,7 @@ public class AutoevaluacionController {
      * @param oidFuente ID de la fuente.
      * @return ApiResponse con la información encontrada o error.
      */
-    @GetMapping("/fuente/{oidFuente}")
+    @GetMapping("/{oidFuente}")
     public ResponseEntity<ApiResponse<Object>> buscarPorFuente(@PathVariable Integer oidFuente) {
         ApiResponse<Object> response = autoevaluacionService.buscarPorFuente(oidFuente);
         return ResponseEntity.status(response.getCodigo()).body(response);

@@ -11,12 +11,14 @@ import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EncuestaPreguntaDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
+import co.edu.unicauca.sed.api.mapper.EvaluacionMapperUtil;
 import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import co.edu.unicauca.sed.api.repository.EncuestaRespuestaRepository;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
 import co.edu.unicauca.sed.api.repository.EvaluacionEstudianteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.repository.PreguntaRepository;
+import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessServiceImpl;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
@@ -40,6 +42,9 @@ import java.util.stream.Collectors;
 public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EvaluacionEstudianteServiceImpl.class);
+
+    private static final String PREFIJO_FUENTE_2 = "fuente-2";
+    private static final String PREFIJO_FIRMA = "firma";
 
     @Autowired
     private EvaluacionEstudianteRepository evaluacionEstudianteRepository;
@@ -93,12 +98,8 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             Fuente fuente = obtenerFuente(dto.getOidFuente());
 
             // Guardar firma si existe
-            if (firmaEstudiante != null && !firmaEstudiante.isEmpty()) {
-                String prefijo = "firma";
-                String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firmaEstudiante, prefijo);
-                rutaFirma = (Paths.get(rutaFirma).getFileName().toString());
-                dto.setFirma(rutaFirma);
-            }
+            String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firmaEstudiante, PREFIJO_FIRMA);
+            if (rutaFirma != null) dto.setFirma(rutaFirma);
 
             // Guardar o actualizar EvaluacionEstudiante
             EvaluacionEstudiante evaluacionEstudiante = guardarEvaluacionEstudiante(dto, fuente);
@@ -109,22 +110,18 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             // 🔄 Guardar respuestas y calcular la calificación
             float calificacionFinal = guardarRespuestasYCalcularNota(dto.getPreguntas(), encuesta);
 
-            if (documentoFuente != null && !documentoFuente.isEmpty()) {
-                String prefijo = "fuente";
-                String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, prefijo);
-                
+            String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, PREFIJO_FUENTE_2);
+            if (rutaDocumento != null) {
+                dto.setFirma(rutaFirma);
                 fuente.setRutaDocumentoFuente(rutaDocumento);
-            
-                // ✅ Convertir String a Path y obtener el nombre del archivo
                 fuente.setNombreDocumentoFuente(Paths.get(rutaDocumento).getFileName().toString());
             }
-            
-            // 🔄 Actualizar la calificación de la fuente
-            actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion(), dto.getObservacion());
-            String mensajeTipoFuente = "Fuente 2";
+
+            // Actualizar la calificación de la fuente
+            fuenteBussines.actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion(), dto.getObservacion());
             Usuario evaluado = fuente.getActividad().getProceso().getEvaluado();
             Usuario evaluador = fuente.getActividad().getProceso().getEvaluador();
-            notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
+            notificacionDocumentoService.notificarEvaluado(PREFIJO_FUENTE_2, evaluador, evaluado);
             return new ApiResponse<>(200, "Evaluación docente guardada correctamente.", null);
         } catch (Exception e) {
             LOGGER.error("❌ Error al guardar la evaluación docente.", e);
@@ -224,32 +221,18 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     private Map<String, Object> construirResultado(Fuente fuente, EvaluacionEstudiante evaluacionEstudiante, Encuesta encuesta, List<Map<String, Object>> preguntas) {
         Map<String, Object> resultado = new LinkedHashMap<>();
-    
-        resultado.put("oidFuente", fuente.getOidFuente());
-        resultado.put("evaluado", construirUsuarioMap(fuente.getActividad().getProceso().getEvaluado()));
-        resultado.put("evaluador", construirUsuarioMap(fuente.getActividad().getProceso().getEvaluador()));
-        resultado.put("observacion", fuente.getObservacion());
-        resultado.put("nombreArchivo", fuente.getNombreDocumentoFuente());
-        resultado.put("tipoCalificacion", obtenerTipoCalificacion(evaluacionEstudiante));
+        Map<String, Object> resumen = EvaluacionMapperUtil.construirResumenEvaluacion(
+                fuente,
+                evaluacionEstudiante.getFuente().getTipoCalificacion(),
+                fuente.getObservacion(),
+                fuente.getNombreDocumentoFuente());
+        resultado.putAll(resumen);
         resultado.put("encuesta", construirEncuesta(encuesta));
         resultado.put("estadoEtapaDesarrollo", construirEstadoEtapaDesarrollo(evaluacionEstudiante));
         resultado.put("fechaCreacion", fuente.getFechaCreacion());
         resultado.put("fechaActualizacion", fuente.getFechaActualizacion());
         resultado.put("preguntas", preguntas);
-    
         return resultado;
-    }
-    
-    private Map<String, Object> construirUsuarioMap(Usuario usuario) {
-        Map<String, Object> usuarioMap = new LinkedHashMap<>();
-        usuarioMap.put("oidUsuario", usuario.getOidUsuario());
-        usuarioMap.put("nombreCompleto", usuario.getNombres() + " " + usuario.getApellidos());
-        return usuarioMap;
-    }
-    
-    // Obtiene el tipo de calificación
-    private String obtenerTipoCalificacion(EvaluacionEstudiante evaluacionEstudiante) {
-        return evaluacionEstudiante.getFuente().getTipoCalificacion();
     }
     
     // Construye el mapa de Encuesta
@@ -265,14 +248,5 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         estadoEtapaDesarrolloMap.put("oidEstadoEtapaDesarrollo", evaluacionEstudiante.getEstadoEtapaDesarrollo().getOidEstadoEtapaDesarrollo());
         estadoEtapaDesarrolloMap.put("nombre", evaluacionEstudiante.getEstadoEtapaDesarrollo().getNombre());
         return estadoEtapaDesarrolloMap;
-    }
-
-    private void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
-        fuente.setCalificacion(nuevaCalificacion);
-        fuente.setTipoCalificacion(tipoCalificacion.toUpperCase());
-        EstadoFuente estadoFuente = fuenteBussines.determinarEstadoFuente(fuente);
-        fuente.setEstadoFuente(estadoFuente);
-        fuente.setObservacion(observacion.toUpperCase());
-        fuenteRepository.save(fuente);
     }
 }
