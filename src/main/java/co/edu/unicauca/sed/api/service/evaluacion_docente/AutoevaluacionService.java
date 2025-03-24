@@ -27,5 +27,5 @@ public interface AutoevaluacionService {
             MultipartFile documentoAutoevaluacion,
             Map<String, MultipartFile> archivosOds);
 
-    ApiResponse<Object> buscarPorFuente(Integer oidFuente);
+    ApiResponse<Object> obtenerAutoevaluacion(Integer oidFuente);
 }

@@ -108,7 +108,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse<Object> buscarPorFuente(Integer oidFuente) {
+    public ApiResponse<Object> obtenerAutoevaluacion(Integer oidFuente) {
         try {
             LOGGER.info("🔍 Buscando autoevaluación por fuente ID: {}", oidFuente);
 
@@ -155,6 +155,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             map.put("oidOds", item.getOds().getOidObjetivoDesarrolloSostenible());
             map.put("nombre", item.getOds().getNombre());
             map.put("resultado", item.getResultado());
+            map.put("documento", item.getNombreDocumento());
             return map;
         }).collect(Collectors.toList());
     }

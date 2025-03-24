@@ -13,6 +13,6 @@ public interface EvaluacionEstudianteService {
 
     ApiResponse<Void> guardarEvaluacionDocente(EvaluacionDocenteDTO dto, MultipartFile documentoFuente, MultipartFile firmaEstudiante);
 
-    ApiResponse<Object> buscarPorFuente(Integer oidFuente);
+    ApiResponse<Object> obtenerEvaluacionEstudiante(Integer oidFuente);
 }
 

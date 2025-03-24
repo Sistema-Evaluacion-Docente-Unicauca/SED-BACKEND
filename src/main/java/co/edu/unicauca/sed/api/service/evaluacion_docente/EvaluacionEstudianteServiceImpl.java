@@ -176,7 +176,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse<Object> buscarPorFuente(Integer oidFuente) {
+    public ApiResponse<Object> obtenerEvaluacionEstudiante(Integer oidFuente) {
         try {
             LOGGER.info("🔍 Buscando Evaluación de Estudiante por Fuente con ID: {}", oidFuente);
 
@@ -226,11 +226,9 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
                 evaluacionEstudiante.getFuente().getTipoCalificacion(),
                 fuente.getObservacion(),
                 fuente.getNombreDocumentoFuente());
-        resultado.putAll(resumen);
+        resultado.put("Fuente", resumen);
         resultado.put("encuesta", construirEncuesta(encuesta));
         resultado.put("estadoEtapaDesarrollo", construirEstadoEtapaDesarrollo(evaluacionEstudiante));
-        resultado.put("fechaCreacion", fuente.getFechaCreacion());
-        resultado.put("fechaActualizacion", fuente.getFechaActualizacion());
         resultado.put("preguntas", preguntas);
         return resultado;
     }

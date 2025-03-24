@@ -59,8 +59,8 @@ public class AutoevaluacionController {
      * @return ApiResponse con la información encontrada o error.
      */
     @GetMapping("/{oidFuente}")
-    public ResponseEntity<ApiResponse<Object>> buscarPorFuente(@PathVariable Integer oidFuente) {
-        ApiResponse<Object> response = autoevaluacionService.buscarPorFuente(oidFuente);
+    public ResponseEntity<ApiResponse<Object>> obtenerAutoevaluacion(@PathVariable Integer oidFuente) {
+        ApiResponse<Object> response = autoevaluacionService.obtenerAutoevaluacion(oidFuente);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

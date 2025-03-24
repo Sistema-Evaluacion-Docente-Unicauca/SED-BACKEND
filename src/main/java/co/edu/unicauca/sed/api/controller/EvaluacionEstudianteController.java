@@ -63,8 +63,7 @@ public class EvaluacionEstudianteController {
     }
 
     @GetMapping("/fuente/{oidFuente}")
-    public ResponseEntity<ApiResponse<Object>> buscarPorFuente(@PathVariable Integer oidFuente) {
-        LOGGER.info("📌 Buscando evaluación de estudiante por fuente con ID: {}", oidFuente);
-        return ResponseEntity.ok(evaluacionEstudianteService.buscarPorFuente(oidFuente));
+    public ResponseEntity<ApiResponse<Object>> obtenerEvaluacionEstudiante(@PathVariable Integer oidFuente) {
+        return ResponseEntity.ok(evaluacionEstudianteService.obtenerEvaluacionEstudiante(oidFuente));
     }
 }
