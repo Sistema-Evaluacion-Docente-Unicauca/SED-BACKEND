@@ -3,6 +3,9 @@ package co.edu.unicauca.sed.api.service.usuario;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,9 +13,11 @@ import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.mapper.UsuarioMapper;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.RolService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadDateServiceImpl;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +30,8 @@ import org.springframework.data.domain.Sort;
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDateServiceImpl.class);
+
     @Autowired
     private UsuarioRepository usuarioRepository;
 
@@ -32,7 +39,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private EstadoUsuarioRepository estadoUsuarioRepository;
 
     @Autowired
-    private RolService rolService;
+    private UsuarioMapper usuarioMapper;
 
     @Autowired
     private UsuarioDetalleService usuarioDetalleService;
@@ -71,28 +78,34 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public ApiResponse<List<Usuario>> guardar(List<Usuario> usuarios) {
         List<Usuario> usuariosGuardados = new ArrayList<>();
-
-        try {
-            for (Usuario usuario : usuarios) {
-                validarUsuarioExistente(usuario);
+    
+        for (Usuario usuario : usuarios) {
+            try {
+                usuarioMapper.validarUsuarioExistente(usuario);
+    
                 usuario.setNombres(usuario.getNombres().toUpperCase());
                 usuario.setApellidos(usuario.getApellidos().toUpperCase());
-                generarNombreUsuario(usuario);
+                usuarioMapper.generarNombreUsuario(usuario);
                 usuarioDetalleService.procesarUsuarioDetalle(usuario);
-                procesarEstadoUsuario(usuario);
-                List<Rol> rolesAsignados = procesarRoles(usuario, null);
+                usuarioMapper.procesarEstadoUsuario(usuario);
+                List<Rol> rolesAsignados = usuarioMapper.procesarRoles(usuario, null);
                 usuario.setRoles(rolesAsignados);
+    
                 usuariosGuardados.add(usuarioRepository.save(usuario));
+    
+            } catch (RuntimeException e) {
+                LOGGER.warn("Usuario con identificación {} no fue guardado: {}", usuario.getIdentificacion(), e.getMessage());
+            } catch (Exception e) {
+                LOGGER.error("Error inesperado al guardar usuario {}: {}", usuario.getIdentificacion(), e.getMessage());
             }
-
-            return new ApiResponse<>(200, "Usuarios guardados correctamente.", usuariosGuardados);
-
-        } catch (RuntimeException e) {
-            return new ApiResponse<>(400, "Error en la validación: " + e.getMessage(), null);
-        } catch (Exception e) {
-            return new ApiResponse<>(500, "Error interno al guardar usuarios: " + e.getMessage(), null);
         }
-    }
+    
+        if (!usuariosGuardados.isEmpty()) {
+            return new ApiResponse<>(200, "Usuarios guardados correctamente.", usuariosGuardados);
+        } else {
+            return new ApiResponse<>(400, "No se pudo guardar ningún usuario.", null);
+        }
+    }    
 
     @Override
     @Transactional
@@ -102,10 +115,10 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
     
             if (!Objects.equals(usuarioActualizado.getIdentificacion(), usuarioExistente.getIdentificacion())) {
-                validarUsuarioExistente(usuarioActualizado);
+                usuarioMapper.validarUsuarioExistente(usuarioActualizado);
             }
 
-            List<Rol> rolesAsignados = procesarRoles(usuarioActualizado, id);
+            List<Rol> rolesAsignados = usuarioMapper.procesarRoles(usuarioActualizado, id);
             usuarioExistente.setRoles(rolesAsignados);
     
             usuarioExistente.setNombres(usuarioActualizado.getNombres().toUpperCase());
@@ -141,79 +154,5 @@ public class UsuarioServiceImpl implements UsuarioService {
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error al eliminar el usuario: " + e.getMessage(), null);
         }
-    }
-
-    private void generarNombreUsuario(Usuario usuario) {
-        if (usuario.getCorreo() != null && (usuario.getUsername() == null || usuario.getUsername().isEmpty())) {
-            String correo = usuario.getCorreo();
-            usuario.setUsername(correo.split("@")[0]);
-        }
-    }
-
-    private void validarUsuarioExistente(Usuario usuario) {
-        if (usuarioRepository.findByIdentificacion(usuario.getIdentificacion()) != null) {
-            throw new IllegalArgumentException(
-                    "Ya existe un usuario con la identificación: " + usuario.getIdentificacion());
-        }
-    }
-
-    private void procesarEstadoUsuario(Usuario usuario) {
-        if (usuario.getEstadoUsuario() != null && usuario.getEstadoUsuario().getOidEstadoUsuario() != null) {
-            EstadoUsuario estadoUsuario = estadoUsuarioRepository
-                    .findById(usuario.getEstadoUsuario().getOidEstadoUsuario())
-                    .orElseThrow(() -> new RuntimeException("Estado Usuario no encontrado con OID: "
-                            + usuario.getEstadoUsuario().getOidEstadoUsuario()));
-            usuario.setEstadoUsuario(estadoUsuario);
-        }
-    }
-
-    private List<Rol> procesarRoles(Usuario usuario, Integer idUsuario) {
-        List<Rol> rolesAsignados = rolService.processRoles(usuario.getRoles());
-    
-        for (Rol rol : rolesAsignados) {
-            switch (rol.getNombre().toUpperCase()) {
-                case "JEFE DE DEPARTAMENTO":
-                    validarRolUnico(usuario, idUsuario, "JEFE DE DEPARTAMENTO");
-                    break;
-                case "COORDINADOR":
-                    validarRolUnico(usuario, idUsuario, "COORDINADOR");
-                    break;
-                case "CPD":
-                    validarRolUnico(usuario, idUsuario, "CPD");
-                    break;
-                case "DECANO":
-                    validarRolUnico(usuario, idUsuario, "DECANO");
-                    break;
-                case "SECRETARIA/O FACULTAD":
-                    validarRolUnico(usuario, idUsuario, "SECRETARIO/A FACULTAD");
-                    break;
-                default:
-                    break;
-            }
-        }
-    
-        return rolesAsignados;
-    }
-    
-
-    private void validarRolUnico(Usuario usuario, Integer idUsuario, String rolNombre) {
-        long count;
-    
-        if ("JEFE DE DEPARTAMENTO".equals(rolNombre) || "COORDINADOR".equals(rolNombre) || "CPD".equals(rolNombre)) {
-            count = usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreInExcludingUser(
-                    usuario.getUsuarioDetalle().getDepartamento(), List.of(rolNombre), idUsuario);
-        } else {
-            count = usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreInExcludingUser(
-                    usuario.getUsuarioDetalle().getFacultad(), List.of(rolNombre), idUsuario);
-        }
-    
-        if (count > 0) {
-            throw new RuntimeException("Ya existe un " + rolNombre + " registrado en " +
-                    (esRolDeDepartamento(rolNombre) ? "este departamento." : "esta facultad."));
-        }
-    }
-    
-    private boolean esRolDeDepartamento(String rolNombre) {
-        return List.of("JEFE DE DEPARTAMENTO", "COORDINADOR", "CPD").contains(rolNombre);
     }
 }

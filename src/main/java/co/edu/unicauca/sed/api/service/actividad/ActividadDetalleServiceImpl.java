@@ -39,9 +39,9 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
         String codigo = obtenerValorAtributo(atributos, "CODIGO");
         String materia = obtenerValorAtributo(atributos, "MATERIA");
         String grupo = obtenerValorAtributo(atributos, "GRUPO");
-        String actoAdministrativo = obtenerValorAtributo(atributos, "ACTO_ADMINISTRATIVO");
+        String actoAdministrativo = obtenerValorAtributo(atributos, "ACTOADMINISTRATIVO");
         String vri = obtenerValorAtributo(atributos, "VRI");
-        String nombreProyecto = obtenerValorAtributo(atributos, "NOMBRE_PROYECTO");
+        String nombreProyecto = obtenerValorAtributo(atributos, "NOMBREPROYECTO");
     
         Integer idUsuario = actividadDTO.getOidEvaluador();
         Usuario usuario = usuarioRepository.findById(idUsuario)
@@ -50,7 +50,7 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
     
         // Generar el nombre de la actividad según el tipo de actividad
         String nombreGenerado;
-        switch (nombreTipoActividad) {
+        switch (nombreTipoActividad.toUpperCase()) {
             case "DOCENCIA":
                 nombreGenerado = String.format("%s-%s-%s", codigo, materia, grupo);
                 break;
@@ -62,15 +62,17 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
                 nombreGenerado = String.format("%s-%s", vri, nombreProyecto);
                 break;
             case "ADMINISTRACIÓN":
-            case "OTRO SERVICIO":
+            case "OTROS SERVICIOS":
             case "CAPACITACIÓN":
                 nombreGenerado = String.format("%s-ACTIVIDAD", actoAdministrativo);
                 break;
             case "EXTENSIÓN":
                 nombreGenerado = String.format("%s-%s", actoAdministrativo, nombreProyecto);
                 break;
+            case "ASESORÍA":
+                nombreGenerado = String.format("%s-%s", actoAdministrativo);
+                break;
             default:
-                // Nombre genérico por defecto si no se reconoce el tipo de actividad
                 nombreGenerado = "ACTIVIDAD-GENERICA-" + idTipoActividad;
                 break;
         }
@@ -80,9 +82,9 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
 
     private String obtenerValorAtributo(List<AtributoDTO> atributos, String codigoAtributo) {
         return atributos.stream()
-                .filter(a -> a.getCodigoAtributo().equalsIgnoreCase(codigoAtributo))
-                .map(AtributoDTO::getValor)
-                .findFirst()
-                .orElse("");
+            .filter(a -> a.getCodigoAtributo().equalsIgnoreCase(codigoAtributo))
+            .map(AtributoDTO::getValor)
+            .findFirst()
+            .orElse("");
     }
 }

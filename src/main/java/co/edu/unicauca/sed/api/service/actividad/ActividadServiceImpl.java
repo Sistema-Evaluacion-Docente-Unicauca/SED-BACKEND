@@ -101,17 +101,14 @@ public class ActividadServiceImpl implements ActividadService {
     @Override
     public ApiResponse<Actividad> guardar(ActividadBaseDTO actividadDTO) {
         try {
-            if (actividadDTO.getOidActividad() != null
-                    && actividadRepository.existsById(actividadDTO.getOidActividad())) {
-                return new ApiResponse<>(409,
-                        "Error: La actividad con ID " + actividadDTO.getOidActividad() + " ya existe.", null);
+            if (actividadDTO.getOidActividad() != null && actividadRepository.existsById(actividadDTO.getOidActividad())) {
+                return new ApiResponse<>(409, "Error: La actividad con ID " + actividadDTO.getOidActividad() + " ya existe.", null);
             }
 
             Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
             asignarPeriodoAcademicoActivo(actividad);
 
-            if (actividad.getProceso().getNombreProceso() == null
-                    || actividad.getProceso().getNombreProceso().isEmpty()) {
+            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
                 actividad.getProceso().setNombreProceso("ACTIVIDAD");
             }
 
