@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
+import co.edu.unicauca.sed.api.utils.ArchivoUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,18 +64,27 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             });
 
             // Guardar archivos principales
-            String rutaFirma = fuenteService.guardarDocumentoFuente(fuente,firma, PREFIJO_FIRMA);
-            if (rutaFirma != null) 
-                autoevaluacion.setRutaDocumentoFirma(rutaFirma);
+            if (firma != null) {
+                String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firma, PREFIJO_FIRMA);
+                if (rutaFirma != null) {
+                    autoevaluacion.setRutaDocumentoFirma(rutaFirma);
+                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaFirma);
+                    autoevaluacion.setFirma(nombreArchivo);
+                }
+            }
 
-            String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, PREFIJO_SCREENSHOT);
-            if (rutaScreenshot != null)
-                autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
+            if (screenshotSimca != null) {
+                String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, PREFIJO_SCREENSHOT);
+                if (rutaScreenshot != null)
+                    autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
+                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaScreenshot);
+                    autoevaluacion.setScreenshotSimca(nombreArchivo);
+            }
 
             // Guardar la autoevaluación (nuevo o actualizada)
             autoevaluacion = autoevaluacionRepository.save(autoevaluacion);
 
-            Map<Integer, MultipartFile> archivosOdsMap = filtrarArchivosOds(archivosOds);
+            Map<Integer, MultipartFile> archivosOdsMap = mapearArchivosOdsPorNombre(dto.getOdsSeleccionados(), archivosOds);
 
             // Guardar ODS con sus evidencias
             autoevaluacionOdsService.guardarOds(dto.getOdsSeleccionados(), autoevaluacion, archivosOdsMap, fuente);
@@ -88,16 +98,14 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             String rutaNotas = fuenteService.guardarDocumentoFuente(fuente, documentoAutoevaluacion, PREFIJO_FUENTE_1);
             if (rutaNotas != null) {
                 fuente.setRutaDocumentoFuente(rutaNotas);
-                String nombreArchivo = Paths.get(rutaNotas).getFileName().toString();
+                String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaNotas);
                 fuente.setNombreDocumentoFuente(nombreArchivo);
             }
 
             // Actualizar información de la fuente
             fuenteBussines.actualizarFuente(fuente, dto.getCalificacion(), dto.getTipoCalificacion(), dto.getObservacion());
             String mensajeTipoFuente = "Fuente 1";
-            Usuario evaluado = fuente.getActividad().getProceso().getEvaluado();
-            Usuario evaluador = fuente.getActividad().getProceso().getEvaluador();
-            notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
+            notificacionDocumentoService.notificarEvaluadoPorFuente(mensajeTipoFuente, fuente);
             LOGGER.info("✅ Autoevaluación {} correctamente.", autoevaluacionOpt.isPresent() ? "actualizada" : "creada");
             return new ApiResponse<>(200, MSG_AUTOEVALUACION_OK, null);
         } catch (Exception e) {
@@ -138,16 +146,29 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
         }
     }
 
-    private Map<Integer, MultipartFile> filtrarArchivosOds(Map<String, MultipartFile> archivos) {
-        if (archivos == null || archivos.isEmpty()) return Map.of();
+    private Map<Integer, MultipartFile> mapearArchivosOdsPorNombre(List<OdsDTO> odsSeleccionados, Map<String, MultipartFile> archivos) {
+        if (archivos == null || archivos.isEmpty() || odsSeleccionados == null || odsSeleccionados.isEmpty()) {
+            return Map.of();
+        }
     
-        return archivos.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith("ods-"))
-            .collect(Collectors.toMap(
-                entry -> Integer.parseInt(entry.getKey().replace("ods-", "")),
-                Map.Entry::getValue
-            ));
-    }
+        Map<Integer, MultipartFile> resultado = new HashMap<>();
+    
+        for (OdsDTO ods : odsSeleccionados) {
+            String nombreDocumento = ods.getDocumento();
+            Integer oidOds = ods.getOidOds();
+    
+            if (nombreDocumento != null && oidOds != null) {
+                Optional<Map.Entry<String, MultipartFile>> archivoEncontrado = archivos.entrySet().stream()
+                    .filter(entry -> entry.getValue().getOriginalFilename() != null &&
+                        entry.getValue().getOriginalFilename().equals(nombreDocumento))
+                    .findFirst();
+    
+                archivoEncontrado.ifPresent(entry -> resultado.put(oidOds, entry.getValue()));
+            }
+        }
+    
+        return resultado;
+    }    
 
     private List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion) {
         return autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion).stream().map(item -> {

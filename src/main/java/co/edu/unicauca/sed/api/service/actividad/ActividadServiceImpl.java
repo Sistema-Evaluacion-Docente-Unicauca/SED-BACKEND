@@ -1,6 +1,8 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import co.edu.unicauca.sed.api.service.proceso.ProcesoService;
@@ -61,6 +64,9 @@ public class ActividadServiceImpl implements ActividadService {
     @Autowired
     private ActividadDetalleService actividadDetalleService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     @Override
     public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
         boolean orden = (ordenAscendente != null) ? ordenAscendente : true;
@@ -99,36 +105,100 @@ public class ActividadServiceImpl implements ActividadService {
 
     @Transactional
     @Override
-    public ApiResponse<Actividad> guardar(ActividadBaseDTO actividadDTO) {
-        try {
-            if (actividadDTO.getOidActividad() != null && actividadRepository.existsById(actividadDTO.getOidActividad())) {
-                return new ApiResponse<>(409, "Error: La actividad con ID " + actividadDTO.getOidActividad() + " ya existe.", null);
+    public ApiResponse<List<Actividad>> guardar(List<ActividadBaseDTO> actividadesDTO) {
+        List<Actividad> actividadesGuardadas = new ArrayList<>();
+        List<String> errores = new ArrayList<>();
+
+        for (ActividadBaseDTO dto : actividadesDTO) {
+            try {
+                Actividad guardada = guardarActividad(dto);
+                actividadesGuardadas.add(guardada);
+            } catch (DataIntegrityViolationException e) {
+                errores.add("Actividad con ID " + dto.getOidActividad() + ": ya existe.");
+            } catch (Exception e) {
+                errores.add("Actividad con ID " + dto.getOidActividad() + ": " + e.getMessage());
             }
-
-            Actividad actividad = actividadMapper.convertToEntity(actividadDTO);
-            asignarPeriodoAcademicoActivo(actividad);
-
-            if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
-                actividad.getProceso().setNombreProceso("ACTIVIDAD");
-            }
-
-            actividad.getProceso().setEvaluador(new Usuario(actividadDTO.getOidEvaluador()));
-            actividad.getProceso().setEvaluado(new Usuario(actividadDTO.getOidEvaluado()));
-
-            procesoService.guardarProceso(actividad);
-
-            if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
-                actividad.setNombreActividad(actividadDetalleService.generarNombreActividad(actividadDTO));
-            }
-
-            Actividad actividadGuardada = actividadRepository.save(actividad);
-            fuenteService.guardarFuente(actividadGuardada);
-            eavAtributoService.guardarAtributosDinamicos(actividadDTO, actividadGuardada);
-
-            return new ApiResponse<>(201, "Actividad guardada correctamente.", actividadGuardada);
-        } catch (DataIntegrityViolationException e) {
-            return new ApiResponse<>(409, "Error: Ya existe un registro con los mismos datos.", null);
         }
+
+        if (!actividadesGuardadas.isEmpty()) {
+            String mensaje = construirMensajeFinal(actividadesGuardadas.size(), errores.size());
+            return new ApiResponse<>(201, mensaje, actividadesGuardadas);
+        } else {
+            return new ApiResponse<>(400,
+                    "No se pudo guardar ninguna actividad. Errores: " + String.join(" | ", errores), null);
+        }
+    }
+
+    private String construirMensajeFinal(int exitosas, int fallidas) {
+        String mensaje = "Actividades guardadas: " + exitosas;
+        if (fallidas > 0) {
+            mensaje += ". Con errores en " + fallidas + " actividad(es).";
+        }
+        return mensaje;
+    }    
+
+    private Actividad guardarActividad(ActividadBaseDTO dto) {
+        validarDuplicado(dto);
+
+        Actividad actividad = actividadMapper.convertToEntity(dto);
+        asignarPeriodoAcademicoActivo(actividad);
+
+        if (actividad.getProceso().getNombreProceso() == null
+                || actividad.getProceso().getNombreProceso().isEmpty()) {
+            actividad.getProceso().setNombreProceso("ACTIVIDAD");
+        }
+
+        asignarEvaluadorYEvaluado(actividad, dto);
+        procesoService.guardarProceso(actividad);
+        asignarNombreActividadSiNecesario(actividad, dto);
+
+        Actividad guardada = actividadRepository.save(actividad);
+        guardarComponentesRelacionados(dto, guardada);
+
+        return guardada;
+    }
+
+    private void validarDuplicado(ActividadBaseDTO dto) {
+        if (dto.getOidActividad() != null && actividadRepository.existsById(dto.getOidActividad())) {
+            throw new DataIntegrityViolationException("La actividad con ID " + dto.getOidActividad() + " ya existe.");
+        }
+    }
+
+    private void asignarEvaluadorYEvaluado(Actividad actividad, ActividadBaseDTO dto) {
+        Usuario evaluado;
+
+        Optional<Usuario> posibleEvaluado = usuarioRepository.findById(dto.getOidEvaluado());
+        if (posibleEvaluado.isPresent()) {
+            evaluado = new Usuario(dto.getOidEvaluado());
+        } else {
+            evaluado = usuarioRepository.findByIdentificacion(String.valueOf(dto.getOidEvaluado()));
+            if (evaluado == null) {
+                throw new RuntimeException("No se encontró evaluado con identificación " + dto.getOidEvaluado());
+            }
+        }
+
+        actividad.getProceso().setEvaluado(evaluado);
+
+        Usuario evaluador;
+        if (dto.getOidEvaluador() != null) {
+            evaluador = new Usuario(dto.getOidEvaluador());
+        } else {
+            String tipoActividad = actividad.getTipoActividad().getNombre();
+            evaluador = obtenerEvaluadorAutomatico(tipoActividad, evaluado);
+        }
+
+        actividad.getProceso().setEvaluador(evaluador);
+    }
+
+    private void asignarNombreActividadSiNecesario(Actividad actividad, ActividadBaseDTO dto) {
+        if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
+            actividad.setNombreActividad(actividadDetalleService.generarNombreActividad(dto));
+        }
+    }
+
+    private void guardarComponentesRelacionados(ActividadBaseDTO dto, Actividad actividadGuardada) {
+        fuenteService.guardarFuente(actividadGuardada);
+        eavAtributoService.guardarAtributosDinamicos(dto, actividadGuardada);
     }
 
     @Transactional
@@ -136,11 +206,13 @@ public class ActividadServiceImpl implements ActividadService {
     public ApiResponse<Actividad> actualizar(Integer idActividad, ActividadBaseDTO actividadDTO) {
         try {
             Actividad actividadExistente = actividadRepository.findById(idActividad)
-                .orElseThrow(() -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
+                    .orElseThrow(
+                            () -> new ValidationException(404, "Actividad con ID " + idActividad + " no encontrada."));
 
             if (actividadDTO.getOidActividad() != null && !actividadDTO.getOidActividad().equals(idActividad)
                     && actividadRepository.existsById(actividadDTO.getOidActividad())) {
-                return new ApiResponse<>(409, "Error: Ya existe una actividad con ID " + actividadDTO.getOidActividad(), null);
+                return new ApiResponse<>(409, "Error: Ya existe una actividad con ID " + actividadDTO.getOidActividad(),
+                        null);
             }
 
             if (actividadDTO.getNombreActividad() == null || actividadDTO.getNombreActividad().isEmpty()) {
@@ -207,5 +279,35 @@ public class ActividadServiceImpl implements ActividadService {
             logger.error("❌ [ERROR] Error al asignar periodo académico activo: {}", e.getMessage(), e);
             throw new RuntimeException("Error al asignar periodo académico: " + e.getMessage(), e);
         }
+    }
+
+    private Usuario obtenerEvaluadorAutomatico(String tipoActividad, Usuario evaluado) {
+        String tipo = tipoActividad.toUpperCase();
+
+        if (List.of("CAPACITACIÓN", "EXTENSIÓN", "OTROS SERVICIOS", "SERVICIO", "ASESORÍA", "DOCENCIA")
+                .contains(tipo)) {
+            return usuarioRepository
+                    .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
+                            evaluado.getUsuarioDetalle().getDepartamento(), "JEFE DE DEPARTAMENTO")
+                    .orElseThrow(() -> new RuntimeException(
+                            "No se encontró Jefe de Departamento activo para el departamento "
+                                    + evaluado.getUsuarioDetalle().getDepartamento()));
+        }
+
+        if ("ADMINISTRACIÓN".equals(tipo)) {
+            return usuarioRepository
+                    .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
+                            evaluado.getUsuarioDetalle().getFacultad(), "DECANO")
+                    .orElseThrow(() -> new RuntimeException("No se encontró Decano activo para la facultad "
+                            + evaluado.getUsuarioDetalle().getFacultad()));
+        }
+
+        if (List.of("PROYECTO DE INVESTIGACIÓN", "TRABAJO DE INVESTIGACIÓN").contains(tipo)) {
+            return usuarioRepository.findById(1)
+                    .orElseThrow(() -> new RuntimeException("No se encontró el usuario evaluador con ID 1."));
+        }
+
+        throw new RuntimeException(
+                "Tipo de actividad no reconocido para asignar evaluador automáticamente: " + tipoActividad);
     }
 }

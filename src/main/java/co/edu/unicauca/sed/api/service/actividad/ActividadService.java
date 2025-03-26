@@ -3,6 +3,9 @@ package co.edu.unicauca.sed.api.service.actividad;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
+
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -43,7 +46,7 @@ public interface ActividadService {
      * @param actividadDTO Datos de la actividad a guardar.
      * @return ApiResponse con la actividad guardada.
      */
-    ApiResponse<Actividad> guardar(ActividadBaseDTO actividadDTO);
+    ApiResponse<List<Actividad>> guardar(List<ActividadBaseDTO> actividadesDTO);
 
     /**
      * Actualiza una actividad existente en la base de datos.

@@ -106,11 +106,11 @@ public class ActividadController {
     }
 
     /**
-     * Guarda una nueva actividad.
+     * Guarda una lista de actividades (carga masiva).
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Actividad>> save(@RequestBody ActividadBaseDTO actividadDTO) {
-        ApiResponse<Actividad> response = actividadService.guardar(actividadDTO);
+    public ResponseEntity<ApiResponse<List<Actividad>>> save(@RequestBody List<ActividadBaseDTO> actividadesDTO) {
+        ApiResponse<List<Actividad>> response = actividadService.guardar(actividadesDTO);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 

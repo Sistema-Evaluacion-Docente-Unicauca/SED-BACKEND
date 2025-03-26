@@ -1,6 +1,7 @@
 package co.edu.unicauca.sed.api.service.notificacion;
 
 import co.edu.unicauca.sed.api.client.ClienteNotificacion;
+import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class NotificacionDocumentoService {
         }
     }
 
-    public void notificarEvaluado(String tipoDocumento, Usuario evaluador, Usuario evaluado) {
+    private void notificarEvaluado(String tipoDocumento, Usuario evaluador, Usuario evaluado) {
         try {
             String departamento = evaluado.getUsuarioDetalle().getDepartamento();
             String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
@@ -68,6 +69,17 @@ public class NotificacionDocumentoService {
             notificationClient.enviarNotificacion(Collections.singletonList(evaluado.getCorreo()), asunto, mensaje);
         } catch (Exception e) {
             logger.error("❌ Error notificando al jefe de departamento: {}", e.getMessage(), e);
+        }
+    }
+
+    public void notificarEvaluadoPorFuente(String tipoDocumento, Fuente fuente) {
+        try {
+            Usuario evaluado = fuente.getActividad().getProceso().getEvaluado();
+            Usuario evaluador = fuente.getActividad().getProceso().getEvaluador();
+
+            notificarEvaluado(tipoDocumento, evaluador, evaluado);
+        } catch (Exception e) {
+            logger.error("❌ Error notificando al evaluado por fuente: {}", e.getMessage(), e);
         }
     }
 }

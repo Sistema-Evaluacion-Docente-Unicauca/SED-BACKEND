@@ -119,9 +119,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
             // Actualizar la calificación de la fuente
             fuenteBussines.actualizarFuente(fuente, calificacionFinal, dto.getTipoCalificacion(), dto.getObservacion());
-            Usuario evaluado = fuente.getActividad().getProceso().getEvaluado();
-            Usuario evaluador = fuente.getActividad().getProceso().getEvaluador();
-            notificacionDocumentoService.notificarEvaluado(PREFIJO_FUENTE_2, evaluador, evaluado);
+            notificacionDocumentoService.notificarEvaluadoPorFuente(PREFIJO_FUENTE_2, fuente);
             return new ApiResponse<>(200, "Evaluación docente guardada correctamente.", null);
         } catch (Exception e) {
             LOGGER.error("❌ Error al guardar la evaluación docente.", e);

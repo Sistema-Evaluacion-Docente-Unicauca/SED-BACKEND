@@ -11,4 +11,5 @@ public class OdsDTO {
     private Integer oidAutoevaluacionOds;
     private Integer oidOds;
     private String resultado;
+    private String documento;
 }

@@ -81,7 +81,7 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
                 mensajeTipoFuente = "Fuente 2";
                 rutaArchivoComun = fileService.manejarArchivoFuente(fuenteOpcional, informeFuente, periodoAcademico,
                         nombreEvaluado, contratacion, departamento, nombreActividad, idEvaluador, "fuente");
-                notificacionDocumentoService.notificarEvaluado(mensajeTipoFuente, evaluador, evaluado);
+                notificacionDocumentoService.notificarEvaluadoPorFuente(mensajeTipoFuente, fuente);
             } else if ("1".equals(fuenteDTO.getTipoFuente())) {
                 mensajeTipoFuente = "Fuente 1 (Autoevaluación)";
                 rutaArchivoComun = fileService.manejarArchivoFuente(fuenteOpcional, informeFuente, periodoAcademico,
