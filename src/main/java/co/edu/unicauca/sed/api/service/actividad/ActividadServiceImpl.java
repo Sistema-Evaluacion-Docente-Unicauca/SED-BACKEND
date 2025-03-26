@@ -18,12 +18,14 @@ import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
@@ -66,6 +68,9 @@ public class ActividadServiceImpl implements ActividadService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private TipoActividadRepository tipoActividadRepository;
 
     @Override
     public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
@@ -180,11 +185,14 @@ public class ActividadServiceImpl implements ActividadService {
         actividad.getProceso().setEvaluado(evaluado);
 
         Usuario evaluador;
-        if (dto.getOidEvaluador() != null) {
+        if (dto.getOidEvaluador() != 0) {
             evaluador = new Usuario(dto.getOidEvaluador());
         } else {
-            String tipoActividad = actividad.getTipoActividad().getNombre();
-            evaluador = obtenerEvaluadorAutomatico(tipoActividad, evaluado);
+            Integer idTipoActividad = dto.getTipoActividad().getOidTipoActividad();
+            TipoActividad tipoActividad = tipoActividadRepository.findById(idTipoActividad)
+                .orElseThrow(() -> new RuntimeException(
+                        "No se encontró el tipo de actividad con ID " + idTipoActividad));
+            evaluador = obtenerEvaluadorAutomatico(tipoActividad.getNombre(), evaluado);
         }
 
         actividad.getProceso().setEvaluador(evaluador);
