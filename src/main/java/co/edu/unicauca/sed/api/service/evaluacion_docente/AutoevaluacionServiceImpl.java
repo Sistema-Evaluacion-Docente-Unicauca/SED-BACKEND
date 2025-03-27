@@ -104,8 +104,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
             // Actualizar información de la fuente
             fuenteBussines.actualizarFuente(fuente, dto.getCalificacion(), dto.getTipoCalificacion(), dto.getObservacion());
-            String mensajeTipoFuente = "Fuente 1";
-            notificacionDocumentoService.notificarEvaluadoPorFuente(mensajeTipoFuente, fuente);
             LOGGER.info("✅ Autoevaluación {} correctamente.", autoevaluacionOpt.isPresent() ? "actualizada" : "creada");
             return new ApiResponse<>(200, MSG_AUTOEVALUACION_OK, null);
         } catch (Exception e) {
