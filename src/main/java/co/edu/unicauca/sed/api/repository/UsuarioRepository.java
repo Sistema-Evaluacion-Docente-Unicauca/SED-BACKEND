@@ -43,10 +43,20 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaS
                         "JOIN u.roles r " +
                         "JOIN u.estadoUsuario e " +
                         "WHERE u.usuarioDetalle.departamento = :departamento " +
-                        "AND LOWER(r.nombre) = LOWER(:nombreRol) " +
+                        "AND r.oid = :oidRol " +
                         "AND e.nombre = 'ACTIVO'")
-        Optional<Usuario> findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(
+        Optional<Usuario> findFirstActiveByDepartamentoAndRolId(
                         @Param("departamento") String departamento,
-                        @Param("nombreRol") String nombreRol);
+                        @Param("oidRol") Integer oidRol);
 
+        @Query("SELECT u " +
+                        "FROM Usuario u " +
+                        "JOIN u.roles r " +
+                        "JOIN u.estadoUsuario e " +
+                        "WHERE u.usuarioDetalle.facultad = :facultad " +
+                        "AND r.oid = :oidRol " +
+                        "AND e.nombre = 'ACTIVO'")
+        Optional<Usuario> findFirstActiveByFacultadAndRolId(
+                        @Param("facultad") String facultad,
+                        @Param("oidRol") Integer oidRol);
 }

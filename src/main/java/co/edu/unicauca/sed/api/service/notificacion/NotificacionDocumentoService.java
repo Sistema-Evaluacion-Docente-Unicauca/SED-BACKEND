@@ -7,6 +7,7 @@ import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Optional;
@@ -36,13 +37,12 @@ public class NotificacionDocumentoService {
      * @param evaluador     Usuario que genera el documento.
      * @param evaluado      Usuario al que pertenece el documento.
      */
-
+    @Async
     public void notificarJefeDepartamento(String tipoDocumento, Usuario evaluador, Usuario evaluado) {
         try {
             String departamento = evaluado.getUsuarioDetalle().getDepartamento();
 
-            Optional<Usuario> jefeDepartamento = usuarioRepository
-                .findFirstActiveByUsuarioDetalle_DepartamentoAndRoles_Nombre(departamento, "CPD");
+            Optional<Usuario> jefeDepartamento = usuarioRepository.findFirstActiveByDepartamentoAndRolId(departamento, 7);
 
             if (jefeDepartamento.isPresent() && jefeDepartamento.get().getCorreo() != null) {
                 String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
@@ -61,6 +61,7 @@ public class NotificacionDocumentoService {
         }
     }
 
+    @Async
     private void notificarEvaluado(String tipoDocumento, Usuario evaluador, Usuario evaluado) {
         try {
             String departamento = evaluado.getUsuarioDetalle().getDepartamento();

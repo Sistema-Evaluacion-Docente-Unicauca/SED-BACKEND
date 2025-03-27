@@ -50,7 +50,6 @@ public class TipoActividadController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<TipoActividad> findById(@PathVariable Integer id) {
-        logger.info("Solicitud para buscar TipoActividad con ID: {}", id);
         TipoActividad tipoActividad = service.buscarPorOid(id);
         if (tipoActividad != null) {
             return ResponseEntity.ok(tipoActividad);
@@ -68,7 +67,6 @@ public class TipoActividadController {
      */
     @GetMapping
     public ResponseEntity<Page<TipoActividad>> findAll(Pageable pageable) {
-        logger.info("Solicitud para listar TipoActividad con paginación");
         return ResponseEntity.ok(service.obtenerTodos(pageable));
     }
 

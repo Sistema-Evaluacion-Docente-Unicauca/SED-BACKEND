@@ -65,7 +65,6 @@ public class RolController {
      */
     @GetMapping
     public ResponseEntity<Page<Rol>> findAll(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        logger.info("Solicitud recibida para listar roles con paginación");
         return ResponseEntity.ok(rolService.findAll(pageable));
     }
 

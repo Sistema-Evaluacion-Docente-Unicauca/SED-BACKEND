@@ -66,7 +66,6 @@ public class ProcesoServiceImpl implements ProcesoService {
         try {
             proceso.setNombreProceso(proceso.getNombreProceso().toUpperCase());
             Proceso savedProceso = procesoRepository.save(proceso);
-            LOGGER.info("✅ Proceso guardado con ID: {}", savedProceso.getOidProceso());
             return new ApiResponse<>(201, "Proceso guardado correctamente.", savedProceso);
         } catch (DataIntegrityViolationException e) {
             LOGGER.error("❌ Restricción de clave única violada al guardar el proceso: {}", e.getMessage());
@@ -92,9 +91,6 @@ public class ProcesoServiceImpl implements ProcesoService {
             existingProceso.setOidPeriodoAcademico(proceso.getOidPeriodoAcademico());
             existingProceso.setNombreProceso(proceso.getNombreProceso().toUpperCase());
             existingProceso.setResolucion(proceso.getResolucion());
-            //existingProceso.setOficio(proceso.getOficio());
-            //existingProceso.setConsolidado(proceso.getConsolidado());
-            //existingProceso.setActividades(proceso.getActividades());
 
             Proceso updatedProceso = procesoRepository.save(existingProceso);
             LOGGER.info("✅ [UPDATE] Proceso actualizado con ID: {}", updatedProceso.getOidProceso());
@@ -124,7 +120,6 @@ public class ProcesoServiceImpl implements ProcesoService {
             try {
                 Proceso savedProceso = procesoRepository.save(actividad.getProceso());
                 actividad.setProceso(savedProceso);
-                LOGGER.info("✅ [SAVE] Proceso guardado con ID: {}", savedProceso.getOidProceso());
                 return new ApiResponse<>(200, "Proceso guardado correctamente.", null);
             } catch (DataIntegrityViolationException e) {
                 LOGGER.error("❌ [ERROR] Restricción de clave única violada al guardar el proceso: {}", e.getMessage());
