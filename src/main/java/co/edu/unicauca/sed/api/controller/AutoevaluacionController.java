@@ -60,7 +60,7 @@ public class AutoevaluacionController {
      */
     @GetMapping("/{oidFuente}")
     public ResponseEntity<ApiResponse<Object>> obtenerAutoevaluacion(@PathVariable Integer oidFuente) {
-        ApiResponse<Object> response = autoevaluacionService.obtenerAutoevaluacion(oidFuente);
+        ApiResponse<Object> response = autoevaluacionService.listarAutoevaluacion(oidFuente);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

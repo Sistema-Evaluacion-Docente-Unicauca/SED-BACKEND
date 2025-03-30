@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,31 +56,9 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
             // Verificar si ya existe autoevaluación
             Optional<Autoevaluacion> autoevaluacionOpt = autoevaluacionRepository.findByFuente(fuente);
-            Autoevaluacion autoevaluacion = autoevaluacionOpt.orElseGet(() -> {
-                Autoevaluacion nueva = new Autoevaluacion(); nueva.setFuente(fuente);
-                return nueva;
-            });
+            Autoevaluacion objAutoevaluacion = obtenerAutoevaluacion(autoevaluacionOpt, fuente);
 
-            // Guardar archivos principales
-            if (firma != null) {
-                String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firma, PREFIJO_FIRMA);
-                if (rutaFirma != null) {
-                    autoevaluacion.setRutaDocumentoFirma(rutaFirma);
-                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaFirma);
-                    autoevaluacion.setFirma(nombreArchivo);
-                }
-            }
-
-            if (screenshotSimca != null) {
-                String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, PREFIJO_SCREENSHOT);
-                if (rutaScreenshot != null)
-                    autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
-                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaScreenshot);
-                    autoevaluacion.setScreenshotSimca(nombreArchivo);
-            }
-
-            // Guardar la autoevaluación (nuevo o actualizada)
-            autoevaluacion = autoevaluacionRepository.save(autoevaluacion);
+            Autoevaluacion autoevaluacion = procesarAutoevaluacion(objAutoevaluacion, fuente, firma, screenshotSimca, dto.getDescripcion());
 
             Map<Integer, MultipartFile> archivosOdsMap = mapearArchivosOdsPorNombre(dto.getOdsSeleccionados(), archivosOds);
 
@@ -110,7 +90,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse<Object> obtenerAutoevaluacion(Integer oidFuente) {
+    public ApiResponse<Object> listarAutoevaluacion(Integer oidFuente) {
         try {
             LOGGER.info("🔍 Buscando autoevaluación por fuente ID: {}", oidFuente);
 
@@ -190,4 +170,43 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             .map(oportunidadMejora -> new OportunidadMejoraDTO(oportunidadMejora.getOidOportunidadMejora(), oportunidadMejora.getDescripcion()))
             .collect(Collectors.toList());
     }
+
+    private Autoevaluacion obtenerAutoevaluacion(Optional<Autoevaluacion> autoevaluacionOpt, Fuente fuente) {
+        return autoevaluacionOpt.orElseGet(() -> {
+            Autoevaluacion nuevaAutoevaluacion = new Autoevaluacion();
+            nuevaAutoevaluacion.setFuente(fuente);
+            return nuevaAutoevaluacion;
+        });
+    }
+    
+    private Autoevaluacion procesarAutoevaluacion(Autoevaluacion autoevaluacion, Fuente fuente,
+            MultipartFile firma, MultipartFile screenshotSimca, String descripcion) {
+        try {
+            if (firma != null) {
+                String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firma, PREFIJO_FIRMA);
+                if (rutaFirma != null) {
+                    autoevaluacion.setRutaDocumentoFirma(rutaFirma);
+                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaFirma);
+                    autoevaluacion.setFirma(nombreArchivo);
+                }
+            }
+
+            if (screenshotSimca != null) {
+                String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, PREFIJO_SCREENSHOT);
+                if (rutaScreenshot != null) {
+                    autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
+                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaScreenshot);
+                    autoevaluacion.setScreenshotSimca(nombreArchivo);
+                }
+            }
+
+            autoevaluacion.setDescripcion(descripcion);
+            return autoevaluacionRepository.save(autoevaluacion);
+
+        } catch (IOException e) {
+            LOGGER.error("❌ Error al guardar los documentos de la autoevaluación: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al guardar los documentos de la autoevaluación", e);
+        }
+    }
+
 }
