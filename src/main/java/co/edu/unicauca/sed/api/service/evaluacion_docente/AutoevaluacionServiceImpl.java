@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,7 +32,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     private static final String PREFIJO_FUENTE_1 = "fuente-1";
     private final AutoevaluacionRepository autoevaluacionRepository;
     private final AutoevaluacionOdsRepository autoevaluacionOdsRepository;
-    private final LeccionAprendidaRepository leccionAprendidaRepository;
     private final OportunidadMejoraRepository oportunidadMejoraRepository;
     private final FuenteService fuenteService;
     private final FuenteBusinessService fuenteBussines;
@@ -50,8 +48,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             MultipartFile documentoAutoevaluacion,
             Map<String, MultipartFile> archivosOds) {
         try {
-            LOGGER.info("📥 Procesando autoevaluación para la fuente ID: {}", dto.getOidFuente());
-
             Fuente fuente = fuenteService.obtenerFuente(dto.getOidFuente());
 
             // Verificar si ya existe autoevaluación
@@ -60,7 +56,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
             Autoevaluacion autoevaluacion = procesarAutoevaluacion(objAutoevaluacion, fuente, firma, screenshotSimca, dto.getDescripcion());
 
-            Map<Integer, MultipartFile> archivosOdsMap = mapearArchivosOdsPorNombre(dto.getOdsSeleccionados(), archivosOds);
+            Map<Integer, MultipartFile> archivosOdsMap = autoevaluacionOdsService.mapearArchivoODS(dto.getOdsSeleccionados(), archivosOds);
 
             // Guardar ODS con sus evidencias
             autoevaluacionOdsService.guardarOds(dto.getOdsSeleccionados(), autoevaluacion, archivosOdsMap, fuente);
@@ -80,7 +76,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
             // Actualizar información de la fuente
             fuenteBussines.actualizarFuente(fuente, dto.getCalificacion(), dto.getTipoCalificacion(), dto.getObservacion());
-            LOGGER.info("✅ Autoevaluación {} correctamente.", autoevaluacionOpt.isPresent() ? "actualizada" : "creada");
             return new ApiResponse<>(200, MSG_AUTOEVALUACION_OK, null);
         } catch (Exception e) {
             LOGGER.error("❌ " + MSG_AUTOEVALUACION_ERROR, e);
@@ -92,8 +87,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     @Transactional(readOnly = true)
     public ApiResponse<Object> listarAutoevaluacion(Integer oidFuente) {
         try {
-            LOGGER.info("🔍 Buscando autoevaluación por fuente ID: {}", oidFuente);
-
             Fuente fuente = fuenteService.obtenerFuente(oidFuente);
             Autoevaluacion autoevaluacion = autoevaluacionRepository.findByFuente(fuente)
                     .orElseThrow(() -> new NoSuchElementException(MSG_NO_EVALUACION + oidFuente));
@@ -107,8 +100,8 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             resultado.put("firma", autoevaluacion.getFirma());
             resultado.put("Descripcion", autoevaluacion.getDescripcion());
             resultado.put("screenshotSimca", autoevaluacion.getScreenshotSimca());
-            resultado.put("odsSeleccionados", obtenerOds(autoevaluacion));
-            resultado.put("leccionesAprendidas", obtenerDescripcionesLecciones(autoevaluacion));
+            resultado.put("odsSeleccionados", autoevaluacionOdsService.obtenerOds(autoevaluacion));
+            resultado.put("leccionesAprendidas", leccionAprendidaService.obtenerDescripcionesLecciones(autoevaluacion));
             resultado.put("oportunidadesMejora", obtenerDescripcionesMejoras(autoevaluacion));
 
             return new ApiResponse<>(200, "Autoevaluación encontrada correctamente.", resultado);
@@ -119,49 +112,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             LOGGER.error("❌ " + MSG_BUSQUEDA_ERROR, e);
             return new ApiResponse<>(500, MSG_BUSQUEDA_ERROR, null);
         }
-    }
-
-    private Map<Integer, MultipartFile> mapearArchivosOdsPorNombre(List<OdsDTO> odsSeleccionados, Map<String, MultipartFile> archivos) {
-        if (archivos == null || archivos.isEmpty() || odsSeleccionados == null || odsSeleccionados.isEmpty()) {
-            return Map.of();
-        }
-    
-        Map<Integer, MultipartFile> resultado = new HashMap<>();
-    
-        for (OdsDTO ods : odsSeleccionados) {
-            String nombreDocumento = ods.getDocumento();
-            Integer oidOds = ods.getOidOds();
-    
-            if (nombreDocumento != null && oidOds != null) {
-                Optional<Map.Entry<String, MultipartFile>> archivoEncontrado = archivos.entrySet().stream()
-                    .filter(entry -> entry.getValue().getOriginalFilename() != null &&
-                        entry.getValue().getOriginalFilename().equals(nombreDocumento))
-                    .findFirst();
-    
-                archivoEncontrado.ifPresent(entry -> resultado.put(oidOds, entry.getValue()));
-            }
-        }
-    
-        return resultado;
-    }    
-
-    private List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion) {
-        return autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion).stream().map(item -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("oidAutoevaluacionOds", item.getOidAutoevaluacionOds());
-            map.put("oidOds", item.getOds().getOidObjetivoDesarrolloSostenible());
-            map.put("nombre", item.getOds().getNombre());
-            map.put("resultado", item.getResultado());
-            map.put("documento", item.getNombreDocumento());
-            return map;
-        }).collect(Collectors.toList());
-    }
-
-    private List<LeccionDTO> obtenerDescripcionesLecciones(Autoevaluacion autoevaluacion) {
-        return leccionAprendidaRepository.findByAutoevaluacion(autoevaluacion)
-            .stream()
-            .map(leccion -> new LeccionDTO(leccion.getOidLeccionAprendida(), leccion.getDescripcion()))
-            .collect(Collectors.toList());
     }
 
     private List<OportunidadMejoraDTO> obtenerDescripcionesMejoras(Autoevaluacion autoevaluacion) {

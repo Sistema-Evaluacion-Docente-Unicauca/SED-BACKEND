@@ -53,7 +53,6 @@ public class ActividadBooleanServiceImpl implements ActividadBooleanService {
     public ResponseEntity<ApiResponse<ActividadBoolean>> crear(ActividadBoolean actividadBoolean) {
         try {
             ActividadBoolean nuevoRegistro = actividadBooleanRepository.save(actividadBoolean);
-            LOGGER.info("✅ Registro ACTIVIDADBOOLEAN creado correctamente: {}", nuevoRegistro);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoRegistro));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ACTIVIDADBOOLEAN", e);
@@ -69,7 +68,6 @@ public class ActividadBooleanServiceImpl implements ActividadBooleanService {
             }
             actividadBoolean.setOidActividadBoolean(id);
             ActividadBoolean actualizado = actividadBooleanRepository.save(actividadBoolean);
-            LOGGER.info("✅ Registro ACTIVIDADBOOLEAN actualizado correctamente: {}", actualizado);
             return ResponseEntity.ok(new ApiResponse<>(200, "Registro actualizado correctamente", actualizado));
         } catch (Exception e) {
             LOGGER.error("❌ Error al actualizar el registro ACTIVIDADBOOLEAN", e);

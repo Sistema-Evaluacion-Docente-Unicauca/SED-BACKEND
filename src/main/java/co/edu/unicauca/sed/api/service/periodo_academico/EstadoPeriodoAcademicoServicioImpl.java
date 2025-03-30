@@ -27,7 +27,6 @@ public class EstadoPeriodoAcademicoServicioImpl implements EstadoPeriodoAcademic
     @Transactional
     public ApiResponse<EstadoPeriodoAcademico> guardar(EstadoPeriodoAcademico estadoPeriodoAcademico) {
         try {
-            LOGGER.info("✅ Guardando EstadoPeriodoAcademico: {}", estadoPeriodoAcademico);
             EstadoPeriodoAcademico guardado = repository.save(estadoPeriodoAcademico);
             return new ApiResponse<>(201, "Estado de período académico guardado correctamente.", guardado);
         } catch (Exception e) {
@@ -40,7 +39,6 @@ public class EstadoPeriodoAcademicoServicioImpl implements EstadoPeriodoAcademic
     @Transactional(readOnly = true)
     public ApiResponse<EstadoPeriodoAcademico> buscarPorId(Integer id) {
         try {
-            LOGGER.info("🔍 Buscando EstadoPeriodoAcademico con ID: {}", id);
             EstadoPeriodoAcademico estado = repository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("EstadoPeriodoAcademico con ID " + id + " no encontrado."));
             return new ApiResponse<>(200, "Estado de período académico encontrado correctamente.", estado);
@@ -56,7 +54,6 @@ public class EstadoPeriodoAcademicoServicioImpl implements EstadoPeriodoAcademic
     @Transactional(readOnly = true)
     public ApiResponse<Page<EstadoPeriodoAcademico>> buscarTodos(Pageable pageable) {
         try {
-            LOGGER.info("📋 Obteniendo todos los EstadosPeriodoAcademico con paginación.");
             Page<EstadoPeriodoAcademico> estados = repository.findAll(pageable);
             return estados.isEmpty()
                     ? new ApiResponse<>(204, "No se encontraron estados de períodos académicos.", Page.empty())
@@ -71,7 +68,6 @@ public class EstadoPeriodoAcademicoServicioImpl implements EstadoPeriodoAcademic
     @Transactional
     public ApiResponse<EstadoPeriodoAcademico> actualizar(Integer id, EstadoPeriodoAcademico estadoPeriodoAcademico) {
         try {
-            LOGGER.info("🔄 Actualizando EstadoPeriodoAcademico con ID: {}", id);
             EstadoPeriodoAcademico estadoExistente = repository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("EstadoPeriodoAcademico con ID " + id + " no encontrado."));
 

@@ -80,7 +80,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
     @Transactional(readOnly = true)
     public ApiResponse<Page<EvaluacionEstudiante>> buscarTodos(Pageable pageable) {
         try {
-            LOGGER.info("📄 Listando Evaluaciones de Estudiantes con paginación.");
             Page<EvaluacionEstudiante> evaluaciones = evaluacionEstudianteRepository.findAll(pageable);
             return new ApiResponse<>(200, "Evaluaciones de estudiantes obtenidas correctamente.", evaluaciones);
         } catch (Exception e) {

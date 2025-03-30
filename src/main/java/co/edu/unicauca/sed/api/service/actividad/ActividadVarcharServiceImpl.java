@@ -56,7 +56,6 @@ public class ActividadVarcharServiceImpl implements ActividadVarcharService {
             }
 
             ActividadVarchar nuevoRegistro = actividadVarcharRepository.save(actividadVarchar);
-            LOGGER.info("✅ Registro ACTIVIDADVARCHAR creado correctamente: {}", nuevoRegistro);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoRegistro));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ACTIVIDADVARCHAR", e);

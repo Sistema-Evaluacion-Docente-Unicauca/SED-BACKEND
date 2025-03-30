@@ -51,7 +51,6 @@ public class EstadoActividadServiceImpl implements EstadoActividadService {
         try {
             estadoActividad.setNombre(stringUtils.safeToUpperCase(estadoActividad.getNombre()));
             EstadoActividad nuevoEstado = repository.save(estadoActividad);
-            LOGGER.info("✅ EstadoActividad creado correctamente: {}", nuevoEstado);
             return ResponseEntity.ok(new ApiResponse<>(201, "Estado de actividad creado correctamente", nuevoEstado));
         } catch (Exception e) {
             LOGGER.error("❌ Error al guardar el EstadoActividad", e);
@@ -99,8 +98,6 @@ public class EstadoActividadServiceImpl implements EstadoActividadService {
                     .orElseThrow(() -> new IllegalArgumentException("Estado de actividad no válido."));
 
             actividad.setEstadoActividad(estadoExistente);
-            LOGGER.info("✅ Estado de actividad asignado a la actividad con ID: {}", actividad.getOidActividad());
-
             return ResponseEntity.ok(new ApiResponse<>(200, "Estado de actividad asignado correctamente", null));
         } catch (Exception e) {
             LOGGER.error("❌ Error al asignar EstadoActividad con OID {}: {}", oidEstadoActividad, e.getMessage(), e);

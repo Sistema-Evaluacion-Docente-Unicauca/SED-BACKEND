@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +48,12 @@ public class LeccionAprendidaServiceImpl implements LeccionAprendidaService {
             entidad.setDescripcion(leccion.getDescripcion());
     
             leccionAprendidaRepository.save(entidad);
-    
-            LOGGER.debug("✅ Lección {}: {}", leccion.getOidLeccionAprendida() == null ? "creada" : "actualizada",  leccion.getDescripcion());
         });
-    }    
+    }
+
+    @Override
+    public List<LeccionDTO> obtenerDescripcionesLecciones(Autoevaluacion autoevaluacion) {
+        return leccionAprendidaRepository.findByAutoevaluacion(autoevaluacion)
+            .stream().map(leccion -> new LeccionDTO(leccion.getOidLeccionAprendida(), leccion.getDescripcion())).collect(Collectors.toList());
+    }
 }

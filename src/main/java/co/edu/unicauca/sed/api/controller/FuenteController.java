@@ -62,7 +62,6 @@ public class FuenteController {
     public ResponseEntity<?> find(@PathVariable Integer oid) {
         Fuente resultado = fuenteService.buscarPorId(oid);
         if (resultado != null) {
-            logger.info("Fuente con ID {} encontrada", oid);
             return ResponseEntity.ok().body(resultado);
         }
         logger.warn("Fuente con ID {} no encontrada", oid);
@@ -86,18 +85,13 @@ public class FuenteController {
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
-            logger.debug("📌 Parámetro [informeFuente]: Nombre del archivo -> {}", informeFuente.getOriginalFilename());
-            logger.debug("📌 Parámetro [observation]: {}", observation);
-            logger.debug("📌 Parámetro [sources]: {}", sourcesJson);
             if (allFiles != null) {
-                logger.debug("📌 Parámetro [allFiles]: {} archivos adicionales recibidos.", allFiles.size());
                 allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes",
                         file.getOriginalFilename(), file.getSize()));
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
             fuenteService.guardarFuente(sourcesJson, informeFuente, observation, allFiles);
-            logger.info("Fuente guardada exitosamente");
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (Exception e) {
             logger.debug("Error al procesar los archivos: {}", e.getMessage());
@@ -148,8 +142,6 @@ public class FuenteController {
     public ResponseEntity<?> downloadFile(
             @PathVariable("id") Integer id,
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
-        logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id,
-                isReport);
         return fuenteService.obtenerArchivo(id, isReport);
     }
 }

@@ -156,13 +156,11 @@ public class ProcesoServiceImpl implements ProcesoService {
             proceso.setOidPeriodoAcademico(new PeriodoAcademico(idPeriodoAcademico));
             proceso.setNombreProceso(TIPO_CONSOLIDADO);
     
-            Proceso savedProceso = this.procesoRepository.save(proceso);
-            LOGGER.info("✅ [SAVE] Nuevo proceso creado con ID: {}", savedProceso.getOidProceso());
-    
+            Proceso savedProceso = this.procesoRepository.save(proceso);    
             return savedProceso;
         } catch (DataIntegrityViolationException e) {
             LOGGER.error("❌ [ERROR] Restricción de clave única violada al crear el proceso: {}", e.getMessage());
-            return null; // Retornamos `null` para indicar que no se pudo crear
+            return null;
         } catch (Exception e) {
             LOGGER.error("❌ [ERROR] Error inesperado al crear el proceso: {}", e.getMessage(), e);
             return null;

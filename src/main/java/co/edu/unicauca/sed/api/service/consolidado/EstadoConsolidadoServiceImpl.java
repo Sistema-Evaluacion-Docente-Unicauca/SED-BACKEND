@@ -29,7 +29,6 @@ public class EstadoConsolidadoServiceImpl implements EstadoConsolidadoService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<EstadoConsolidado>>> obtenerTodos(int page, int size) {
         try {
-            LOGGER.info("📌 Obteniendo todos los registros de EstadoConsolidado");
             Page<EstadoConsolidado> estados = estadoConsolidadoRepository.findAll(PageRequest.of(page, size));
             return ResponseEntity.ok(new ApiResponse<>(200, "Registros obtenidos correctamente", estados));
         } catch (Exception e) {
@@ -42,7 +41,6 @@ public class EstadoConsolidadoServiceImpl implements EstadoConsolidadoService {
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<EstadoConsolidado>> buscarPorId(Integer id) {
         try {
-            LOGGER.info("🔍 Buscando EstadoConsolidado con ID: {}", id);
             Optional<EstadoConsolidado> estado = estadoConsolidadoRepository.findById(id);
             return estado.map(value -> ResponseEntity.ok(new ApiResponse<>(200, "Registro encontrado", value)))
                     .orElseGet(() -> ResponseEntity.status(404).body(new ApiResponse<>(404, "Registro no encontrado", null)));
@@ -56,7 +54,6 @@ public class EstadoConsolidadoServiceImpl implements EstadoConsolidadoService {
     @Transactional
     public ResponseEntity<ApiResponse<EstadoConsolidado>> crear(EstadoConsolidado estado) {
         try {
-            LOGGER.info("✅ Creando nuevo EstadoConsolidado: {}", estado);
             EstadoConsolidado nuevoEstado = estadoConsolidadoRepository.save(estado);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoEstado));
         } catch (Exception e) {

@@ -34,11 +34,7 @@ public class TipoActividadController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<TipoActividad>> create(@RequestBody TipoActividad tipoActividad) {
-        logger.info("🔹 [POST] Solicitud para crear TipoActividad: {}", tipoActividad);
-
         ApiResponse<TipoActividad> response = service.guardar(tipoActividad);
-
-        // Retornar el código HTTP en base al resultado
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 

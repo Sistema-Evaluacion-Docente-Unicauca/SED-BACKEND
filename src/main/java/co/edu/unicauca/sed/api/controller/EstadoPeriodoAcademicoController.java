@@ -23,25 +23,21 @@ public class EstadoPeriodoAcademicoController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<EstadoPeriodoAcademico>> create(@RequestBody EstadoPeriodoAcademico estadoPeriodoAcademico) {
-        logger.info("Solicitud para crear EstadoPeriodoAcademico: {}", estadoPeriodoAcademico);
         return ResponseEntity.ok(service.guardar(estadoPeriodoAcademico));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EstadoPeriodoAcademico>> findById(@PathVariable Integer id) {
-        logger.info("Solicitud para buscar EstadoPeriodoAcademico con id: {}", id);
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EstadoPeriodoAcademico>>> findAll(Pageable pageable) {
-        logger.info("Solicitud para listar EstadoPeriodoAcademico con paginación");
         return ResponseEntity.ok(service.buscarTodos(pageable));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<EstadoPeriodoAcademico>> update(@PathVariable Integer id, @RequestBody EstadoPeriodoAcademico estadoPeriodoAcademico) {
-        logger.info("Solicitud para actualizar EstadoPeriodoAcademico con id: {}", id);
         return ResponseEntity.ok(service.actualizar(id, estadoPeriodoAcademico));
     }
 

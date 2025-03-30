@@ -36,7 +36,6 @@ public class RolController {
      */
     @PostMapping
     public ResponseEntity<Rol> create(@RequestBody Rol rol) {
-        logger.info("Solicitud recibida para crear un rol: {}", rol);
         return new ResponseEntity<>(rolService.save(rol), HttpStatus.CREATED);
     }
 
@@ -48,7 +47,6 @@ public class RolController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Rol> findById(@PathVariable Integer id) {
-        logger.info("Solicitud recibida para buscar un rol con id: {}", id);
         return rolService.findByOid(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> {

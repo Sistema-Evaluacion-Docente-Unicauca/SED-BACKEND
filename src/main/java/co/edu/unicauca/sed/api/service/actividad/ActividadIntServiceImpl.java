@@ -51,7 +51,6 @@ public class ActividadIntServiceImpl implements ActividadIntService {
     public ResponseEntity<ApiResponse<ActividadInt>> crear(ActividadInt actividadInt) {
         try {
             ActividadInt nuevoRegistro = actividadIntRepository.save(actividadInt);
-            LOGGER.info("✅ Registro ACTIVIDADINT creado correctamente: {}", nuevoRegistro);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoRegistro));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ACTIVIDADINT", e);

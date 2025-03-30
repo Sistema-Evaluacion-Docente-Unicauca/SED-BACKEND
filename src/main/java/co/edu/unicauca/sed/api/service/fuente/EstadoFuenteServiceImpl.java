@@ -25,7 +25,6 @@ public class EstadoFuenteServiceImpl implements EstadoFuenteService {
     @Transactional(readOnly = true)
     public ApiResponse<Page<EstadoFuente>> buscarTodos(Pageable pageable) {
         try {
-            logger.info("📄 Listando EstadosFuente con paginación.");
             Page<EstadoFuente> estados = estadoFuenteRepository.findAll(pageable);
             return new ApiResponse<>(200, "Lista de estados de fuente obtenida correctamente.", estados);
         } catch (Exception e) {
@@ -38,7 +37,6 @@ public class EstadoFuenteServiceImpl implements EstadoFuenteService {
     @Transactional(readOnly = true)
     public ApiResponse<EstadoFuente> buscarPorId(Integer id) {
         try {
-            logger.info("🔍 Buscando EstadoFuente con ID: {}", id);
             Optional<EstadoFuente> estadoFuente = estadoFuenteRepository.findById(id);
             return estadoFuente.map(value ->
                     new ApiResponse<>(200, "Estado de fuente encontrado.", value))
@@ -55,7 +53,6 @@ public class EstadoFuenteServiceImpl implements EstadoFuenteService {
         try {
             estadoFuente.setNombreEstado(estadoFuente.getNombreEstado().toUpperCase());
             EstadoFuente nuevoEstado = estadoFuenteRepository.save(estadoFuente);
-            logger.info("✅ EstadoFuente creado correctamente con ID: {}", nuevoEstado.getOidEstadoFuente());
             return new ApiResponse<>(201, "Estado de fuente creado exitosamente.", nuevoEstado);
         } catch (Exception e) {
             logger.error("❌ Error al crear EstadoFuente", e);

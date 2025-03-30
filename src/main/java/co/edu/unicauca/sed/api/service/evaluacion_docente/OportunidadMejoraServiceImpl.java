@@ -21,7 +21,6 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
     @Override
     public void guardar(List<OportunidadMejoraDTO> mejoras, Autoevaluacion autoevaluacion) {
         if (mejoras == null || mejoras.isEmpty()) {
-            LOGGER.info("📌 No se recibieron oportunidades de mejora para guardar.");
             return;
         }
 
@@ -36,7 +35,6 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
             if (mejora.getOidOportunidadMejora() != null) {
                 entidad = oportunidadMejoraRepository.findById(mejora.getOidOportunidadMejora())
                 .orElseGet(() -> {
-                    LOGGER.warn("❗ ID {} no encontrado, se creará una nueva mejora.", mejora.getOidOportunidadMejora());
                     return new OportunidadMejora();
                 });
             } else {
@@ -47,8 +45,6 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
             entidad.setDescripcion(mejora.getDescripcion());
 
             oportunidadMejoraRepository.save(entidad);
-
-            LOGGER.debug("✅ Oportunidad de mejora {}: {}", mejora.getOidOportunidadMejora() == null ? "creada" : "actualizada", mejora.getDescripcion());
         });
     }
 }

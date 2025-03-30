@@ -2,9 +2,13 @@ package co.edu.unicauca.sed.api.service.evaluacion_docente;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,6 +17,7 @@ import co.edu.unicauca.sed.api.domain.Autoevaluacion;
 import co.edu.unicauca.sed.api.domain.AutoevaluacionOds;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.domain.ObjetivoDesarrolloSostenible;
+import co.edu.unicauca.sed.api.dto.ArchivoDTO;
 import co.edu.unicauca.sed.api.dto.OdsDTO;
 import co.edu.unicauca.sed.api.repository.AutoevaluacionOdsRepository;
 import co.edu.unicauca.sed.api.repository.ObjetivoDesarrolloSostenibleRepository;
@@ -58,8 +63,6 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
 
                     entidad.setNombreDocumento(nombreArchivo);
                     entidad.setRutaDocumento(ruta);
-                    LOGGER.info("📎 Evidencia ODS {} guardada en {}", odsDTO.getOidOds(), ruta);
-
                 } catch (IOException e) {
                     LOGGER.error("❌ Error al guardar evidencia del ODS {}: {}", odsDTO.getOidOds(), e.getMessage());
                     throw new RuntimeException("Error al guardar evidencia del ODS " + odsDTO.getOidOds(), e);
@@ -67,8 +70,51 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
             }
 
             autoevaluacionOdsRepository.save(entidad);
-
-            LOGGER.debug("✅ ODS {} {}", odsDTO.getOidAutoevaluacionOds() == null ? "creado" : "actualizado", odsDTO.getOidOds());
         }
+    }
+
+    @Override
+    public ArchivoDTO obtenerArchivoPorId(Integer idOds) {
+        AutoevaluacionOds ods = autoevaluacionOdsRepository.findById(idOds)
+                .orElseThrow(() -> new RuntimeException("ODS con ID " + idOds + " no encontrado."));
+        return new ArchivoDTO(ods.getNombreDocumento(), ods.getRutaDocumento());
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion) {
+        return autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion).stream().map(item -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("oidAutoevaluacionOds", item.getOidAutoevaluacionOds());
+            map.put("oidOds", item.getOds().getOidObjetivoDesarrolloSostenible());
+            map.put("nombre", item.getOds().getNombre());
+            map.put("resultado", item.getResultado());
+            map.put("documento", item.getNombreDocumento());
+            return map;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Integer, MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados,
+            Map<String, MultipartFile> archivos) {
+        if (archivos == null || archivos.isEmpty() || odsSeleccionados == null || odsSeleccionados.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Integer, MultipartFile> resultado = new HashMap<>();
+
+        for (OdsDTO ods : odsSeleccionados) {
+            String nombreDocumento = ods.getDocumento();
+            Integer oidOds = ods.getOidOds();
+
+            if (nombreDocumento != null && oidOds != null) {
+                Optional<Map.Entry<String, MultipartFile>> archivoEncontrado = archivos.entrySet().stream()
+                    .filter(entry -> entry.getValue().getOriginalFilename() != null && entry.getValue().getOriginalFilename().equals(nombreDocumento))
+                    .findFirst();
+
+                archivoEncontrado.ifPresent(entry -> resultado.put(oidOds, entry.getValue()));
+            }
+        }
+
+        return resultado;
     }
 }

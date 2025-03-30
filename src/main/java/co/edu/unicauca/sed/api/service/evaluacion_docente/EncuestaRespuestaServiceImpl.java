@@ -35,7 +35,6 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
     @Transactional(readOnly = true)
     public ApiResponse<Page<EncuestaRespuesta>> buscarTodos(Pageable pageable) {
         try {
-            LOGGER.info("📄 Listando EncuestaRespuesta con paginación.");
             Page<EncuestaRespuesta> encuestaPreguntas = encuestaPreguntaRepository.findAll(pageable);
             return new ApiResponse<>(200, "Encuesta-Pregunta obtenidas correctamente.", encuestaPreguntas);
         } catch (Exception e) {
@@ -48,7 +47,6 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
     @Transactional(readOnly = true)
     public ApiResponse<EncuestaRespuesta> buscarPorId(Integer oid) {
         try {
-            LOGGER.info("🔍 Buscando EncuestaRespuesta con ID: {}", oid);
             return encuestaPreguntaRepository.findById(oid)
                 .map(encuestaPregunta -> new ApiResponse<>(200, "Encuesta-Pregunta encontrada.", encuestaPregunta))
                 .orElseGet(() -> new ApiResponse<>(404, "Encuesta-Pregunta no encontrada.", null));
@@ -63,8 +61,6 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
     public ApiResponse<EncuestaRespuesta> guardar(EncuestaPreguntaDTO encuestaPreguntaDTO, Integer oidEncuesta,
             Integer oidPregunta) {
         try {
-            LOGGER.info("✅ Guardando EncuestaRespuesta.");
-
             Encuesta encuesta = encuestaRepository.findById(oidEncuesta)
                 .orElseThrow(() -> new EntityNotFoundException("Encuesta con ID " + oidEncuesta + " no encontrada."));
 
@@ -79,8 +75,6 @@ public class EncuestaRespuestaServiceImpl implements EncuestaRespuestaService {
             encuestaPregunta.setRespuesta(encuestaPreguntaDTO.getRespuesta());
 
             encuestaPreguntaRepository.save(encuestaPregunta);
-
-            LOGGER.info("✅ EncuestaRespuesta guardada con éxito.");
             return new ApiResponse<>(201, "EncuestaRespuesta guardada correctamente.", encuestaPregunta);
         } catch (EntityNotFoundException e) {
             LOGGER.warn("⚠️ {}", e.getMessage());

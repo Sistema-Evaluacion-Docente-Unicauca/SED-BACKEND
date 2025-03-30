@@ -42,7 +42,6 @@ public class PreguntaServiceImpl implements PreguntaService {
     @Transactional(readOnly = true)
     public ApiResponse<Pregunta> buscarPorOid(Integer oid) {
         try {
-            LOGGER.info("🔍 Buscando Pregunta con OID: {}", oid);
             Pregunta pregunta = preguntaRepository.findById(oid)
                     .orElseThrow(() -> new EntityNotFoundException("Pregunta con ID " + oid + " no encontrada."));
             return new ApiResponse<>(200, "Pregunta encontrada correctamente.", pregunta);

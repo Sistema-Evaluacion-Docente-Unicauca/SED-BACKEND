@@ -1,50 +1,52 @@
 package co.edu.unicauca.sed.api.service.documento;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.springframework.beans.factory.annotation.Value;
+import co.edu.unicauca.sed.api.dto.ArchivoDTO;
+import co.edu.unicauca.sed.api.service.evaluacion_docente.AutoevaluacionOdsService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@RequiredArgsConstructor
 public class DocumentoService {
 
-    @Value("${files.basePath}")
-    private String basePath;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentoService.class);
+    private final FileService fileService;
+    private final AutoevaluacionOdsService autoevaluacionOdsService;
 
-    public Boolean upload(String name, MultipartFile archivo) {
-
-        Path carpeta = Paths.get(basePath);
+    public ResponseEntity<?> obtenerArchivoPorTipo(Integer idArchivo, String tipoArchivo) {
         try {
-            Files.copy(archivo.getInputStream(), carpeta.resolve(name + ".pdf"));
-        } catch (Exception e2) {
-            try {
-                Files.delete(carpeta.resolve(name + ".pdf"));
-                Files.copy(archivo.getInputStream(), carpeta.resolve(name + ".pdf"));
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
+            String rutaArchivo = null;
+            String nombreArchivo = null;
+
+            switch (tipoArchivo.toUpperCase()) {
+                case "ODS":
+                    ArchivoDTO archivoODS = autoevaluacionOdsService.obtenerArchivoPorId(idArchivo);
+                    if (archivoODS == null) {
+                        throw new RuntimeException("ODS con ID " + idArchivo + " no encontrado.");
+                    }
+                    rutaArchivo = archivoODS.getRuta();
+                    nombreArchivo = archivoODS.getNombre();
+                    break;
+
+                default: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tipo de archivo no soportado: " + tipoArchivo);
             }
-        }
-        return true;
-    }
 
-    public Resource getResource(String name) {
-        Resource resource = null;
-        try {
-            Path carpeta = Paths.get(basePath);
-            Path archivo = carpeta.resolve(name + ".pdf");
-            resource = new UrlResource(archivo.toUri());
+            if (rutaArchivo == null || rutaArchivo.isBlank()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El archivo solicitado no está disponible para este tipo de documento.");
+            }
+
+            Resource recurso = fileService.obtenerRecursoArchivo(rutaArchivo);
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombreArchivo + "\"").body(recurso);
+
         } catch (Exception e) {
-            e.printStackTrace();
-            return resource;
+            LOGGER.error("❌ Error al obtener el archivo de tipo {} con ID {}: {}", tipoArchivo, idArchivo,e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error al obtener el archivo: " + e.getMessage());
         }
-        return resource;
     }
 }

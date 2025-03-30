@@ -50,7 +50,6 @@ public class ActividadDecimalServiceImpl implements ActividadDecimalService {
     public ResponseEntity<ApiResponse<ActividadDecimal>> crear(ActividadDecimal actividadDecimal) {
         try {
             ActividadDecimal nuevoRegistro = actividadDecimalRepository.save(actividadDecimal);
-            LOGGER.info("✅ Registro ACTIVIDADDECIMAL creado correctamente: {}", nuevoRegistro);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoRegistro));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ACTIVIDADDECIMAL", e);

@@ -22,7 +22,6 @@ public class EstadoUsuarioServiceImpl implements EstadoUsuarioService {
     @Override
     public ApiResponse<EstadoUsuario> crear(EstadoUsuario estadoUsuario) {
         try {
-            logger.info("✅ Creando EstadoUsuario: {}", estadoUsuario);
             EstadoUsuario nuevoEstado = repository.save(estadoUsuario);
             return new ApiResponse<>(201, "Estado de usuario creado exitosamente.", nuevoEstado);
         } catch (Exception e) {
@@ -34,7 +33,6 @@ public class EstadoUsuarioServiceImpl implements EstadoUsuarioService {
     @Override
     public ApiResponse<EstadoUsuario> buscarPorId(Integer id) {
         try {
-            logger.info("🔍 Buscando EstadoUsuario con ID: {}", id);
             Optional<EstadoUsuario> estadoUsuario = repository.findById(id);
             return estadoUsuario.map(value ->
                     new ApiResponse<>(200, "Estado de usuario encontrado.", value))
@@ -48,7 +46,6 @@ public class EstadoUsuarioServiceImpl implements EstadoUsuarioService {
     @Override
     public ApiResponse<Page<EstadoUsuario>> buscarTodos(Pageable pageable) {
         try {
-            logger.info("📄 Listando EstadosUsuario con paginación.");
             Page<EstadoUsuario> estados = repository.findAll(pageable);
             return new ApiResponse<>(200, "Lista de estados de usuario obtenida correctamente.", estados);
         } catch (Exception e) {
@@ -60,7 +57,6 @@ public class EstadoUsuarioServiceImpl implements EstadoUsuarioService {
     @Override
     public ApiResponse<EstadoUsuario> actualizar(Integer id, EstadoUsuario estadoUsuario) {
         try {
-            logger.info("🔄 Actualizando EstadoUsuario con ID: {}", id);
             return repository.findById(id).map(existing -> {
                 existing.setNombre(estadoUsuario.getNombre());
                 EstadoUsuario actualizado = repository.save(existing);

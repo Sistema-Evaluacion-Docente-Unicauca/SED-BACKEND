@@ -46,7 +46,6 @@ public class FileService {
 
         try {
             Files.write(rutaDestino, archivo.getBytes());
-            LOGGER.info("✅ Archivo guardado correctamente en: {}", rutaDestino);
         } catch (IOException e) {
             LOGGER.error("❌ Error al guardar el archivo: {}, Error: {}", rutaDestino, e.getMessage(), e);
             throw e;
@@ -78,7 +77,6 @@ public class FileService {
                 LOGGER.warn("⚠️ El archivo no existe o no es accesible: {}", rutaArchivo);
                 throw new RuntimeException("El archivo no existe o no es accesible: " + rutaArchivo);
             }
-            LOGGER.info("📄 Archivo recuperado exitosamente: {}", rutaArchivo);
             return new UrlResource(pathArchivo.toUri());
         } catch (Exception e) {
             LOGGER.error("❌ Error al recuperar el archivo: {}, Error: {}", rutaArchivo, e.getMessage(), e);

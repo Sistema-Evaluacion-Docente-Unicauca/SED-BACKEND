@@ -26,7 +26,6 @@ public class EstadoUsuarioController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EstadoUsuario>> buscarPorId(@PathVariable Integer id) {
-        logger.info("🔍 Buscando EstadoUsuario con ID: {}", id);
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
@@ -37,13 +36,11 @@ public class EstadoUsuarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<EstadoUsuario>> actualizar(@PathVariable Integer id, @RequestBody EstadoUsuario estadoUsuario) {
-        logger.info("🔄 Actualizando EstadoUsuario con ID: {}", id);
         return ResponseEntity.ok(service.actualizar(id, estadoUsuario));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
-        logger.info("🗑️ Eliminando EstadoUsuario con ID: {}", id);
         return ResponseEntity.ok(service.eliminar(id));
     }
 }

@@ -52,7 +52,6 @@ public class ActividadDateServiceImpl implements ActividadDateService {
     public ResponseEntity<ApiResponse<ActividadDate>> crear(ActividadDate actividadDate) {
         try {
             ActividadDate nuevoRegistro = actividadDateRepository.save(actividadDate);
-            LOGGER.info("✅ Registro ACTIVIDADDATE creado correctamente: {}", nuevoRegistro);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoRegistro));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ACTIVIDADDATE", e);

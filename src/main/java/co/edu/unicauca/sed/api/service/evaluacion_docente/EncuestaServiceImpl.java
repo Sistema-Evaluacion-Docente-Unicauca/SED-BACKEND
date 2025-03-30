@@ -27,7 +27,6 @@ public class EncuestaServiceImpl implements EncuestaService {
     @Transactional(readOnly = true)
     public ApiResponse<Page<Encuesta>> buscarTodos(Pageable pageable) {
         try {
-            LOGGER.info("📄 Listando encuestas con paginación.");
             Page<Encuesta> encuestas = encuestaRepository.findAll(pageable);
             return new ApiResponse<>(200, "Encuestas obtenidas correctamente.", encuestas);
         } catch (Exception e) {
@@ -40,7 +39,6 @@ public class EncuestaServiceImpl implements EncuestaService {
     @Transactional(readOnly = true)
     public ApiResponse<Encuesta> buscarPorId(Integer oid) {
         try {
-            LOGGER.info("🔍 Buscando encuesta con ID: {}", oid);
             Optional<Encuesta> encuesta = encuestaRepository.findById(oid);
             return encuesta.map(value -> new ApiResponse<>(200, "Encuesta encontrada.", value))
                     .orElseGet(() -> new ApiResponse<>(404, "Encuesta no encontrada.", null));
@@ -52,7 +50,6 @@ public class EncuestaServiceImpl implements EncuestaService {
 
     public ApiResponse<Encuesta> guardar(Encuesta encuesta) {
         try {
-            LOGGER.info("💾 Guardando encuesta: {}", encuesta);
             return new ApiResponse<>(200, "Encuesta guardada correctamente.", encuestaRepository.save(encuesta));
         } catch (Exception e) {
             LOGGER.error("❌ Error al guardar encuesta: {}", encuesta, e);

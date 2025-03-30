@@ -38,7 +38,6 @@ public class EvaluacionEstudianteController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EvaluacionEstudiante>>> buscarTodos(Pageable pageable) {
-        LOGGER.info("📌 Buscando todas las evaluaciones de estudiantes...");
         return ResponseEntity.ok(evaluacionEstudianteService.buscarTodos(pageable));
     }
 

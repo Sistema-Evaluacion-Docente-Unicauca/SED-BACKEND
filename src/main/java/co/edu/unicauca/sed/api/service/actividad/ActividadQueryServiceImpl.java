@@ -117,23 +117,28 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
 
             if (userEvaluatorId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
+
                 if (roles != null && !roles.isEmpty()) {
                     Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluado").join("roles");
                     predicates.add(joinRoles.get("oid").in(roles));
                 }
+
                 if (evaluatorName != null && !evaluatorName.isEmpty()) {
-                    predicates.add(cb.like(cb.concat(
-                            root.join("proceso").join("evaluado").get("nombres"),
-                            root.join("proceso").join("evaluado").get("apellidos")), "%" + evaluatorName + "%"));
+                    Expression<String> nombreCompleto = cb.concat(
+                        cb.concat(cb.upper(root.join("proceso").join("evaluado").get("nombres"))," "),
+                        cb.upper(root.join("proceso").join("evaluado").get("apellidos")));
+                    predicates.add(cb.like(nombreCompleto, "%" + evaluatorName.toUpperCase() + "%"));
                 }
             }
 
             if (userEvaluatedId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluado").get("oidUsuario"), userEvaluatedId));
+
                 if (evaluatorName != null && !evaluatorName.isEmpty()) {
-                    predicates.add(cb.like(cb.concat(
-                            root.join("proceso").join("evaluador").get("nombres"),
-                            root.join("proceso").join("evaluador").get("apellidos")), "%" + evaluatorName + "%"));
+                    Expression<String> nombreCompleto = cb.concat(
+                        cb.concat(cb.upper(root.join("proceso").join("evaluador").get("nombres"))," "),
+                        cb.upper(root.join("proceso").join("evaluador").get("apellidos")));
+                    predicates.add(cb.like(nombreCompleto, "%" + evaluatorName.toUpperCase() + "%"));
                 }
     
                 if (roles != null && !roles.isEmpty()) {

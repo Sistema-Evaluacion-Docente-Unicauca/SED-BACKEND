@@ -27,6 +27,13 @@ public class FileDownloadService {
         if (esConsolidado && oidUsuario != null) {
             return obtenerArchivoConsolidado(basePath, periodo, oidUsuario);
         }
+
+        if (oidUsuario != null) {
+            String nombreUsuario;
+            Usuario usuario = getUsuarioById(oidUsuario);
+            nombreUsuario = formatUsuarioFolder(usuario);
+            basePath = basePath.resolve(nombreUsuario);
+        }
     
         if (!Files.exists(basePath)) {
             throw new FileNotFoundException("No se encontró la ruta: " + basePath);

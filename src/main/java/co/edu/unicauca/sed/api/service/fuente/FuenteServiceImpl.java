@@ -93,8 +93,6 @@ public class FuenteServiceImpl implements FuenteService {
 
             if (fuentes.stream().anyMatch(fuente -> "1".equals(fuente.getTipoFuente()))) {
                 archivosEjecutivos = integrationService.filtrarArchivosEjecutivos(archivos);
-            } else {
-                logger.info("No se encontraron fuentes tipo 1, no se procesarán archivos adicionales");
             }
 
             for (FuenteCreateDTO fuenteDTO : fuentes) {
@@ -145,8 +143,8 @@ public class FuenteServiceImpl implements FuenteService {
         EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
                 .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
 
-        crearYGuardarFuente(actividad, "1", estadoFuente);
-        crearYGuardarFuente(actividad, "2", estadoFuente);
+        crearFuente(actividad, "1", estadoFuente);
+        crearFuente(actividad, "2", estadoFuente);
     }
 
     /**
@@ -156,7 +154,7 @@ public class FuenteServiceImpl implements FuenteService {
      * @param tipoFuente   El tipo de la fuente (1 o 2).
      * @param estadoFuente El estado de la fuente.
      */
-    private void crearYGuardarFuente(Actividad actividad, String tipoFuente, EstadoFuente estadoFuente) {
+    private void crearFuente(Actividad actividad, String tipoFuente, EstadoFuente estadoFuente) {
         Fuente fuente = new Fuente();
         fuente.setActividad(actividad);
         fuente.setTipoFuente(tipoFuente);

@@ -30,7 +30,6 @@ public class EncuestaController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<Encuesta>>> buscarTodos(Pageable pageable) {
-        LOGGER.info("📌 Buscando todas las encuestas con paginación...");
         return ResponseEntity.ok(encuestaService.buscarTodos(pageable));
     }
 
@@ -42,7 +41,6 @@ public class EncuestaController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<Encuesta>> buscarPorId(@PathVariable Integer oid) {
-        LOGGER.info("📌 Buscando encuesta con ID: {}", oid);
         return ResponseEntity.ok(encuestaService.buscarPorId(oid));
     }
 
@@ -54,7 +52,6 @@ public class EncuestaController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Encuesta>> guardar(@RequestBody Encuesta encuesta) {
-        LOGGER.info("📌 Guardando nueva encuesta...");
         return ResponseEntity.ok(encuestaService.guardar(encuesta));
     }
 

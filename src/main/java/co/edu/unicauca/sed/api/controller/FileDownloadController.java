@@ -32,7 +32,6 @@ public class FileDownloadController {
             @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario,
             @RequestParam(defaultValue = "false") boolean esConsolidado) {
 
-        // 🔹 Validaciones de parámetros según la jerarquía establecida
         if (departamento != null && periodo == null) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Si se envía 'departamento', también se debe enviar 'periodo'.",null
             ));

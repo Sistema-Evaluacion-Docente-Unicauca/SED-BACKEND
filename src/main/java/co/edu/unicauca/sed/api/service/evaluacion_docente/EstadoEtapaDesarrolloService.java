@@ -49,7 +49,6 @@ public class EstadoEtapaDesarrolloService {
     public ResponseEntity<ApiResponse<EstadoEtapaDesarrollo>> crear(EstadoEtapaDesarrollo estado) {
         try {
             EstadoEtapaDesarrollo nuevoEstado = estadoEtapaDesarrolloRepository.save(estado);
-            LOGGER.info("✅ Registro ESTADOETAPADESARROLLO creado correctamente: {}", nuevoEstado);
             return ResponseEntity.ok(new ApiResponse<>(201, "Registro creado exitosamente", nuevoEstado));
         } catch (Exception e) {
             LOGGER.error("❌ Error al crear el registro ESTADOETAPADESARROLLO", e);

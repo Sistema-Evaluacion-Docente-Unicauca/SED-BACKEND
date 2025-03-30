@@ -72,8 +72,6 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion,
             String facultad, String departamento, String categoria) {
         try {
-            logger.info("📌 Buscando consolidado con filtros: idUsuario={}, idPeriodoAcademico={}", idUsuario,
-                    idPeriodoAcademico);
             boolean order = (ascendingOrder != null) ? ascendingOrder : true;
             Sort sort = order ? Sort.by("fechaCreacion").ascending() : Sort.by("fechaCreacion").descending();
             Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -268,8 +266,6 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
             if (procesoExistente == null) {
                 procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
-                logger.info("✅ [PROCESO] Se ha creado un nuevo proceso de consolidado con ID: {}",
-                        procesoExistente.getOidProceso());
             }
 
             Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
