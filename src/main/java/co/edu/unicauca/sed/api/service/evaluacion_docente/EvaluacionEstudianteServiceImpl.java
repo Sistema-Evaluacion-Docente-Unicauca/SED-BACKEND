@@ -219,7 +219,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     private Map<String, Object> construirResultado(Fuente fuente, EvaluacionEstudiante evaluacionEstudiante, Encuesta encuesta, List<Map<String, Object>> preguntas) {
         Map<String, Object> resultado = new LinkedHashMap<>();
-        Map<String, Object> resumen = EvaluacionMapperUtil.construirResumenEvaluacion(
+        Map<String, Object> resumen = EvaluacionMapperUtil.construirInformacionFuente(
                 fuente,
                 evaluacionEstudiante.getFuente().getTipoCalificacion(),
                 fuente.getObservacion(),

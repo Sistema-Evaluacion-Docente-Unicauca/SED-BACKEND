@@ -6,7 +6,6 @@ import co.edu.unicauca.sed.api.mapper.EvaluacionMapperUtil;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
-import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.utils.ArchivoUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +37,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     private final FuenteBusinessService fuenteBussines;
     private final LeccionAprendidaService leccionAprendidaService;
     private final OportunidadMejoraService oportunidadMejoraService;
-    private final NotificacionDocumentoService notificacionDocumentoService;
     private final AutoevaluacionOdsService autoevaluacionOdsService;
 
     @Override
@@ -122,13 +118,14 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             Autoevaluacion autoevaluacion = autoevaluacionRepository.findByFuente(fuente)
                     .orElseThrow(() -> new NoSuchElementException(MSG_NO_EVALUACION + oidFuente));
             Map<String, Object> resultado = new LinkedHashMap<>();
-            Map<String, Object> resumen = EvaluacionMapperUtil.construirResumenEvaluacion(
+            Map<String, Object> informacionFuente = EvaluacionMapperUtil.construirInformacionFuente(
                 fuente,
                 fuente.getTipoCalificacion(),
                 fuente.getObservacion(),
                 fuente.getNombreDocumentoFuente());
-            resultado.put("Fuente", resumen);
+            resultado.put("Fuente", informacionFuente);
             resultado.put("firma", autoevaluacion.getFirma());
+            resultado.put("Descripcion", autoevaluacion.getDescripcion());
             resultado.put("screenshotSimca", autoevaluacion.getScreenshotSimca());
             resultado.put("odsSeleccionados", obtenerOds(autoevaluacion));
             resultado.put("leccionesAprendidas", obtenerDescripcionesLecciones(autoevaluacion));
