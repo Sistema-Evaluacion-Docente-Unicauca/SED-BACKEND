@@ -1,8 +1,11 @@
 package co.edu.unicauca.sed.api.service.actividad;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,14 +18,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.domain.Actividad;
+import co.edu.unicauca.sed.api.domain.EavAtributo;
+import co.edu.unicauca.sed.api.domain.EstadoFuente;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
+import co.edu.unicauca.sed.api.dto.actividad.InformacionActividadDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
+import co.edu.unicauca.sed.api.repository.EavAtributoRepository;
+import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
@@ -59,6 +67,12 @@ public class ActividadServiceImpl implements ActividadService {
 
     @Autowired
     private EavAtributoService eavAtributoService;
+
+    @Autowired
+    private EavAtributoRepository eavAtributoRepository;
+
+    @Autowired
+    EstadoFuenteRepository estadoFuenteRepository;
 
     @Autowired
     private ActividadDetalleService actividadDetalleService;
@@ -105,9 +119,21 @@ public class ActividadServiceImpl implements ActividadService {
         List<Actividad> actividadesGuardadas = new ArrayList<>();
         List<String> errores = new ArrayList<>();
 
+        Map<String, EavAtributo> cacheAtributos = eavAtributoRepository.findAll().stream()
+        .collect(Collectors.toMap(EavAtributo::getNombre, Function.identity()));
+
+        EstadoFuente estadoFuentePendiente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
+        .orElseThrow(() -> new IllegalArgumentException("Estado 'PENDIENTE' no encontrado."));
+
+        Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+
+        Map<Integer, Usuario> cacheUsuariosPorId = new HashMap<>();
+        Map<String, Usuario> cacheUsuariosPorIdentificacion = new HashMap<>();
+        Map<String, Usuario> cacheEvaluadores = new HashMap<>();
+
         for (ActividadBaseDTO dto : actividadesDTO) {
             try {
-                Actividad guardada = guardarActividad(dto);
+                Actividad guardada = guardarActividad(dto, cacheAtributos, estadoFuentePendiente, idPeriodoAcademico, cacheUsuariosPorId, cacheUsuariosPorIdentificacion, cacheEvaluadores);
                 actividadesGuardadas.add(guardada);
             } catch (DataIntegrityViolationException e) {
                 errores.add("Actividad con ID " + dto.getOidActividad() + ": ya existe.");
@@ -133,25 +159,32 @@ public class ActividadServiceImpl implements ActividadService {
         return mensaje;
     }    
 
-    private Actividad guardarActividad(ActividadBaseDTO dto) {
+    private Actividad guardarActividad(ActividadBaseDTO dto,
+            Map<String, EavAtributo> cacheAtributos,
+            EstadoFuente estadoFuentePendiente,
+            Integer idPeriodoAcademico,
+            Map<Integer, Usuario> cacheUsuariosPorId,
+            Map<String, Usuario> cacheUsuariosPorIdentificacion,
+            Map<String, Usuario> cacheEvaluadores) {
+
         validarDuplicado(dto);
 
         Actividad actividad = actividadMapper.convertToEntity(dto);
-        asignarPeriodoAcademicoActivo(actividad);
+        asignarPeriodoAcademicoActivo(actividad, idPeriodoAcademico);
 
         if (actividad.getProceso().getNombreProceso() == null || actividad.getProceso().getNombreProceso().isEmpty()) {
             actividad.getProceso().setNombreProceso("ACTIVIDAD");
         }
 
-        asignarEvaluadorYEvaluado(actividad, dto);
+        asignarUsuario(actividad, dto, cacheUsuariosPorId, cacheUsuariosPorIdentificacion, cacheEvaluadores);
         procesoService.guardarProceso(actividad);
-        asignarNombreActividadSiNecesario(actividad, dto);
+        asignarNombreActividad(actividad, dto);
 
         Actividad actividadGuardada = actividadRepository.save(actividad);
-        guardarComponentesRelacionados(dto, actividadGuardada);
+        guardarComponentesRelacionados(dto, actividadGuardada, cacheAtributos, estadoFuentePendiente);
 
         return actividadGuardada;
-    }
+}
 
     private void validarDuplicado(ActividadBaseDTO dto) {
         if (dto.getOidActividad() != null && actividadRepository.existsById(dto.getOidActividad())) {
@@ -159,19 +192,12 @@ public class ActividadServiceImpl implements ActividadService {
         }
     }
 
-    private void asignarEvaluadorYEvaluado(Actividad actividad, ActividadBaseDTO dto) {
-        Usuario evaluado;
-
-        Optional<Usuario> posibleEvaluado = usuarioRepository.findById(dto.getOidEvaluado());
-        if (posibleEvaluado.isPresent()) {
-            evaluado = new Usuario(dto.getOidEvaluado());
-        } else {
-            evaluado = usuarioRepository.findByIdentificacion(String.valueOf(dto.getOidEvaluado()));
-            if (evaluado == null) {
-                throw new RuntimeException("No se encontró evaluado con identificación " + dto.getOidEvaluado());
-            }
-        }
-
+    private void asignarUsuario(Actividad actividad,
+            ActividadBaseDTO dto,
+            Map<Integer, Usuario> cacheUsuariosPorId,
+            Map<String, Usuario> cacheUsuariosPorIdentificacion,
+            Map<String, Usuario> cacheEvaluadores) {
+        Usuario evaluado = obtenerUsuarioEvaluado(dto, cacheUsuariosPorId, cacheUsuariosPorIdentificacion);
         actividad.getProceso().setEvaluado(evaluado);
 
         Usuario evaluador;
@@ -179,21 +205,24 @@ public class ActividadServiceImpl implements ActividadService {
             evaluador = new Usuario(dto.getOidEvaluador());
         } else {
             Integer idTipoActividad = dto.getTipoActividad().getOidTipoActividad();
-            evaluador = obtenerEvaluadorAutomatico(idTipoActividad, evaluado);
+            evaluador = obtenerEvaluadorAutomatico(idTipoActividad, evaluado, cacheEvaluadores);
         }
 
         actividad.getProceso().setEvaluador(evaluador);
     }
 
-    private void asignarNombreActividadSiNecesario(Actividad actividad, ActividadBaseDTO dto) {
+    private void asignarNombreActividad(Actividad actividad, ActividadBaseDTO dto) {
         if (actividad.getNombreActividad() == null || actividad.getNombreActividad().isEmpty()) {
             actividad.setNombreActividad(actividadDetalleService.generarNombreActividad(dto));
         }
     }
 
-    private void guardarComponentesRelacionados(ActividadBaseDTO dto, Actividad actividadGuardada) {
-        fuenteService.guardarFuente(actividadGuardada);
-        eavAtributoService.guardarAtributosDinamicos(dto, actividadGuardada);
+    private void guardarComponentesRelacionados(ActividadBaseDTO dto,
+            Actividad actividadGuardada,
+            Map<String, EavAtributo> cacheAtributos,
+            EstadoFuente estadoFuentePendiente) {
+        fuenteService.crearTipoFuente(actividadGuardada, estadoFuentePendiente);
+        eavAtributoService.guardarAtributosDinamicos(dto, actividadGuardada, cacheAtributos);
     }
 
     @Transactional
@@ -229,7 +258,10 @@ public class ActividadServiceImpl implements ActividadService {
 
             actividadMapper.actualizarCamposBasicos(actividadExistente, actividadDTO);
             estadoActividadService.asignarEstadoActividad(actividadExistente, actividadDTO.getOidEstadoActividad());
-            eavAtributoService.actualizarAtributosDinamicos(actividadDTO, actividadExistente);
+            Map<String, EavAtributo> cacheAtributos = eavAtributoRepository.findAll().stream()
+                    .collect(Collectors.toMap(EavAtributo::getNombre, Function.identity()));
+
+            eavAtributoService.actualizarAtributosDinamicos(actividadDTO, actividadExistente, cacheAtributos);
 
             Actividad actividadActualizada = actividadRepository.save(actividadExistente);
             return new ApiResponse<>(200, "Actividad actualizada correctamente.", actividadActualizada);
@@ -252,57 +284,90 @@ public class ActividadServiceImpl implements ActividadService {
         }
     }
 
-    private void asignarPeriodoAcademicoActivo(Actividad actividad) {
-        try {
-            Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
-
-            if (actividad.getProceso() == null) {
-                actividad.setProceso(new Proceso());
-            }
-
-            PeriodoAcademico periodoAcademico = new PeriodoAcademico();
-            periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
-            actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al asignar periodo académico activo: {}", e.getMessage(), e);
-            throw new RuntimeException("Error al asignar periodo académico: " + e.getMessage(), e);
+    private void asignarPeriodoAcademicoActivo(Actividad actividad, Integer idPeriodoAcademico) {
+        if (idPeriodoAcademico == null) {
+            throw new IllegalArgumentException("El ID del periodo académico no puede ser nulo.");
         }
-    }
+    
+        if (actividad.getProceso() == null) {
+            actividad.setProceso(new Proceso());
+        }
+    
+        PeriodoAcademico periodoAcademico = new PeriodoAcademico();
+        periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
+        actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
+    }    
 
-    private Usuario obtenerEvaluadorAutomatico(Integer oidTipoActividad, Usuario evaluado) {
+    private Usuario obtenerEvaluadorAutomatico(Integer oidTipoActividad,
+            Usuario evaluado,
+            Map<String, Usuario> cacheEvaluadores) {
         final int ROL_DECANO = 3;
         final int ROL_JEFE_DEPTO = 4;
         final int ROL_SECRETARIA = 5;
-    
+
+        String facultad = evaluado.getUsuarioDetalle().getFacultad();
+        String departamento = evaluado.getUsuarioDetalle().getDepartamento();
+
         try {
             switch (oidTipoActividad) {
-                case 1: // ASESORÍA
-                case 4: // CAPACITACIÓN
-                case 6: // OTROS SERVICIOS
-                case 7: // EXTENSIÓN
-                case 9: // DOCENCIA
-                case 2: // TRABAJO DE DOCENCIA
-                    return usuarioRepository.findFirstActiveByDepartamentoAndRolId(evaluado.getUsuarioDetalle().getDepartamento(), ROL_JEFE_DEPTO)
-                        .orElseThrow(() -> new RuntimeException("No se encontró Jefe de Departamento activo para el departamento " + evaluado.getUsuarioDetalle().getDepartamento()));
-        
-                case 5: // ADMINISTRACIÓN
-                    return usuarioRepository.findFirstActiveByFacultadAndRolId(evaluado.getUsuarioDetalle().getFacultad(), ROL_DECANO)
-                        .orElseThrow(() -> new RuntimeException("No se encontró Decano activo para la facultad " + evaluado.getUsuarioDetalle().getFacultad()));
-        
-                case 3: // PROYECTOS INVESTIGACIÓN
-                case 8: // TRABAJOS DE INVESTIGACION
-                    return usuarioRepository.findById(ROL_SECRETARIA).orElseThrow(() -> new RuntimeException(
-                        "No se encontró el usuario evaluador con ID " + ROL_SECRETARIA));
-        
-                default:
-                    return usuarioRepository
-                        .findFirstActiveByFacultadAndRolId(evaluado.getUsuarioDetalle().getFacultad(), ROL_SECRETARIA)
-                        .orElseThrow(() -> new RuntimeException("No se encontró una secretaria activa para la facultad " + evaluado.getUsuarioDetalle().getFacultad()));
+                case 5: { // ADMINISTRACIÓN → DECANO
+                    String key = claveEvaluador("FACULTAD", facultad, ROL_DECANO);
+                    return cacheEvaluadores.computeIfAbsent(key,
+                        k -> usuarioRepository.findFirstActiveByFacultadAndRolId(facultad, ROL_DECANO)
+                            .orElseThrow(() -> new RuntimeException("No se encontró Decano activo para la facultad " + facultad)));
+                }
+                case 1, 2, 3, 4, 6, 7, 8, 9:
+                default: { // Todo lo demás → JEFE DE DEPARTAMENTO
+                    String key = claveEvaluador("DEPARTAMENTO", departamento, ROL_JEFE_DEPTO);
+                    return cacheEvaluadores.computeIfAbsent(key,
+                        k -> usuarioRepository.findFirstActiveByDepartamentoAndRolId(departamento, ROL_JEFE_DEPTO)
+                            .orElseThrow(() -> new RuntimeException("No se encontró Jefe de Departamento activo para el departamento " + departamento)));
+                }
             }
-        } catch (RuntimeException  e) {
-            return usuarioRepository
-                .findFirstActiveByFacultadAndRolId(evaluado.getUsuarioDetalle().getFacultad(), ROL_SECRETARIA)
-                .orElseThrow(() -> new RuntimeException("❌ No se encontró una secretaria/o activa para la facultad " + evaluado.getUsuarioDetalle().getFacultad()));
+        } catch (RuntimeException e) {
+            // Fallback definitivo a secretaria de facultad
+            String fallbackKey = claveEvaluador("FACULTAD", facultad, ROL_SECRETARIA);
+            return cacheEvaluadores.computeIfAbsent(fallbackKey,
+                    k -> usuarioRepository.findFirstActiveByFacultadAndRolId(facultad, ROL_SECRETARIA)
+                        .orElseThrow(() -> new RuntimeException("❌ No se encontró secretaria/o activa para la facultad " + facultad)));
         }
+    }
+
+    private String claveEvaluador(String tipo, String valor, int rolId) {
+        return tipo + ":" + valor + ":" + rolId;
+    }
+
+    private Usuario obtenerUsuarioEvaluado(ActividadBaseDTO dto,
+            Map<Integer, Usuario> cachePorId,
+            Map<String, Usuario> cachePorIdentificacion) {
+        Integer oidEvaluado = dto.getOidEvaluado();
+
+        // 1. Buscar por ID en caché
+        if (cachePorId.containsKey(oidEvaluado)) {
+            return cachePorId.get(oidEvaluado);
+        }
+
+        // 2. Buscar por ID en base de datos
+        Optional<Usuario> posibleEvaluado = usuarioRepository.findById(oidEvaluado);
+        if (posibleEvaluado.isPresent()) {
+            cachePorId.put(oidEvaluado, posibleEvaluado.get());
+            return posibleEvaluado.get();
+        }
+
+        // 3. Buscar por identificación (string)
+        String identificacion = String.valueOf(oidEvaluado);
+
+        if (cachePorIdentificacion.containsKey(identificacion)) {
+            return cachePorIdentificacion.get(identificacion);
+        }
+
+        Usuario evaluado = usuarioRepository.findByIdentificacion(identificacion);
+        if (evaluado == null) {
+            throw new RuntimeException("No se encontró evaluado con identificación " + identificacion);
+        }
+
+        // Guardar en caché por identificación
+        cachePorIdentificacion.put(identificacion, evaluado);
+        return evaluado;
     }
 }

@@ -2,6 +2,7 @@ package co.edu.unicauca.sed.api.service.evaluacion_docente;
 
 import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.*;
+import co.edu.unicauca.sed.api.dto.actividad.InformacionActividadDTO;
 import co.edu.unicauca.sed.api.mapper.EvaluacionMapperUtil;
 import co.edu.unicauca.sed.api.repository.*;
 import co.edu.unicauca.sed.api.service.fuente.FuenteBusinessService;
@@ -88,15 +89,13 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     public ApiResponse<Object> listarAutoevaluacion(Integer oidFuente) {
         try {
             Fuente fuente = fuenteService.obtenerFuente(oidFuente);
-            Autoevaluacion autoevaluacion = autoevaluacionRepository.findByFuente(fuente)
-                    .orElseThrow(() -> new NoSuchElementException(MSG_NO_EVALUACION + oidFuente));
+            Autoevaluacion autoevaluacion = autoevaluacionRepository.findByFuente(fuente).orElseThrow(() -> new NoSuchElementException(MSG_NO_EVALUACION + oidFuente));
             Map<String, Object> resultado = new LinkedHashMap<>();
             Map<String, Object> informacionFuente = EvaluacionMapperUtil.construirInformacionFuente(
-                fuente,
-                fuente.getTipoCalificacion(),
-                fuente.getObservacion(),
-                fuente.getNombreDocumentoFuente());
+                fuente, fuente.getTipoCalificacion(), fuente.getObservacion(), fuente.getNombreDocumentoFuente()
+            );
             resultado.put("Fuente", informacionFuente);
+            resultado.put("actividad", obtenerInformacionActividad(fuente.getActividad()));
             resultado.put("firma", autoevaluacion.getFirma());
             resultado.put("Descripcion", autoevaluacion.getDescripcion());
             resultado.put("screenshotSimca", autoevaluacion.getScreenshotSimca());
@@ -159,4 +158,13 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
         }
     }
 
+    private InformacionActividadDTO obtenerInformacionActividad(Actividad actividad){
+        InformacionActividadDTO dto = new InformacionActividadDTO();
+        dto.setIdActividad(actividad.getOidActividad());
+        dto.setNombreActividad(actividad.getNombreActividad());
+        dto.setTipoActividad(actividad.getTipoActividad().getNombre());
+        dto.setPeriodoAcademico(actividad.getProceso().getOidPeriodoAcademico().getIdPeriodo());
+        dto.setHorasTotales(actividad.getHoras() * actividad.getSemanas());
+        return dto;
+    }
 }

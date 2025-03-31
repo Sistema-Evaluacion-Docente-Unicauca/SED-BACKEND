@@ -57,8 +57,8 @@ public class UsuarioDetalleServiceImpl implements UsuarioDetalleService {
 
                 if (usuarioDetalle.getOidUsuarioDetalle() != null) {
                     usuarioDetalleProcesado = usuarioDetalleRepository.findById(usuarioDetalle.getOidUsuarioDetalle())
-                            .orElseThrow(() -> new RuntimeException(
-                                    "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));
+                        .orElseThrow(() -> new RuntimeException(
+                                "UsuarioDetalle no encontrado con OID: " + usuarioDetalle.getOidUsuarioDetalle()));
 
                     fusionarUsuarioDetalle(usuarioDetalleProcesado, usuarioDetalle);
 
@@ -102,6 +102,4 @@ public class UsuarioDetalleServiceImpl implements UsuarioDetalleService {
         existente.setDedicacion(recibido.getDedicacion());
         existente.setEstudios(recibido.getEstudios());
     }
-
-    
 }

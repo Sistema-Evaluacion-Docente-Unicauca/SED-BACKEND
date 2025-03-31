@@ -139,10 +139,7 @@ public class FuenteServiceImpl implements FuenteService {
     }
 
     @Override
-    public void guardarFuente(Actividad actividad) {
-        EstadoFuente estadoFuente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
-                .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
-
+    public void crearTipoFuente(Actividad actividad, EstadoFuente estadoFuente) {
         crearFuente(actividad, "1", estadoFuente);
         crearFuente(actividad, "2", estadoFuente);
     }

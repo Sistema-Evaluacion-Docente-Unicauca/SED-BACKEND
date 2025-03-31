@@ -26,8 +26,10 @@ public class EvaluacionMapperUtil {
 
     private static Map<String, Object> construirUsuarioMap(Usuario usuario) {
         Map<String, Object> userMap = new HashMap<>();
+        userMap.put("oidUsuario", usuario.getOidUsuario());
         userMap.put("nombres", usuario.getNombres());
         userMap.put("apellidos", usuario.getApellidos());
+        userMap.put("departamento", usuario.getUsuarioDetalle().getDepartamento());
         userMap.put("nombreCompleto", usuario.getNombres() + " " + usuario.getApellidos());
         return userMap;
     }
