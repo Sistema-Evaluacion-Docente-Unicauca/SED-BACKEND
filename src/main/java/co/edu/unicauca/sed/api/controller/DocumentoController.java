@@ -14,7 +14,7 @@ public class DocumentoController {
     @Autowired
     private DocumentoService documentoService;
 
-    @GetMapping("/documento/descargar")
+    @GetMapping("/evidencia-ods")
     public ResponseEntity<?> descargarDocumento(@RequestParam Integer idArchivo, @RequestParam String tipoArchivo) {
         return documentoService.obtenerArchivoPorTipo(idArchivo, tipoArchivo);
     }
