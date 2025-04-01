@@ -1,5 +1,7 @@
 package co.edu.unicauca.sed.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.PeriodoExternoDTO;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import org.springframework.data.domain.Page;
 
@@ -59,5 +62,10 @@ public class PeriodoAcademicoController {
     public ResponseEntity<ApiResponse<PeriodoAcademico>> obtenerPeriodoAcademicoActivo() {
         ApiResponse<PeriodoAcademico> response = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         return ResponseEntity.status(response.getCodigo()).body(response);
+    }
+
+    @GetMapping("/kira")
+    public ResponseEntity<ApiResponse<List<PeriodoExternoDTO>>> obtenerNoRegistrados() {
+        return ResponseEntity.ok(periodoAcademicoService.obtenerPeriodosNoRegistrados());
     }
 }

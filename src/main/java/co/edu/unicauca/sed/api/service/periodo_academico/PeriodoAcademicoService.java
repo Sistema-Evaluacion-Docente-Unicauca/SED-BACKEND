@@ -1,10 +1,13 @@
 package co.edu.unicauca.sed.api.service.periodo_academico;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.PeriodoExternoDTO;
 
 @Service
 public interface PeriodoAcademicoService {
@@ -65,4 +68,6 @@ public interface PeriodoAcademicoService {
      * @throws IllegalStateException Si no se encuentra un período académico activo.
      */
     Integer obtenerIdPeriodoAcademicoActivo();
+
+    ApiResponse<List<PeriodoExternoDTO>> obtenerPeriodosNoRegistrados();
 }

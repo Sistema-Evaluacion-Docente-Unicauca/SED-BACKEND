@@ -19,6 +19,9 @@ spring:
   notification:
     service:
       url: ${NOTIFICATION_SERVICE_URL}
+  periodo-academico:
+    api:
+      url: ${PERIODO_ACADEMICO_API_URL}
 
 files:
   basePath: ${FILES_BASE_PATH}

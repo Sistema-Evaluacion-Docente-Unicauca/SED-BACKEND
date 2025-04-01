@@ -4,11 +4,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import co.edu.unicauca.sed.api.client.ClientePeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.EstadoPeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.PeriodoExternoDTO;
 import co.edu.unicauca.sed.api.repository.EstadoPeriodoAcademicoRepository;
 import co.edu.unicauca.sed.api.repository.PeriodoAcademicoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +25,9 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
 
     @Autowired
     private EstadoPeriodoAcademicoRepository estadoPeriodoAcademicoRepository;
+
+    @Autowired
+    private ClientePeriodoAcademico clientePeriodoAcademico;
 
     private static final Logger logger = LoggerFactory.getLogger(PeriodoAcademicoService.class);
 
@@ -67,6 +74,7 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
         }
     }
 
+    @Override
     public ApiResponse<Void> actualizar(Integer oid, PeriodoAcademico periodoAcademico) {
         try {
             Integer estadoId = periodoAcademico.getEstadoPeriodoAcademico().getOidEstadoPeriodoAcademico();
@@ -91,6 +99,7 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
         }
     }
 
+    @Override
     public ApiResponse<Void> eliminar(Integer oid) {
         try {
             periodoAcademicoRepository.deleteById(oid);
@@ -99,6 +108,19 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
             logger.error("❌ [ERROR] Error al eliminar el período académico: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al eliminar el período académico.", null);
         }
+    }
+
+    @Override
+    public ApiResponse<List<PeriodoExternoDTO>> obtenerPeriodosNoRegistrados() {
+        List<Integer> idsLocales = periodoAcademicoRepository.findAll().stream()
+            .map(PeriodoAcademico::getIdPeriodoApi).filter(Objects::nonNull).toList();
+
+        List<PeriodoExternoDTO> periodosExternos = clientePeriodoAcademico.obtenerPeriodosExternos();
+
+        List<PeriodoExternoDTO> noRegistrados = periodosExternos.stream()
+            .filter(pe -> !idsLocales.contains(pe.getId())).toList();
+
+        return new ApiResponse<>(200, "Periodos no registrados obtenidos con éxito.", noRegistrados);
     }
 
     /**
