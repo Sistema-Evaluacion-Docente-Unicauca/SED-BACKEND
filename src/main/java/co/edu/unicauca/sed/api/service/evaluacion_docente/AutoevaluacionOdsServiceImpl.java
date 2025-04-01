@@ -7,7 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,46 +39,73 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion,
             Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
 
+        eliminarOdsRemovidos(odsList, autoevaluacion);
+
         for (OdsDTO odsDTO : odsList) {
-            ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds()).orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
-
-            AutoevaluacionOds entidad;
-
-            if (odsDTO.getOidAutoevaluacionOds() != null) {
-                entidad = autoevaluacionOdsRepository.findById(odsDTO.getOidAutoevaluacionOds()).orElseGet(() -> {
-                    LOGGER.warn("❗ ODS con ID {} no encontrado. Se creará nuevo.", odsDTO.getOidAutoevaluacionOds());
-                    return new AutoevaluacionOds();
-                });
-            } else {
-                entidad = new AutoevaluacionOds();
-            }
-
-            entidad.setAutoevaluacion(autoevaluacion);
-            entidad.setOds(ods);
-            entidad.setResultado(odsDTO.getResultado());
-
-            MultipartFile archivo = archivosOds.get(odsDTO.getOidOds());
-            if (archivo != null && !archivo.isEmpty()) {
-                try {
-                    String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, "ods");
-                    String nombreArchivo = Paths.get(ruta).getFileName().toString();
-
-                    entidad.setNombreDocumento(nombreArchivo);
-                    entidad.setRutaDocumento(ruta);
-                } catch (IOException e) {
-                    LOGGER.error("❌ Error al guardar evidencia del ODS {}: {}", odsDTO.getOidOds(), e.getMessage());
-                    throw new RuntimeException("Error al guardar evidencia del ODS " + odsDTO.getOidOds(), e);
-                }
-            }
-
+            AutoevaluacionOds entidad = construirOdsDesdeDTO(odsDTO, autoevaluacion, fuente, archivosOds);
             autoevaluacionOdsRepository.save(entidad);
+        }
+    }
+
+    private void eliminarOdsRemovidos(List<OdsDTO> odsList, Autoevaluacion autoevaluacion) {
+        List<AutoevaluacionOds> actuales = autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion);
+
+        Set<Integer> nuevosIds = odsList.stream()
+            .map(OdsDTO::getOidAutoevaluacionOds)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+        for (AutoevaluacionOds existente : actuales) {
+            Integer idExistente = existente.getOidAutoevaluacionOds();
+            if (idExistente != null && !nuevosIds.contains(idExistente)) {
+                autoevaluacionOdsRepository.deleteById(idExistente);
+                LOGGER.info("🗑️ ODS con ID {} eliminado por no estar en la nueva lista", idExistente);
+            }
+        }
+    }
+
+    private AutoevaluacionOds construirOdsDesdeDTO(OdsDTO odsDTO, Autoevaluacion autoevaluacion,
+            Fuente fuente, Map<Integer, MultipartFile> archivosOds) {
+
+        ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds())
+            .orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
+
+        AutoevaluacionOds entidad = (odsDTO.getOidAutoevaluacionOds() != null)
+            ? autoevaluacionOdsRepository.findById(odsDTO.getOidAutoevaluacionOds())
+            .orElseGet(() -> {
+                LOGGER.warn("❗ ODS con ID {} no encontrado. Se creará nuevo.", odsDTO.getOidAutoevaluacionOds());
+                return new AutoevaluacionOds();
+            }) : new AutoevaluacionOds();
+
+        entidad.setAutoevaluacion(autoevaluacion);
+        entidad.setOds(ods);
+        entidad.setResultado(odsDTO.getResultado());
+
+        MultipartFile archivo = archivosOds.get(odsDTO.getOidOds());
+        if (archivo != null && !archivo.isEmpty()) {
+            guardarArchivoOds(entidad, archivo, fuente, odsDTO.getOidOds());
+        }
+
+        return entidad;
+    }
+
+    private void guardarArchivoOds(AutoevaluacionOds entidad, MultipartFile archivo, Fuente fuente, Integer oidOds) {
+        try {
+            String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, "ods");
+            String nombreArchivo = Paths.get(ruta).getFileName().toString();
+
+            entidad.setNombreDocumento(nombreArchivo);
+            entidad.setRutaDocumento(ruta);
+        } catch (IOException e) {
+            LOGGER.error("❌ Error al guardar evidencia del ODS {}: {}", oidOds, e.getMessage());
+            throw new RuntimeException("Error al guardar evidencia del ODS " + oidOds, e);
         }
     }
 
     @Override
     public ArchivoDTO obtenerArchivoPorId(Integer idOds) {
         AutoevaluacionOds ods = autoevaluacionOdsRepository.findById(idOds)
-                .orElseThrow(() -> new RuntimeException("ODS con ID " + idOds + " no encontrado."));
+            .orElseThrow(() -> new RuntimeException("ODS con ID " + idOds + " no encontrado."));
         return new ArchivoDTO(ods.getNombreDocumento(), ods.getRutaDocumento());
     }
 

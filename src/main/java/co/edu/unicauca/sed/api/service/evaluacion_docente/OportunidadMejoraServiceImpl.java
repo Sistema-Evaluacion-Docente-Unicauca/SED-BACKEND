@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,9 +22,12 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
 
     @Override
     public void guardar(List<OportunidadMejoraDTO> mejoras, Autoevaluacion autoevaluacion) {
-        if (mejoras == null || mejoras.isEmpty()) {
+        if (mejoras == null) {
+            LOGGER.info("📌 Lista de oportunidades de mejora nula. No se realizará ninguna operación.");
             return;
         }
+
+        eliminarMejorasRemovidas(mejoras, autoevaluacion);
 
         mejoras.forEach(mejora -> {
             if (mejora.getDescripcion() == null || mejora.getDescripcion().isBlank()) {
@@ -31,12 +36,8 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
 
             OportunidadMejora entidad;
 
-            // Actualizar si viene el ID, sino crear nueva
             if (mejora.getOidOportunidadMejora() != null) {
-                entidad = oportunidadMejoraRepository.findById(mejora.getOidOportunidadMejora())
-                .orElseGet(() -> {
-                    return new OportunidadMejora();
-                });
+                entidad = oportunidadMejoraRepository.findById(mejora.getOidOportunidadMejora()).orElseGet(OportunidadMejora::new);
             } else {
                 entidad = new OportunidadMejora();
             }
@@ -47,4 +48,20 @@ public class OportunidadMejoraServiceImpl implements OportunidadMejoraService {
             oportunidadMejoraRepository.save(entidad);
         });
     }
+
+    private void eliminarMejorasRemovidas(List<OportunidadMejoraDTO> mejoras, Autoevaluacion autoevaluacion) {
+        List<OportunidadMejora> actuales = oportunidadMejoraRepository.findByAutoevaluacion(autoevaluacion);
+
+        Set<Integer> nuevosIds = mejoras.stream()
+            .map(OportunidadMejoraDTO::getOidOportunidadMejora).filter(Objects::nonNull).collect(Collectors.toSet());
+
+        for (OportunidadMejora existente : actuales) {
+            Integer id = existente.getOidOportunidadMejora();
+            if (id != null && !nuevosIds.contains(id)) {
+                oportunidadMejoraRepository.deleteById(id);
+                LOGGER.info("🗑️ Oportunidad de mejora con ID {} eliminada por no estar en la nueva lista", id);
+            }
+        }
+    }
+
 }
