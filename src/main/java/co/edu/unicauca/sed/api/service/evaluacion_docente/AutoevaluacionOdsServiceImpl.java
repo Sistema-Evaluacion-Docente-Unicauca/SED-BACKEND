@@ -23,6 +23,7 @@ import co.edu.unicauca.sed.api.dto.ArchivoDTO;
 import co.edu.unicauca.sed.api.dto.OdsDTO;
 import co.edu.unicauca.sed.api.repository.AutoevaluacionOdsRepository;
 import co.edu.unicauca.sed.api.repository.ObjetivoDesarrolloSostenibleRepository;
+import co.edu.unicauca.sed.api.service.documento.FileService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +34,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     private final AutoevaluacionOdsRepository autoevaluacionOdsRepository;
     private final ObjetivoDesarrolloSostenibleRepository odsRepository;
     private final FuenteService fuenteService;
+    private final FileService fileService;
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoevaluacionServiceImpl.class);
 
     @Override
@@ -58,6 +60,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         for (AutoevaluacionOds existente : actuales) {
             Integer idExistente = existente.getOidAutoevaluacionOds();
             if (idExistente != null && !nuevosIds.contains(idExistente)) {
+                fileService.eliminarArchivo(existente.getRutaDocumento());
                 autoevaluacionOdsRepository.deleteById(idExistente);
                 LOGGER.info("🗑️ ODS con ID {} eliminado por no estar en la nueva lista", idExistente);
             }
