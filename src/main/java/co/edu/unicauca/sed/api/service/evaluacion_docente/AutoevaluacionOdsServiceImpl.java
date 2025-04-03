@@ -94,6 +94,13 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
 
     private void guardarArchivoOds(AutoevaluacionOds entidad, MultipartFile archivo, Fuente fuente, Integer oidOds) {
         try {
+            String nombreActual = entidad.getNombreDocumento();
+            String nombreNuevo = archivo.getOriginalFilename();
+
+            if (nombreActual != null && nombreNuevo != null && !nombreNuevo.equals(nombreActual)) {
+                fileService.eliminarArchivo(entidad.getRutaDocumento());
+            }
+            
             String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, "ods");
             String nombreArchivo = Paths.get(ruta).getFileName().toString();
 
