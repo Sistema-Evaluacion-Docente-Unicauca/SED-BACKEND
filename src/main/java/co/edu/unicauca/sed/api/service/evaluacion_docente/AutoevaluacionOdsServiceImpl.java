@@ -36,6 +36,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     private final FuenteService fuenteService;
     private final FileService fileService;
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoevaluacionServiceImpl.class);
+    public static final String PREFIJO_ODS = "ods";
 
     @Override
     public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion,
@@ -100,8 +101,9 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
             if (nombreActual != null && nombreNuevo != null && !nombreNuevo.equals(nombreActual)) {
                 fileService.eliminarArchivo(entidad.getRutaDocumento());
             }
-            
-            String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, "ods");
+            Integer maxOidFuente = obtenerMaxOidOds() + 1;
+            String prefijo = PREFIJO_ODS + "_" + maxOidFuente;
+            String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, prefijo);
             String nombreArchivo = Paths.get(ruta).getFileName().toString();
 
             entidad.setNombreDocumento(nombreArchivo);
@@ -155,5 +157,11 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         }
 
         return resultado;
+    }
+
+    @Override
+    public Integer obtenerMaxOidOds() {
+        Integer max = autoevaluacionOdsRepository.obtenerMaxOidOds();
+        return (max != null) ? max : 0;
     }
 }
