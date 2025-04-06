@@ -34,7 +34,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     private static final String PREFIJO_SCREENSHOT = "screenshot";
     private static final String PREFIJO_FUENTE_1 = "fuente-1";
     private final AutoevaluacionRepository autoevaluacionRepository;
-    private final AutoevaluacionOdsRepository autoevaluacionOdsRepository;
     private final OportunidadMejoraRepository oportunidadMejoraRepository;
     private final FuenteService fuenteService;
     private final FuenteBusinessService fuenteBussines;
@@ -44,12 +43,8 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
     @Override
     @Transactional
-    public ApiResponse<Void> guardarAutoevaluacion(
-            AutoevaluacionDTO dto,
-            MultipartFile firma,
-            MultipartFile screenshotSimca,
-            MultipartFile documentoAutoevaluacion,
-            Map<String, MultipartFile> archivosOds) {
+    public ApiResponse<Void> guardarAutoevaluacion(AutoevaluacionDTO dto, MultipartFile firma,
+            MultipartFile screenshotSimca, MultipartFile documentoAutoevaluacion, List<MultipartFile> archivosOds) {
         try {
             Fuente fuente = fuenteService.obtenerFuente(dto.getOidFuente());
 
@@ -59,10 +54,8 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
             Autoevaluacion autoevaluacion = procesarAutoevaluacion(objAutoevaluacion, fuente, firma, screenshotSimca, dto.getDescripcion());
 
-            Map<Integer, MultipartFile> archivosOdsMap = autoevaluacionOdsService.mapearArchivoODS(dto.getOdsSeleccionados(), archivosOds);
-
             // Guardar ODS con sus evidencias
-            autoevaluacionOdsService.guardarOds(dto.getOdsSeleccionados(), autoevaluacion, archivosOdsMap, fuente);
+            autoevaluacionOdsService.guardarOds(dto.getOdsSeleccionados(), autoevaluacion, archivosOds, fuente);
 
             // Guardar lecciones y mejoras
             leccionAprendidaService.guardar(dto.getLeccionesAprendidas(), autoevaluacion);
@@ -70,7 +63,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             oportunidadMejoraService.guardar(dto.getOportunidadesMejora(), autoevaluacion);
 
             // Guardar documento de notas
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+            String timestamp = String.valueOf(System.currentTimeMillis());
             String prefijo = PREFIJO_FUENTE_1 + "-" + timestamp;
             String rutaNotas = fuenteService.guardarDocumentoFuente(fuente, documentoAutoevaluacion, prefijo);
             if (rutaNotas != null) {
@@ -131,7 +124,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             return nuevaAutoevaluacion;
         });
     }
-    
+
     private Autoevaluacion procesarAutoevaluacion(Autoevaluacion autoevaluacion, Fuente fuente,
             MultipartFile firma, MultipartFile screenshotSimca, String descripcion) {
         try {
@@ -145,7 +138,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             }
 
             if (screenshotSimca != null) {
-                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+                String timestamp = String.valueOf(System.currentTimeMillis());
                 String prefijo = PREFIJO_SCREENSHOT + "-" + timestamp;
                 String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, prefijo);
                 if (rutaScreenshot != null) {
@@ -164,7 +157,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
         }
     }
 
-    private InformacionActividadDTO obtenerInformacionActividad(Actividad actividad){
+    private InformacionActividadDTO obtenerInformacionActividad(Actividad actividad) {
         InformacionActividadDTO dto = new InformacionActividadDTO();
         dto.setIdActividad(actividad.getOidActividad());
         dto.setNombreActividad(actividad.getNombreActividad());

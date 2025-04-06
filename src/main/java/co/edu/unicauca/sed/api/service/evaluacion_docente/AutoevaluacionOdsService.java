@@ -9,13 +9,13 @@ import co.edu.unicauca.sed.api.dto.ArchivoDTO;
 import co.edu.unicauca.sed.api.dto.OdsDTO;
 
 public interface AutoevaluacionOdsService {
-    void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, Map<Integer, MultipartFile> archivosOds, Fuente fuente);
+    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, List<MultipartFile> archivosOds, Fuente fuente);
 
-    ArchivoDTO obtenerArchivoPorId(Integer idOds);
+    public ArchivoDTO obtenerArchivoPorId(Integer idOds);
 
-    List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion);
+    public List<Map<String, Object>> obtenerOds(Autoevaluacion autoevaluacion);
 
-    Map<Integer, MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados, Map<String, MultipartFile> archivos);
+    //public List<MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados, List<MultipartFile> archivos);
 
-    Integer obtenerMaxOidOds();
+    public Integer obtenerMaxOidOds();
 }

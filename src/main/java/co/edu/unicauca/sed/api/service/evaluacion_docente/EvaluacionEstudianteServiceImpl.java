@@ -92,7 +92,8 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     @Override
     @Transactional
-    public ApiResponse<Void> guardarEvaluacionDocente(EvaluacionDocenteDTO dto, MultipartFile documentoFuente, MultipartFile firmaEstudiante) {
+    public ApiResponse<Void> guardarEvaluacionDocente(EvaluacionDocenteDTO dto, MultipartFile documentoFuente,
+            MultipartFile firmaEstudiante) {
         try {
 
             // Obtener la fuente
@@ -110,7 +111,7 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
             // 🔄 Guardar respuestas y calcular la calificación
             float calificacionFinal = guardarRespuestasYCalcularNota(dto.getPreguntas(), encuesta);
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+            String timestamp = String.valueOf(System.currentTimeMillis());
             String prefijo = PREFIJO_FUENTE_2 + "-" + timestamp;
             String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, prefijo);
             if (rutaDocumento != null) {
@@ -153,8 +154,8 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
         for (EncuestaPreguntaDTO preguntaDTO : preguntasDTO) {
             Pregunta pregunta = preguntaRepository.findById(preguntaDTO.getOidPregunta())
-                .orElseThrow(() -> new EntityNotFoundException(
-                    "Pregunta con ID " + preguntaDTO.getOidPregunta() + " no encontrada."));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Pregunta con ID " + preguntaDTO.getOidPregunta() + " no encontrada."));
 
             EncuestaRespuesta encuestaRespuesta = encuestaRespuestaRepository.findByEncuestaAndPregunta(encuesta, pregunta).orElse(new EncuestaRespuesta());
 
@@ -232,14 +233,14 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         resultado.put("preguntas", preguntas);
         return resultado;
     }
-    
+
     // Construye el mapa de Encuesta
     private Map<String, Object> construirEncuesta(Encuesta encuesta) {
         Map<String, Object> encuestaMap = new LinkedHashMap<>();
         encuestaMap.put("nombre", encuesta.getNombre());
         return encuestaMap;
     }
-    
+
     // Construye el mapa de EstadoEtapaDesarrollo
     private Map<String, Object> construirEstadoEtapaDesarrollo(EvaluacionEstudiante evaluacionEstudiante) {
         Map<String, Object> estadoEtapaDesarrolloMap = new LinkedHashMap<>();

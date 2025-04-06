@@ -3,6 +3,7 @@ package co.edu.unicauca.sed.api.service.evaluacion_docente;
 import co.edu.unicauca.sed.api.dto.AutoevaluacionDTO;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -16,16 +17,10 @@ public interface AutoevaluacionService {
      * @param firma           Firma del docente.
      * @param screenshotSimca Captura de pantalla del SIMCA.
      * @param documentoNotas  Documento con las notas diligenciadas.
-     * @param archivosOds     Archivos de evidencia por cada ODS (clave:
-     *                        ods-<oidOds>).
+     * @param archivosOds     Archivos de evidencia por cada ODS (clave:ods-<oidOds>).
      * @return ApiResponse indicando el resultado de la operación.
      */
-    ApiResponse<Void> guardarAutoevaluacion(
-            AutoevaluacionDTO dto,
-            MultipartFile firma,
-            MultipartFile screenshotSimca,
-            MultipartFile documentoAutoevaluacion,
-            Map<String, MultipartFile> archivosOds);
+    ApiResponse<Void> guardarAutoevaluacion(AutoevaluacionDTO dto, MultipartFile firma, MultipartFile screenshotSimca, MultipartFile documentoAutoevaluacion, List<MultipartFile> archivosOds);
 
     ApiResponse<Object> listarAutoevaluacion(Integer oidFuente);
 }

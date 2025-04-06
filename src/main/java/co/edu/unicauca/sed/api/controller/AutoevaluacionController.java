@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
 
@@ -43,11 +43,13 @@ public class AutoevaluacionController {
             @RequestParam(value = "documentoAutoevaluacion", required = false) MultipartFile documentoAutoevaluacion,
             @RequestParam Map<String, MultipartFile> allFiles) {
 
-        Map<String, MultipartFile> archivosOds = allFiles.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith("ods-"))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        List<MultipartFile> archivosOds = new ArrayList<>();
 
         AutoevaluacionDTO dto = integrationService.convertirJsonAAutoevaluacion(autoevaluacionJson);
+        for (int i = 0; i < dto.getOdsSeleccionados().size(); i++) {
+            MultipartFile archivo = allFiles.get("ods-" + (i+1));
+            archivosOds.add(archivo);
+        }
         ApiResponse<Void> response = autoevaluacionService.guardarAutoevaluacion(dto, firma, screenshotSimca, documentoAutoevaluacion, archivosOds);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }

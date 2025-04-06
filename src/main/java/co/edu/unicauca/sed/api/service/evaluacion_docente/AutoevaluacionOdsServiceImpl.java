@@ -41,12 +41,19 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     public static final String PREFIJO_ODS = "ods";
 
     @Override
-    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
+    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, List<MultipartFile> archivosOds,
+            Fuente fuente) {
+        if (odsList.size() != archivosOds.size()) {
+            throw new IllegalArgumentException("La cantidad de ODS no coincide con la cantidad de archivos.");
+        }
 
         eliminarOdsRemovidos(odsList, autoevaluacion);
 
-        for (OdsDTO odsDTO : odsList) {
-            AutoevaluacionOds entidad = construirOdsDesdeDTO(odsDTO, autoevaluacion, fuente, archivosOds);
+        for (int i = 0; i < odsList.size(); i++) {
+            OdsDTO odsDTO = odsList.get(i);
+            MultipartFile archivo = archivosOds.get(i);
+
+            AutoevaluacionOds entidad = construirOdsDesdeDTO(odsDTO, autoevaluacion, fuente, archivo);
             autoevaluacionOdsRepository.save(entidad);
         }
     }
@@ -55,9 +62,9 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         List<AutoevaluacionOds> actuales = autoevaluacionOdsRepository.findByAutoevaluacion(autoevaluacion);
 
         Set<Integer> nuevosIds = odsList.stream()
-            .map(OdsDTO::getOidAutoevaluacionOds)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+                .map(OdsDTO::getOidAutoevaluacionOds)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         for (AutoevaluacionOds existente : actuales) {
             Integer idExistente = existente.getOidAutoevaluacionOds();
@@ -69,10 +76,10 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         }
     }
 
-    private AutoevaluacionOds construirOdsDesdeDTO(OdsDTO odsDTO, Autoevaluacion autoevaluacion, Fuente fuente, Map<Integer, MultipartFile> archivosOds) {
+    private AutoevaluacionOds construirOdsDesdeDTO(OdsDTO odsDTO, Autoevaluacion autoevaluacion, Fuente fuente, MultipartFile archivo) {
 
         ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds())
-            .orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
+                .orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
 
         AutoevaluacionOds entidad = (odsDTO.getOidAutoevaluacionOds() != null)
             ? autoevaluacionOdsRepository.findById(odsDTO.getOidAutoevaluacionOds())
@@ -86,8 +93,6 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         entidad.setResultado(odsDTO.getResultado());
 
         Integer oidClave = odsDTO.getOidAutoevaluacionOds() != null ? odsDTO.getOidAutoevaluacionOds() : odsDTO.getOidOds();
-
-        MultipartFile archivo = archivosOds.get(oidClave);
         guardarArchivoOds(entidad, archivo, fuente, oidClave);
 
         return entidad;
@@ -103,7 +108,11 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
                     return;
                 }
 
-                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+                if (nombreActual != null) {
+                    fileService.eliminarArchivo(entidad.getRutaDocumento());
+                }
+
+                String timestamp = String.valueOf(System.currentTimeMillis());
                 String prefijo = PREFIJO_ODS + "-" + timestamp;
                 String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, prefijo);
                 String nombreArchivo = Paths.get(ruta).getFileName().toString();
@@ -124,7 +133,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     @Override
     public ArchivoDTO obtenerArchivoPorId(Integer idOds) {
         AutoevaluacionOds ods = autoevaluacionOdsRepository.findById(idOds)
-            .orElseThrow(() -> new RuntimeException("ODS con ID " + idOds + " no encontrado."));
+                .orElseThrow(() -> new RuntimeException("ODS con ID " + idOds + " no encontrado."));
         return new ArchivoDTO(ods.getNombreDocumento(), ods.getRutaDocumento());
     }
 
@@ -139,30 +148,6 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
             map.put("documento", item.getNombreDocumento());
             return map;
         }).collect(Collectors.toList());
-    }
-
-    @Override
-    public Map<Integer, MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados, Map<String, MultipartFile> archivos) {
-        if (archivos == null || archivos.isEmpty() || odsSeleccionados == null || odsSeleccionados.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<Integer, MultipartFile> resultado = new HashMap<>();
-
-        for (OdsDTO ods : odsSeleccionados) {
-            String nombreDocumento = ods.getDocumento();
-            Integer oidOds = ods.getOidAutoevaluacionOds() != null  ? ods.getOidAutoevaluacionOds() : ods.getOidOds();
-
-            if (nombreDocumento != null && oidOds != null) {
-                Optional<Map.Entry<String, MultipartFile>> archivoEncontrado = archivos.entrySet().stream()
-                    .filter(entry -> entry.getValue().getOriginalFilename() != null && entry.getValue().getOriginalFilename().equals(nombreDocumento))
-                    .findFirst();
-
-                archivoEncontrado.ifPresent(entry -> resultado.put(oidOds, entry.getValue()));
-            }
-        }
-
-        return resultado;
     }
 
     @Override
