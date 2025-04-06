@@ -96,12 +96,11 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     private void guardarArchivoOds(AutoevaluacionOds entidad, MultipartFile archivo, Fuente fuente, Integer oidOds) {
         try {
             String nombreActual = entidad.getNombreDocumento();
-            
 
             if (archivo != null && !archivo.isEmpty()) {
                 String nombreNuevo = archivo.getOriginalFilename();
-                if (nombreActual != null && nombreNuevo != null && !nombreNuevo.equals(nombreActual)) {
-                    fileService.eliminarArchivo(entidad.getRutaDocumento());
+                if (nombreActual != null && nombreNuevo != null && nombreNuevo.equals(nombreActual)) {
+                    return;
                 }
 
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
