@@ -136,10 +136,10 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
     @Override
     public void actualizarFuente(Fuente fuente, float nuevaCalificacion, String tipoCalificacion, String observacion) {
         fuente.setCalificacion(nuevaCalificacion);
-        fuente.setTipoCalificacion(tipoCalificacion.toUpperCase());
+        fuente.setTipoCalificacion(tipoCalificacion != null ? tipoCalificacion.toUpperCase() : null);
         EstadoFuente estadoFuente = determinarEstadoFuente(fuente);
         fuente.setEstadoFuente(estadoFuente);
-        fuente.setObservacion(observacion.toUpperCase());
+        fuente.setObservacion(observacion != null ? observacion.toUpperCase() : null);
         fuenteRepository.save(fuente);
     }
 
