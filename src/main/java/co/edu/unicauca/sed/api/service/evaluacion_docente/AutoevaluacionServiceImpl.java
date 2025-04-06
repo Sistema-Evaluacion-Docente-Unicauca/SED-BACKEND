@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,7 +70,9 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             oportunidadMejoraService.guardar(dto.getOportunidadesMejora(), autoevaluacion);
 
             // Guardar documento de notas
-            String rutaNotas = fuenteService.guardarDocumentoFuente(fuente, documentoAutoevaluacion, PREFIJO_FUENTE_1);
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+            String prefijo = PREFIJO_FUENTE_1 + "-" + timestamp;
+            String rutaNotas = fuenteService.guardarDocumentoFuente(fuente, documentoAutoevaluacion, prefijo);
             if (rutaNotas != null) {
                 fuente.setRutaDocumentoFuente(rutaNotas);
                 String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaNotas);
@@ -141,7 +145,9 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             }
 
             if (screenshotSimca != null) {
-                String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, PREFIJO_SCREENSHOT);
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+                String prefijo = PREFIJO_SCREENSHOT + "-" + timestamp;
+                String rutaScreenshot = fuenteService.guardarDocumentoFuente(fuente, screenshotSimca, prefijo);
                 if (rutaScreenshot != null) {
                     autoevaluacion.setRutaDocumentoSc(rutaScreenshot);
                     String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaScreenshot);

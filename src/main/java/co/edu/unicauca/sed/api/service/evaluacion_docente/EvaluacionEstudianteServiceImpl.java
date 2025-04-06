@@ -32,6 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -108,8 +110,9 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
             // 🔄 Guardar respuestas y calcular la calificación
             float calificacionFinal = guardarRespuestasYCalcularNota(dto.getPreguntas(), encuesta);
-
-            String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, PREFIJO_FUENTE_2);
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+            String prefijo = PREFIJO_FUENTE_2 + "-" + timestamp;
+            String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, prefijo);
             if (rutaDocumento != null) {
                 dto.setFirma(rutaFirma);
                 fuente.setRutaDocumentoFuente(rutaDocumento);

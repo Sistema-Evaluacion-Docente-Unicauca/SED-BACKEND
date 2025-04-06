@@ -2,6 +2,8 @@ package co.edu.unicauca.sed.api.service.evaluacion_docente;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -86,9 +88,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         entidad.setResultado(odsDTO.getResultado());
 
         MultipartFile archivo = archivosOds.get(odsDTO.getOidOds());
-        if (archivo != null && !archivo.isEmpty()) {
-            guardarArchivoOds(entidad, archivo, fuente, odsDTO.getOidOds());
-        }
+        guardarArchivoOds(entidad, archivo, fuente, odsDTO.getOidOds());
 
         return entidad;
     }
@@ -96,18 +96,26 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     private void guardarArchivoOds(AutoevaluacionOds entidad, MultipartFile archivo, Fuente fuente, Integer oidOds) {
         try {
             String nombreActual = entidad.getNombreDocumento();
-            String nombreNuevo = archivo.getOriginalFilename();
+            
 
-            if (nombreActual != null && nombreNuevo != null && !nombreNuevo.equals(nombreActual)) {
+            if (archivo != null && !archivo.isEmpty()) {
+                String nombreNuevo = archivo.getOriginalFilename();
+                if (nombreActual != null && nombreNuevo != null && !nombreNuevo.equals(nombreActual)) {
+                    fileService.eliminarArchivo(entidad.getRutaDocumento());
+                }
+
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS"));
+                String prefijo = PREFIJO_ODS + "-" + timestamp;
+                String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, prefijo);
+                String nombreArchivo = Paths.get(ruta).getFileName().toString();
+
+                entidad.setNombreDocumento(nombreArchivo);
+                entidad.setRutaDocumento(ruta);
+            } else if (nombreActual != null) {
                 fileService.eliminarArchivo(entidad.getRutaDocumento());
+                entidad.setNombreDocumento(null);
+                entidad.setRutaDocumento(null);
             }
-            Integer maxOidFuente = obtenerMaxOidOds() + 1;
-            String prefijo = PREFIJO_ODS + "_" + maxOidFuente;
-            String ruta = fuenteService.guardarDocumentoFuente(fuente, archivo, prefijo);
-            String nombreArchivo = Paths.get(ruta).getFileName().toString();
-
-            entidad.setNombreDocumento(nombreArchivo);
-            entidad.setRutaDocumento(ruta);
         } catch (IOException e) {
             LOGGER.error("❌ Error al guardar evidencia del ODS {}: {}", oidOds, e.getMessage());
             throw new RuntimeException("Error al guardar evidencia del ODS " + oidOds, e);
