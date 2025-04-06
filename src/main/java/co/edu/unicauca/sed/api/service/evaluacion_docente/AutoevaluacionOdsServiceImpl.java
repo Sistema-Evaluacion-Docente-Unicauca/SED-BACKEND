@@ -41,8 +41,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     public static final String PREFIJO_ODS = "ods";
 
     @Override
-    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion,
-            Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
+    public void guardarOds(List<OdsDTO> odsList, Autoevaluacion autoevaluacion, Map<Integer, MultipartFile> archivosOds, Fuente fuente) {
 
         eliminarOdsRemovidos(odsList, autoevaluacion);
 
@@ -70,8 +69,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         }
     }
 
-    private AutoevaluacionOds construirOdsDesdeDTO(OdsDTO odsDTO, Autoevaluacion autoevaluacion,
-            Fuente fuente, Map<Integer, MultipartFile> archivosOds) {
+    private AutoevaluacionOds construirOdsDesdeDTO(OdsDTO odsDTO, Autoevaluacion autoevaluacion, Fuente fuente, Map<Integer, MultipartFile> archivosOds) {
 
         ObjetivoDesarrolloSostenible ods = odsRepository.findById(odsDTO.getOidOds())
             .orElseThrow(() -> new NoSuchElementException("ODS no encontrado: " + odsDTO.getOidOds()));
@@ -87,8 +85,10 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
         entidad.setOds(ods);
         entidad.setResultado(odsDTO.getResultado());
 
-        MultipartFile archivo = archivosOds.get(odsDTO.getOidOds());
-        guardarArchivoOds(entidad, archivo, fuente, odsDTO.getOidOds());
+        Integer oidClave = odsDTO.getOidAutoevaluacionOds() != null ? odsDTO.getOidAutoevaluacionOds() : odsDTO.getOidOds();
+
+        MultipartFile archivo = archivosOds.get(oidClave);
+        guardarArchivoOds(entidad, archivo, fuente, oidClave);
 
         return entidad;
     }
@@ -142,8 +142,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
     }
 
     @Override
-    public Map<Integer, MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados,
-            Map<String, MultipartFile> archivos) {
+    public Map<Integer, MultipartFile> mapearArchivoODS(List<OdsDTO> odsSeleccionados, Map<String, MultipartFile> archivos) {
         if (archivos == null || archivos.isEmpty() || odsSeleccionados == null || odsSeleccionados.isEmpty()) {
             return Map.of();
         }
@@ -152,7 +151,7 @@ public class AutoevaluacionOdsServiceImpl implements AutoevaluacionOdsService {
 
         for (OdsDTO ods : odsSeleccionados) {
             String nombreDocumento = ods.getDocumento();
-            Integer oidOds = ods.getOidOds();
+            Integer oidOds = ods.getOidAutoevaluacionOds() != null  ? ods.getOidAutoevaluacionOds() : ods.getOidOds();
 
             if (nombreDocumento != null && oidOds != null) {
                 Optional<Map.Entry<String, MultipartFile>> archivoEncontrado = archivos.entrySet().stream()
