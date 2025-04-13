@@ -3,7 +3,6 @@ package co.edu.unicauca.sed.api.service.actividad;
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
-import co.edu.unicauca.sed.api.dto.actividad.InformacionActividadDTO;
 
 import java.util.List;
 

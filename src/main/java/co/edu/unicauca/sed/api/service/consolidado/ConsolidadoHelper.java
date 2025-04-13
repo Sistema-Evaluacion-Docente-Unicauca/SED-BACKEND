@@ -44,22 +44,19 @@ public class ConsolidadoHelper {
             Usuario evaluado = usuarioRepository.findById(idEvaluado)
                     .orElseThrow(() -> new EntityNotFoundException("Usuario con ID " + idEvaluado + " no encontrado."));
 
-            idPeriodoAcademico = (idPeriodoAcademico != null)
-                    ? idPeriodoAcademico
-                    : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+            idPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
 
-            List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(
-                    evaluado, idPeriodoAcademico);
+            List<Proceso> procesos = procesoRepository.findByEvaluadoAndOidPeriodoAcademico_OidPeriodoAcademico(evaluado, idPeriodoAcademico);
 
             if (procesos.isEmpty()) {
                 throw new EntityNotFoundException("No hay procesos para el evaluado en el período académico.");
             }
 
             return new BaseConsolidadoDataDTO(
-                    evaluado,
-                    evaluado.getUsuarioDetalle(),
-                    procesos.get(0).getOidPeriodoAcademico(),
-                    procesos);
+                evaluado,
+                evaluado.getUsuarioDetalle(),
+                procesos.get(0).getOidPeriodoAcademico(),
+                procesos);
         } catch (EntityNotFoundException e) {
             logger.warn("⚠️ [ERROR] {}", e.getMessage());
             throw e;
@@ -79,16 +76,16 @@ public class ConsolidadoHelper {
     /**
      * Aprobar un consolidado y generar el documento.
      */
-    public Integer guardarConsolidado(Consolidado consolidadoExistente, String nombreDocumento,
-        String rutaDocumento, String nota) {
-        actualizarDatosConsolidado(consolidadoExistente, nombreDocumento, rutaDocumento, nota);
+    public Integer guardarConsolidado(Consolidado consolidadoExistente, String nombreDocumento, String rutaDocumento, String nota, Double totalAcumulado) {
+        actualizarDatosConsolidado(consolidadoExistente, nombreDocumento, rutaDocumento, nota, totalAcumulado);
         return consolidadoExistente.getOidConsolidado();
     }
 
-    public void actualizarDatosConsolidado(Consolidado consolidado, String nombreDocumento, String rutaDocumento, String nota) {
+    public void actualizarDatosConsolidado(Consolidado consolidado, String nombreDocumento, String rutaDocumento, String nota, Double totalAcumulado) {
         consolidado.setNombredocumento(nombreDocumento);
         consolidado.setRutaDocumento(rutaDocumento);
         consolidado.setNota(nota.toUpperCase());
+        consolidado.setCalificacion(totalAcumulado);
         consolidado.setFechaActualizacion(LocalDateTime.now());
         consolidadoRepository.save(consolidado);
     }
@@ -157,6 +154,7 @@ public class ConsolidadoHelper {
         dto.setCategoria(detalle.getCategoria());
         dto.setTipoContratacion(detalle.getContratacion());
         dto.setDedicacion(detalle.getDedicacion());
+        dto.setCalificacion(consolidado.getCalificacion());
         dto.setNombreArchivo(consolidado.getNombredocumento());
         dto.setRutaArchivo(consolidado.getRutaDocumento());
 

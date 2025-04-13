@@ -16,7 +16,6 @@ import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.mapper.UsuarioMapper;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
-import co.edu.unicauca.sed.api.service.RolService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadDateServiceImpl;
 import co.edu.unicauca.sed.api.specification.UsuarioSpecification;
 import org.springframework.data.domain.Page;

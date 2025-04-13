@@ -25,7 +25,6 @@ import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
-import co.edu.unicauca.sed.api.dto.actividad.InformacionActividadDTO;
 import co.edu.unicauca.sed.api.exception.ValidationException;
 import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;

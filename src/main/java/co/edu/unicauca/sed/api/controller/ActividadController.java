@@ -20,8 +20,6 @@ import java.util.List;
 @RequestMapping("api/actividades")
 public class ActividadController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActividadController.class);
-
     private final ActividadService actividadService;
     private final ActividadQueryService actividadQueryService;
 

@@ -81,14 +81,12 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             }
 
             ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
-            Specification<Consolidado> specification = specBuilder.byFilters(idUsuario, nombre, identificacion,
-                    facultad, departamento, categoria, idPeriodoAcademico);
+            Specification<Consolidado> specification = specBuilder.byFilters(idUsuario, nombre, identificacion, facultad, departamento, categoria, idPeriodoAcademico);
 
             Page<Consolidado> consolidadoPage = consolidadoRepository.findAll(specification, sortedPageable);
 
             if (consolidadoPage.isEmpty()) {
-                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.",
-                        Page.empty());
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.", Page.empty());
             }
 
             Page<InformacionConsolidadoDTO> dtoPage = consolidadoPage.map(consolidadoHelper::convertirAInformacionDTO);
@@ -122,14 +120,13 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
         try {
             logger.info("🔄 Actualizando consolidado con OID: {}", oidConsolidado);
             Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Consolidado con ID " + oidConsolidado + " no encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Consolidado con ID " + oidConsolidado + " no encontrado."));
 
             Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso())
-                    .orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
+                .orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
 
             Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado())
-                    .orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
+                .orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
 
             List<Proceso> procesosEvaluado = procesoRepository.findByEvaluado(evaluado);
             if (procesosEvaluado.isEmpty()) {
@@ -139,8 +136,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             int actualizados = 0;
             for (Proceso proceso : procesosEvaluado) {
                 consolidadoRepository.findByProceso(proceso).ifPresent(consolidado -> {
-                    consolidadoHelper.actualizarDatosConsolidado(consolidado, datosActualizar.getNombredocumento(),
-                            datosActualizar.getRutaDocumento(), datosActualizar.getNota());
+                    consolidadoHelper.actualizarDatosConsolidado(consolidado, datosActualizar.getNombredocumento(), datosActualizar.getRutaDocumento(), datosActualizar.getNota(), datosActualizar.getCalificacion());
                 });
                 actualizados++;
             }
@@ -271,12 +267,10 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             Consolidado consolidadoExistente = consolidadoRepository.findByProceso(procesoExistente).orElse(null);
             if (consolidadoExistente == null) {
                 consolidadoExistente = new Consolidado(procesoExistente);
-                logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}",
-                        procesoExistente.getOidProceso());
+                logger.info("✅ [CONSOLIDADO] Creando un nuevo consolidado para el proceso ID: {}", procesoExistente.getOidProceso());
             }
 
-            Integer oidConsolidado = consolidadoHelper.guardarConsolidado(consolidadoExistente, nombreDocumento,
-                    excelPath.toString(), nota);
+            Integer oidConsolidado = consolidadoHelper.guardarConsolidado(consolidadoExistente, nombreDocumento, excelPath.toString(), nota, consolidadoDTO.getTotalAcumulado());
             notificacionDocumentoService.notificarJefeDepartamento("consolidado", evaluador, evaluado);
             ConsolidadoArchivoDTO archivoDTO = new ConsolidadoArchivoDTO(nombreDocumento, oidConsolidado);
             return new ApiResponse<>(200, "Consolidado aprobado correctamente.", archivoDTO);

@@ -7,7 +7,6 @@ import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
 import co.edu.unicauca.sed.api.dto.FuenteCreateDTO;
-import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
 import co.edu.unicauca.sed.api.repository.FuenteRepository;
 import co.edu.unicauca.sed.api.service.documento.FileService;
 import co.edu.unicauca.sed.api.utils.StringUtils;
@@ -48,9 +47,6 @@ public class FuenteServiceImpl implements FuenteService {
 
     @Autowired
     private FuenteIntegrationService integrationService;
-
-    @Autowired
-    private EstadoFuenteRepository estadoFuenteRepository;
 
     @Autowired
     private FuenteFileService fuenteFileService;

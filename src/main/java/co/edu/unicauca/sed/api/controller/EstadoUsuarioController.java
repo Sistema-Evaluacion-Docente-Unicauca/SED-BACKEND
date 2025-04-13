@@ -3,8 +3,6 @@ package co.edu.unicauca.sed.api.controller;
 import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.service.usuario.EstadoUsuarioService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/estado-usuario")
 public class EstadoUsuarioController {
-
-    private static final Logger logger = LoggerFactory.getLogger(EstadoUsuarioController.class);
 
     @Autowired
     private EstadoUsuarioService service;

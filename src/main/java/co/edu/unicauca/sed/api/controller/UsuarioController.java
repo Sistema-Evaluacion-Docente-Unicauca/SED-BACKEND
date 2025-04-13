@@ -12,8 +12,6 @@ import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.service.fuente.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.usuario.UsuarioService;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 /**
@@ -26,8 +24,6 @@ import org.springframework.data.domain.Page;
 @Controller
 @RequestMapping("api/usuarios")
 public class UsuarioController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
     @Autowired
     private UsuarioService usuarioService;

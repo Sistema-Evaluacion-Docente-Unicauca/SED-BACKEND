@@ -18,6 +18,7 @@ public class InformacionConsolidadoDTO {
     private String numeroIdentificacion;
     private String facultad;
     private String departamento;
+    private Double calificacion;
     private String categoria;
     private String tipoContratacion;
     private String dedicacion;
