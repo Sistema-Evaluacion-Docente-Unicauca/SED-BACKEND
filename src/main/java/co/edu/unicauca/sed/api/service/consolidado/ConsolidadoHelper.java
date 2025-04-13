@@ -157,6 +157,8 @@ public class ConsolidadoHelper {
         dto.setCalificacion(consolidado.getCalificacion());
         dto.setNombreArchivo(consolidado.getNombredocumento());
         dto.setRutaArchivo(consolidado.getRutaDocumento());
+        dto.setIdPeriodoAcademico(consolidado.getProceso().getOidPeriodoAcademico().getOidPeriodoAcademico());
+        dto.setPeriodoAcademico(consolidado.getProceso().getOidPeriodoAcademico().getIdPeriodo());
 
         return dto;
     }

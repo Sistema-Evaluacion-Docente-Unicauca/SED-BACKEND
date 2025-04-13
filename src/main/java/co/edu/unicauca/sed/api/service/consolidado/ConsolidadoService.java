@@ -6,6 +6,7 @@ import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -28,9 +29,8 @@ public interface ConsolidadoService {
      * @param categoria          Categoría del evaluado.
      * @return ApiResponse con la lista de consolidados filtrados.
      */
-    ApiResponse<Page<InformacionConsolidadoDTO>> findAll(Pageable pageable, Boolean ascendingOrder,
-            Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion,
-            String facultad, String departamento, String categoria);
+    ApiResponse<Page<InformacionConsolidadoDTO>> findAll(Pageable pageable, Boolean ascendingOrder, Integer idPeriodoAcademico, 
+        Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria);
 
     /**
      * Busca un consolidado por su identificador único (OID).
@@ -52,11 +52,10 @@ public interface ConsolidadoService {
     public ApiResponse<ConsolidadoDTO> generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico);
 
     public ApiResponse<ActividadPaginadaDTO> filtrarActividadesPaginadas(Integer idEvaluado, Integer idPeriodoAcademico,
-            String nombreActividad, String idTipoActividad,
-            String idTipoFuente, String idEstadoFuente,
-            Pageable pageable);
+            String nombreActividad, String idTipoActividad, String idTipoFuente, String idEstadoFuente, Pageable pageable);
 
     public ApiResponse<ConsolidadoArchivoDTO> aprobarConsolidado(Integer idEvaluado, Integer idEvaluador, Integer idPeriodoAcademico, String nota);
+
     /**
      * Elimina un consolidado por su ID.
      *
@@ -64,4 +63,6 @@ public interface ConsolidadoService {
      * @return ApiResponse indicando el resultado de la eliminación.
      */
     ApiResponse<Void> delete(Integer oid);
+
+    ApiResponse<List<InformacionConsolidadoDTO>> obtenerTodos();
 }

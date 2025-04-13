@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -41,6 +42,12 @@ public class ConsolidadoController {
 
     @Autowired
     private ConsolidadoRepository consolidadoRepository;
+
+    @GetMapping("/obtener-todos")
+    public ResponseEntity<ApiResponse<List<InformacionConsolidadoDTO>>> obtenerTodos() {
+        ApiResponse<List<InformacionConsolidadoDTO>> response = consolidadoService.obtenerTodos();
+        return ResponseEntity.status(response.getCodigo()).body(response);
+    }
 
     /**
      * Recupera todos los consolidados con soporte de paginación y ordenamiento.

@@ -102,8 +102,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
     @Transactional(readOnly = true)
     public ApiResponse<Consolidado> findByOid(Integer oid) {
         try {
-            Consolidado consolidado = consolidadoRepository.findById(oid)
-                    .orElseThrow(() -> new EntityNotFoundException("Consolidado con ID " + oid + " no encontrado."));
+            Consolidado consolidado = consolidadoRepository.findById(oid).orElseThrow(() -> new EntityNotFoundException("Consolidado con ID " + oid + " no encontrado."));
             return new ApiResponse<>(200, "Consolidado encontrado correctamente.", consolidado);
         } catch (EntityNotFoundException e) {
             logger.warn("⚠️ [ERROR] {}", e.getMessage());
@@ -122,11 +121,9 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             Consolidado consolidadoBase = consolidadoRepository.findById(oidConsolidado)
                 .orElseThrow(() -> new EntityNotFoundException("Consolidado con ID " + oidConsolidado + " no encontrado."));
 
-            Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso())
-                .orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
+            Proceso procesoBase = Optional.ofNullable(consolidadoBase.getProceso()).orElseThrow(() -> new IllegalStateException("Proceso no asociado al consolidado base."));
 
-            Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado())
-                .orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
+            Usuario evaluado = Optional.ofNullable(procesoBase.getEvaluado()).orElseThrow(() -> new IllegalStateException("Evaluado no asociado al proceso base."));
 
             List<Proceso> procesosEvaluado = procesoRepository.findByEvaluado(evaluado);
             if (procesosEvaluado.isEmpty()) {
@@ -142,8 +139,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             }
 
             if (actualizados == 0) {
-                return new ApiResponse<>(404, "No se actualizaron consolidado(s) porque no se encontraron registros.",
-                        null);
+                return new ApiResponse<>(404, "No se actualizaron consolidado(s) porque no se encontraron registros.",null);
             }
 
             return new ApiResponse<>(200, "Se actualizaron " + actualizados + " consolidado(s) correctamente.", null);
@@ -193,14 +189,8 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
             double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
             double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
-            ConsolidadoDTO consolidadoDTO = consolidadoHelper.construirConsolidado(
-                    baseData.getEvaluado(),
-                    baseData.getDetalleUsuario(),
-                    baseData.getPeriodoAcademico(),
-                    null,
-                    totalHoras,
-                    totalPorcentaje,
-                    totalAcumulado);
+            ConsolidadoDTO consolidadoDTO = consolidadoHelper.construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
+                null, totalHoras, totalPorcentaje, totalAcumulado);
             return new ApiResponse<>(200, "Información general obtenida correctamente.", consolidadoDTO);
         } catch (EntityNotFoundException e) {
             logger.warn("⚠️ [ERROR] {}", e.getMessage());
@@ -218,9 +208,8 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             String idTipoFuente, String idEstadoFuente,
             Pageable pageable) {
         try {
-            Specification<Actividad> spec = actividadQueryService.filtrarActividades(
-                    null, idEvaluado, nombreActividad, idTipoActividad, null, null,
-                    idTipoFuente, idEstadoFuente, true, idPeriodoAcademico);
+            Specification<Actividad> spec = actividadQueryService.filtrarActividades(null, idEvaluado, nombreActividad, idTipoActividad, null, null,
+                idTipoFuente, idEstadoFuente, true, idPeriodoAcademico);
 
             Page<Actividad> actividadPage = actividadRepository.findAll(spec, pageable);
             ActividadPaginadaDTO actividadPaginadaDTO = transformacionService.construirActividadPaginadaDTO(actividadPage);
@@ -251,14 +240,12 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             Path excelPath = excelService.generarExcelConsolidado(consolidadoDTO, nombreDocumento, nota);
 
             Usuario evaluador = usuarioRepository.findById(idEvaluador)
-                    .orElseThrow(
-                            () -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluador con ID: " + idEvaluador));
 
             Usuario evaluado = usuarioRepository.findById(idEvaluado)
                     .orElseThrow(() -> new EntityNotFoundException("No se encontró el evaluado con ID: " + idEvaluado));
 
-            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado,
-                    idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
+            Proceso procesoExistente = procesoService.buscarProcesoExistente(idEvaluador, idEvaluado, idPeriodoAcademico, procesoService.TIPO_CONSOLIDADO);
 
             if (procesoExistente == null) {
                 procesoExistente = procesoService.crearNuevoProceso(idEvaluador, idEvaluado, idPeriodoAcademico);
@@ -283,6 +270,26 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error inesperado en aprobarConsolidado: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al aprobar el consolidado.", null);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<List<InformacionConsolidadoDTO>> obtenerTodos() {
+        try {
+            List<Consolidado> consolidadoList = consolidadoRepository.findAll();
+
+            if (consolidadoList.isEmpty()) {
+                return new ApiResponse<>(204, "No se encontraron consolidados.", List.of());
+            }
+
+            List<InformacionConsolidadoDTO> dtoList = consolidadoList.stream().map(consolidadoHelper::convertirAInformacionDTO).toList();
+
+            return new ApiResponse<>(200, "Consolidados obtenidos correctamente.", dtoList);
+
+        } catch (Exception e) {
+            logger.error("❌ [ERROR] Error al obtener todos los consolidados: {}", e.getMessage(), e);
+            return new ApiResponse<>(500, "Error inesperado al obtener los consolidados.", List.of());
         }
     }
 }

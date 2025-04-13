@@ -24,4 +24,6 @@ public class InformacionConsolidadoDTO {
     private String dedicacion;
     private String nombreArchivo;
     private String rutaArchivo;
+    private Integer idPeriodoAcademico;
+    private String periodoAcademico;
 }
