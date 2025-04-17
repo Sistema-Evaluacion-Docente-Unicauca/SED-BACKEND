@@ -3,9 +3,11 @@ package co.edu.unicauca.sed.api.controller;
 import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
+import co.edu.unicauca.sed.api.dto.PeriodoEvaluacionDTO;
 import co.edu.unicauca.sed.api.service.evaluacion_docente.EvaluacionEstudianteService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteIntegrationService;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,5 +62,10 @@ public class EvaluacionEstudianteController {
     @GetMapping("/fuente/{oidFuente}")
     public ResponseEntity<ApiResponse<Object>> obtenerEvaluacionEstudiante(@PathVariable Integer oidFuente) {
         return ResponseEntity.ok(evaluacionEstudianteService.obtenerEvaluacionEstudiante(oidFuente));
+    }
+
+    @GetMapping("/respuesta")
+    public ResponseEntity<ApiResponse<List<PeriodoEvaluacionDTO>>> obtenerEvaluacionesEstructuradas() {
+        return ResponseEntity.ok(evaluacionEstudianteService.obtenerEvaluacionesEstructuradas());
     }
 }

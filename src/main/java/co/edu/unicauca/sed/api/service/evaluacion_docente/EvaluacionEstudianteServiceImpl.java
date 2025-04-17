@@ -1,14 +1,23 @@
 package co.edu.unicauca.sed.api.service.evaluacion_docente;
 
+import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Encuesta;
 import co.edu.unicauca.sed.api.domain.EncuestaRespuesta;
 import co.edu.unicauca.sed.api.domain.EstadoEtapaDesarrollo;
 import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.Pregunta;
+import co.edu.unicauca.sed.api.domain.Proceso;
+import co.edu.unicauca.sed.api.domain.TipoActividad;
+import co.edu.unicauca.sed.api.dto.ActividadDepartamentoDTO;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.EncuestaPreguntaDTO;
 import co.edu.unicauca.sed.api.dto.EvaluacionDocenteDTO;
+import co.edu.unicauca.sed.api.dto.FuenteEvaluadaDTO;
+import co.edu.unicauca.sed.api.dto.PeriodoEvaluacionDTO;
+import co.edu.unicauca.sed.api.dto.PreguntaCalificadaDTO;
+import co.edu.unicauca.sed.api.dto.TipoActividadFuentesDTO;
 import co.edu.unicauca.sed.api.mapper.EvaluacionMapperUtil;
 import co.edu.unicauca.sed.api.repository.EncuestaRepository;
 import co.edu.unicauca.sed.api.repository.EncuestaRespuestaRepository;
@@ -29,10 +38,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -242,5 +253,71 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
         estadoEtapaDesarrolloMap.put("oidEstadoEtapaDesarrollo", evaluacionEstudiante.getEstadoEtapaDesarrollo().getOidEstadoEtapaDesarrollo());
         estadoEtapaDesarrolloMap.put("nombre", evaluacionEstudiante.getEstadoEtapaDesarrollo().getNombre());
         return estadoEtapaDesarrolloMap;
+    }
+
+    @Override
+    public ApiResponse<List<PeriodoEvaluacionDTO>> obtenerEvaluacionesEstructuradas() {
+        List<EvaluacionEstudiante> evaluaciones = evaluacionEstudianteRepository.findAll();
+        Map<String, PeriodoEvaluacionDTO> periodosMap = new LinkedHashMap<>();
+
+        for (EvaluacionEstudiante evaluacion : evaluaciones) {
+            Fuente fuente = evaluacion.getFuente();
+            Actividad actividad = fuente.getActividad();
+            TipoActividad tipoActividad = actividad.getTipoActividad();
+            Proceso proceso = actividad.getProceso();
+            PeriodoAcademico periodo = proceso.getOidPeriodoAcademico();
+            String departamento = proceso.getEvaluado().getUsuarioDetalle().getDepartamento();
+
+            Encuesta encuesta = encuestaRepository.findByEvaluacionEstudiante(evaluacion).orElse(null);
+            if (encuesta == null || encuesta.getEncuestaRespuestas() == null)
+                continue;
+
+            List<PreguntaCalificadaDTO> preguntas = encuesta.getEncuestaRespuestas().stream()
+                    .map(r -> {
+                        try {
+                            return new PreguntaCalificadaDTO(r.getPregunta().getOidPregunta(),r.getPregunta().getPregunta(), Float.parseFloat(r.getRespuesta()));
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            if (preguntas.isEmpty())
+                continue;
+
+            // Clave para identificar periodo
+            String keyPeriodo = periodo.getOidPeriodoAcademico() + "|" + periodo.getIdPeriodo();
+            PeriodoEvaluacionDTO periodoDTO = periodosMap.computeIfAbsent(
+                keyPeriodo, k -> new PeriodoEvaluacionDTO(periodo.getOidPeriodoAcademico(), periodo.getIdPeriodo(), new ArrayList<>())
+            );
+
+            // Buscar o crear departamento dentro del periodo
+            ActividadDepartamentoDTO deptoDTO = periodoDTO.getDepartamentos().stream()
+                    .filter(d -> d.getDepartamento().equals(departamento))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        ActividadDepartamentoDTO nuevo = new ActividadDepartamentoDTO(departamento, new ArrayList<>());
+                        periodoDTO.getDepartamentos().add(nuevo);
+                        return nuevo;
+                    });
+
+            // Buscar o crear tipo de actividad dentro del departamento
+            TipoActividadFuentesDTO tipoDTO = deptoDTO.getTiposActividad().stream()
+                    .filter(t -> t.getOidTipoActividad().equals(tipoActividad.getOidTipoActividad()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        TipoActividadFuentesDTO nuevo = new TipoActividadFuentesDTO(tipoActividad.getOidTipoActividad(),
+                                tipoActividad.getNombre(), new ArrayList<>());
+                        deptoDTO.getTiposActividad().add(nuevo);
+                        return nuevo;
+                    });
+
+            // Agregar fuente con preguntas
+            tipoDTO.getFuentes().add(new FuenteEvaluadaDTO(fuente.getOidFuente(), preguntas));
+        }
+
+        return new ApiResponse<>(200, "Evaluaciones estructuradas correctamente",
+                new ArrayList<>(periodosMap.values()));
     }
 }
