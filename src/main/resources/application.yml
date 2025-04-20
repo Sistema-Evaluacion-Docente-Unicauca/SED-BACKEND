@@ -23,6 +23,9 @@ spring:
     api:
       url: ${PERIODO_ACADEMICO_API_URL}
 
+server:
+  port: ${SERVER_PORT}
+
 files:
   basePath: ${FILES_BASE_PATH}
 document:
@@ -38,3 +41,20 @@ logging:
     max-history: ${LOG_FILE_MAX_HISTORY}
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+  
+app:
+  jwtSecret: ${JWT_SECRET}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  default-produces-media-type: application/json
+
+info:
+  app:
+    title: Microservicio EstaGestion Dodente
+    description: API para Gestion docente
+    version: 1.0.0
