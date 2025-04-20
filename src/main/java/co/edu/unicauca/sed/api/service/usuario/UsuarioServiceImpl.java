@@ -81,7 +81,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         for (Usuario usuario : usuarios) {
             try {
                 usuarioMapper.validarUsuarioExistente(usuario);
-    
+
+                usuarioMapper.validarCorreoExistente(usuario.getCorreo(), null);
+
                 usuario.setNombres(usuario.getNombres().toUpperCase());
                 usuario.setApellidos(usuario.getApellidos().toUpperCase());
                 usuarioMapper.generarNombreUsuario(usuario);
@@ -104,7 +106,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         } else {
             return new ApiResponse<>(400, "No se pudo guardar ningún usuario.", null);
         }
-    }    
+    }
 
     @Override
     @Transactional
@@ -116,6 +118,8 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (!Objects.equals(usuarioActualizado.getIdentificacion(), usuarioExistente.getIdentificacion())) {
                 usuarioMapper.validarUsuarioExistente(usuarioActualizado);
             }
+
+            usuarioMapper.validarCorreoExistente(usuarioActualizado.getCorreo(), id);
 
             List<Rol> rolesAsignados = usuarioMapper.procesarRoles(usuarioActualizado, id);
             usuarioExistente.setRoles(rolesAsignados);
