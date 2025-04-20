@@ -14,6 +14,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -34,6 +36,9 @@ public class Fuente {
 
     @Column(name = "CALIFICACION")
     private Float calificacion;
+
+    @Column(name = "TIPOCALIFICACION", length = 15)
+    private String tipoCalificacion;
 
     @Column(name = "NOMBREDOCUMENTOFUENTE")
     private String nombreDocumentoFuente;
@@ -67,4 +72,14 @@ public class Fuente {
     @JoinColumn(name = "OIDESTADOFUENTE", nullable = false)
     @JsonIgnore
     private EstadoFuente estadoFuente;
+
+    @PrePersist
+    @PreUpdate
+    private void validarTipoCalificacion() {
+        if (tipoCalificacion != null) {
+            if (!tipoCalificacion.equals("EN_LINEA") && !tipoCalificacion.equals("DOCUMENTO")) {
+                throw new IllegalArgumentException("TIPOCALIFICACION solo puede ser 'EN_LINEA' o 'DOCUMENTO'.");
+            }
+        }
+    }
 }

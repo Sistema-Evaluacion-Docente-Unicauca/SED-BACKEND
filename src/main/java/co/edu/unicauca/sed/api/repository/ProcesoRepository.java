@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;

@@ -6,15 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
-
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
-import co.edu.unicauca.sed.api.service.DocenteEvaluacionService;
-import co.edu.unicauca.sed.api.service.UsuarioService;
+import co.edu.unicauca.sed.api.service.fuente.DocenteEvaluacionService;
+import co.edu.unicauca.sed.api.service.usuario.UsuarioService;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 /**
@@ -27,8 +24,6 @@ import org.springframework.data.domain.Page;
 @Controller
 @RequestMapping("api/usuarios")
 public class UsuarioController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
     @Autowired
     private UsuarioService usuarioService;
@@ -58,8 +53,8 @@ public class UsuarioController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String estado,
             Pageable pageable) {
-        ApiResponse<Page<Usuario>> response = usuarioService.findAll(identificacion, nombre, facultad, departamento,
-                categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
+        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,
+                departamento, categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -72,7 +67,7 @@ public class UsuarioController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<Usuario>> findByOid(@PathVariable Integer oid) {
-        ApiResponse<Usuario> response = usuarioService.findByOid(oid);
+        ApiResponse<Usuario> response = usuarioService.buscarPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -80,11 +75,12 @@ public class UsuarioController {
      * Guarda uno o varios usuarios en el sistema.
      * 
      * @param usuarios Lista de objetos Usuario a guardar.
-     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún problema.
+     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún
+     *         problema.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
-        ApiResponse<List<Usuario>> response = usuarioService.save(usuarios);
+        ApiResponse<List<Usuario>> response = usuarioService.guardar(usuarios);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -92,12 +88,15 @@ public class UsuarioController {
      * Actualiza un usuario existente en el sistema.
      * 
      * @param idUsuario          ID del usuario a actualizar.
-     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
-     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
+     * @param usuarioActualizado Objeto que contiene los datos actualizados del
+     *                           usuario.
+     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre
+     *         un problema.
      */
     @PutMapping("/{idUsuario}")
-    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario, @RequestBody Usuario usuarioActualizado) {
-        ApiResponse<Usuario> response = usuarioService.update(idUsuario, usuarioActualizado);
+    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario,
+            @RequestBody Usuario usuarioActualizado) {
+        ApiResponse<Usuario> response = usuarioService.actualizar(idUsuario, usuarioActualizado);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -110,7 +109,7 @@ public class UsuarioController {
      */
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = usuarioService.delete(oid);
+        ApiResponse<Void> response = usuarioService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -129,16 +128,7 @@ public class UsuarioController {
             @RequestParam(required = false) String departamento,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        try {
-            ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,
-                    idPeriodoAcademico, departamento, PageRequest.of(page, size));
-            return ResponseEntity.status(response.getCodigo()).body(response);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Error en los parámetros proporcionados: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
-        } catch (Exception e) {
-            logger.error("Error inesperado al obtener evaluaciones de docentes: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(new ApiResponse<>(500, "Error inesperado: " + e.getMessage(), null));
-        }
+        ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,idPeriodoAcademico, departamento, PageRequest.of(page, size));
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

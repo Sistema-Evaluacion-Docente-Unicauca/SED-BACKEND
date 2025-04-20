@@ -76,8 +76,6 @@ public class ComentarioService {
 
             comentario.setComentario(comentario.getComentario().toUpperCase());
             Comentario savedComentario = comentarioRepository.save(comentario);
-            logger.info("✅ [SAVE] Comentario guardado con ID: {}", savedComentario.getOidComentario());
-
             return new ApiResponse<>(201, "Comentario guardado correctamente.", savedComentario);
 
         } catch (DataIntegrityViolationException e) {

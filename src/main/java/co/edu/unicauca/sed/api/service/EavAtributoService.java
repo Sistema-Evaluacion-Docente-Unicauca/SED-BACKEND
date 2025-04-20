@@ -24,11 +24,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -134,33 +134,38 @@ public class EavAtributoService {
         }
     }
 
-    public void actualizarAtributosDinamicos(ActividadBaseDTO actividadDTO, Actividad actividad) {
+    public void actualizarAtributosDinamicos(ActividadBaseDTO actividadDTO, Actividad actividad, Map<String, EavAtributo> cacheAtributos) {
         // Eliminar los atributos actuales de la actividad
         actividadVarcharRepository.deleteByActividad(actividad);
+        actividadVarcharRepository.flush();
         actividadDecimalRepository.deleteByActividad(actividad);
+        actividadDecimalRepository.flush();
         actividadIntRepository.deleteByActividad(actividad);
+        actividadIntRepository.flush();
         actividadBooleanRepository.deleteByActividad(actividad);
+        actividadBooleanRepository.flush();
         actividadDateRepository.deleteByActividad(actividad);
+        actividadDateRepository.flush();
     
         // Guardar los nuevos atributos
-        guardarAtributosDinamicos(actividadDTO, actividad);
+        guardarAtributosDinamicos(actividadDTO, actividad, cacheAtributos);
     }
 
-    public void guardarAtributosDinamicos(ActividadBaseDTO actividadDTO, Actividad actividad) {
+    public void guardarAtributosDinamicos(ActividadBaseDTO actividadDTO,
+                                      Actividad actividad,
+                                      Map<String, EavAtributo> cacheAtributos) {
         List<ActividadVarchar> actividadVarcharList = new ArrayList<>();
         List<ActividadDecimal> actividadDecimalList = new ArrayList<>();
         List<ActividadInt> actividadIntList = new ArrayList<>();
         List<ActividadBoolean> actividadBooleanList = new ArrayList<>();
         List<ActividadDate> actividadDateList = new ArrayList<>();
-    
+
         for (AtributoDTO atributoDTO : actividadDTO.getAtributos()) {
             if (atributoDTO.getValor() == null || atributoDTO.getValor().trim().isEmpty()) {
                 continue;
             }
     
-            EavAtributo atributo = eavAtributoRepository.findByNombre(atributoDTO.getCodigoAtributo())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Atributo no encontrado: " + atributoDTO.getCodigoAtributo()));
+            EavAtributo atributo = cacheAtributos.get(atributoDTO.getCodigoAtributo());
     
             switch (atributo.getTipoDato()) {
                 case VARCHAR:
@@ -181,8 +186,7 @@ public class EavAtributoService {
                         Integer valorEntero = Integer.parseInt(atributoDTO.getValor());
                         actividadIntList.add(new ActividadInt(actividad, atributo, valorEntero));
                     } catch (NumberFormatException e) {
-                        throw new IllegalArgumentException(
-                                "Error al convertir el valor a INT: " + atributoDTO.getValor());
+                        throw new IllegalArgumentException("Error al convertir el valor a INT: " + atributoDTO.getValor());
                     }
                     break;
     
@@ -196,8 +200,7 @@ public class EavAtributoService {
                         LocalDateTime valorFecha = LocalDateTime.parse(atributoDTO.getValor());
                         actividadDateList.add(new ActividadDate(actividad, atributo, valorFecha));
                     } catch (DateTimeParseException e) {
-                        throw new IllegalArgumentException(
-                                "Error al convertir el valor a DATE: " + atributoDTO.getValor());
+                        throw new IllegalArgumentException("Error al convertir el valor a DATE: " + atributoDTO.getValor());
                     }
                     break;
     
@@ -222,25 +225,25 @@ public class EavAtributoService {
         if (!actividadDateList.isEmpty()) {
             actividadDateRepository.saveAll(actividadDateList);
         }
-    }    
+    }
 
     public List<AtributoDTO> obtenerAtributosPorActividad(Actividad actividad) {
         List<AtributoDTO> atributos = new ArrayList<>();
         
         actividadVarcharRepository.findByActividad(actividad)
-                .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor())));
+            .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor())));
     
         actividadDecimalRepository.findByActividad(actividad)
-                .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
+            .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
     
         actividadIntRepository.findByActividad(actividad)
-                .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
+            .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
     
         actividadBooleanRepository.findByActividad(actividad)
-                .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
+            .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
     
         actividadDateRepository.findByActividad(actividad)
-                .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
+            .forEach(a -> atributos.add(new AtributoDTO(a.getEavAtributo().getNombre(), a.getValor().toString())));
     
         return atributos;
     }    

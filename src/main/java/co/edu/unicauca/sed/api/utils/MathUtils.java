@@ -23,22 +23,6 @@ public class MathUtils {
   }
 
   /**
-   * Calcula el porcentaje de una cantidad.
-   *
-   * @param parcial Cantidad parcial.
-   * @param total   Cantidad total.
-   * @return Porcentaje redondeado a 2 decimales.
-   */
-  public static double calcularPorcentaje(double parcial, double total) {
-    if (total == 0) {
-      return 0;
-    }
-    return BigDecimal.valueOf((parcial / total) * 100)
-        .setScale(2, RoundingMode.HALF_UP)
-        .doubleValue();
-  }
-
-  /**
    * Calcula el porcentaje completado dado un total y una cantidad completada.
    *
    * @param total       El total de elementos.

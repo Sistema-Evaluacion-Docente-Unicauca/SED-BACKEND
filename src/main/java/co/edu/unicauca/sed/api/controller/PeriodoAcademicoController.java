@@ -1,18 +1,16 @@
 package co.edu.unicauca.sed.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.domain.PeriodoAcademico;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.PeriodoAcademicoService;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import co.edu.unicauca.sed.api.dto.PeriodoExternoDTO;
+import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import org.springframework.data.domain.Page;
 
 /**
@@ -24,8 +22,6 @@ import org.springframework.data.domain.Page;
 @RequestMapping("api/periodos-academicos")
 public class PeriodoAcademicoController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PeriodoAcademicoController.class);
-
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
 
@@ -33,44 +29,43 @@ public class PeriodoAcademicoController {
     public ResponseEntity<ApiResponse<Page<PeriodoAcademico>>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        ApiResponse<Page<PeriodoAcademico>> response = periodoAcademicoService.findAll(PageRequest.of(page, size));
+        ApiResponse<Page<PeriodoAcademico>> response = periodoAcademicoService.obtenerTodos(PageRequest.of(page, size));
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<PeriodoAcademico>> find(@PathVariable Integer oid) {
-        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.findByOid(oid);
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.buscarPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<PeriodoAcademico>> save(@RequestBody PeriodoAcademico periodoAcademico) {
-        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.save(periodoAcademico);
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.guardar(periodoAcademico);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PutMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oid,
             @RequestBody PeriodoAcademico periodoAcademico) {
-        ApiResponse<Void> response = periodoAcademicoService.update(oid, periodoAcademico);
+        ApiResponse<Void> response = periodoAcademicoService.actualizar(oid, periodoAcademico);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = periodoAcademicoService.delete(oid);
+        ApiResponse<Void> response = periodoAcademicoService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Obtiene el período académico activo.
-     *
-     * @return El período académico activo si existe, o un mensaje de error si no
-     *         hay ninguno activo.
-     */
     @GetMapping("/activo")
     public ResponseEntity<ApiResponse<PeriodoAcademico>> obtenerPeriodoAcademicoActivo() {
-        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.getPeriodoAcademicoActivo();
+        ApiResponse<PeriodoAcademico> response = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         return ResponseEntity.status(response.getCodigo()).body(response);
+    }
+
+    @GetMapping("/kira")
+    public ResponseEntity<ApiResponse<List<PeriodoExternoDTO>>> obtenerNoRegistrados() {
+        return ResponseEntity.ok(periodoAcademicoService.obtenerPeriodosNoRegistrados());
     }
 }

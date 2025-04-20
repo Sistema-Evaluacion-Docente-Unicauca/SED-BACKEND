@@ -21,12 +21,12 @@ public class EavAtributoController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EavAtributo>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return eavAtributoService.obtenerEavAtributos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EavAtributo>> obtenerPorId(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<EavAtributo>> buscarPorId(@PathVariable Integer id) {
         return eavAtributoService.obtenerEavAtributoPorId(id);
     }
 
@@ -36,7 +36,8 @@ public class EavAtributoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<EavAtributo>> actualizar(@PathVariable Integer id, @RequestBody EavAtributo atributo) {
+    public ResponseEntity<ApiResponse<EavAtributo>> actualizar(@PathVariable Integer id,
+            @RequestBody EavAtributo atributo) {
         return eavAtributoService.actualizarEavAtributo(id, atributo);
     }
 

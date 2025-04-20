@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.EstadoConsolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.EstadoConsolidadoService;
+import co.edu.unicauca.sed.api.service.consolidado.EstadoConsolidadoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,13 @@ public class EstadoConsolidadoController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EstadoConsolidado>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                       @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return estadoConsolidadoService.obtenerTodos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EstadoConsolidado>> obtenerPorId(@PathVariable Integer id) {
-        return estadoConsolidadoService.obtenerPorId(id);
+    public ResponseEntity<ApiResponse<EstadoConsolidado>> buscarPorId(@PathVariable Integer id) {
+        return estadoConsolidadoService.buscarPorId(id);
     }
 
     @PostMapping

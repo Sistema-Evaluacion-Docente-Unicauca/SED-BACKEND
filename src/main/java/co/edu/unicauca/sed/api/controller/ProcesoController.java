@@ -18,7 +18,7 @@ import org.springframework.data.domain.PageRequest;
 
 import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.ProcesoService;
+import co.edu.unicauca.sed.api.service.proceso.ProcesoService;
 
 @Controller
 @RequestMapping("api/proceso")
@@ -37,7 +37,7 @@ public class ProcesoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
-        ApiResponse<Page<Proceso>> response = procesoService.findAll(
+        ApiResponse<Page<Proceso>> response = procesoService.buscarTodos(
                 idEvaluador, idEvaluado, idPeriodo, nombreProceso, fechaCreacion, fechaActualizacion, PageRequest.of(page, size));
         
         return ResponseEntity.status(response.getCodigo()).body(response);
@@ -45,25 +45,25 @@ public class ProcesoController {
 
     @GetMapping("/{oid}")
     public ResponseEntity<ApiResponse<Proceso>> findById(@PathVariable Integer oid) {
-        ApiResponse<Proceso> response = procesoService.findByOid(oid);
+        ApiResponse<Proceso> response = procesoService.buscarPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<Proceso>> save(@RequestBody Proceso proceso) {
-        ApiResponse<Proceso> response = procesoService.save(proceso);
+        ApiResponse<Proceso> response = procesoService.guardar(proceso);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @PutMapping("/{oid}")
     public ResponseEntity<ApiResponse<Proceso>> update(@PathVariable Integer oid, @RequestBody Proceso proceso) {
-        ApiResponse<Proceso> response = procesoService.update(oid, proceso);
+        ApiResponse<Proceso> response = procesoService.actualizar(oid, proceso);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
     @DeleteMapping("/{oid}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = procesoService.delete(oid);
+        ApiResponse<Void> response = procesoService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

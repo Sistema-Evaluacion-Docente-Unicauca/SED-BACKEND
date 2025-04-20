@@ -2,7 +2,7 @@ package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.domain.ActividadDecimal;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.ActividadDecimalService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadDecimalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,13 @@ public class ActividadDecimalController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ActividadDecimal>>> listar(@RequestParam(defaultValue = "0") int page,
-                                                                      @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return actividadDecimalService.obtenerTodos(page, size);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadDecimal>> obtenerPorId(@PathVariable Integer id) {
-        return actividadDecimalService.obtenerPorId(id);
+    public ResponseEntity<ApiResponse<ActividadDecimal>> buscarPorId(@PathVariable Integer id) {
+        return actividadDecimalService.buscarPorId(id);
     }
 
     @PostMapping
@@ -36,7 +36,8 @@ public class ActividadDecimalController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ActividadDecimal>> actualizar(@PathVariable Integer id, @RequestBody ActividadDecimal actividadDecimal) {
+    public ResponseEntity<ApiResponse<ActividadDecimal>> actualizar(@PathVariable Integer id,
+            @RequestBody ActividadDecimal actividadDecimal) {
         return actividadDecimalService.actualizar(id, actividadDecimal);
     }
 

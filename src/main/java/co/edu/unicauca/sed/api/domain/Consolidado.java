@@ -25,6 +25,9 @@ public class Consolidado {
     @JsonBackReference
     private Proceso proceso;
 
+    @Column(name = "CALIFICACION")
+    private Double calificacion;
+
     @Column(name = "NOMBREDOCUMENTO")
     private String nombredocumento;
 

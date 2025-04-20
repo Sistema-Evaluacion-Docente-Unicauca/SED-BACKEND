@@ -1,7 +1,8 @@
 package co.edu.unicauca.sed.api.controller;
 
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.service.FileDownloadService;
+import co.edu.unicauca.sed.api.service.documento.FileDownloadService;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,6 @@ public class FileDownloadController {
             @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario,
             @RequestParam(defaultValue = "false") boolean esConsolidado) {
 
-        // 🔹 Validaciones de parámetros según la jerarquía establecida
         if (departamento != null && periodo == null) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Si se envía 'departamento', también se debe enviar 'periodo'.",null
             ));

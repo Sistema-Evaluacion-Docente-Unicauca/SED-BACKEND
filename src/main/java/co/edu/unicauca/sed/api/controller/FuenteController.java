@@ -1,6 +1,5 @@
 package co.edu.unicauca.sed.api.controller;
 
-
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,7 +39,7 @@ public class FuenteController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Fuente> fuentes = fuenteService.findAll(PageRequest.of(page, size));
+            Page<Fuente> fuentes = fuenteService.obtenerTodos(PageRequest.of(page, size));
             if (fuentes.hasContent()) {
                 return ResponseEntity.ok().body(fuentes);
             } else {
@@ -61,9 +60,8 @@ public class FuenteController {
      */
     @GetMapping("/{oid}")
     public ResponseEntity<?> find(@PathVariable Integer oid) {
-        Fuente resultado = fuenteService.findByOid(oid);
+        Fuente resultado = fuenteService.buscarPorId(oid);
         if (resultado != null) {
-            logger.info("Fuente con ID {} encontrada", oid);
             return ResponseEntity.ok().body(resultado);
         }
         logger.warn("Fuente con ID {} no encontrada", oid);
@@ -83,20 +81,17 @@ public class FuenteController {
     public ResponseEntity<?> saveFuente(
             @RequestParam("informeFuente") MultipartFile informeFuente,
             @RequestParam("observation") String observation,
+            @RequestParam(required = false) String tipoCalificacion,
             @RequestParam("sources") String sourcesJson,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles) {
         try {
-            logger.debug("📌 Parámetro [informeFuente]: Nombre del archivo -> {}", informeFuente.getOriginalFilename());
-            logger.debug("📌 Parámetro [observation]: {}", observation);
-            logger.debug("📌 Parámetro [sources]: {}", sourcesJson);
             if (allFiles != null) {
-                logger.debug("📌 Parámetro [allFiles]: {} archivos adicionales recibidos.", allFiles.size());
-                allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes", file.getOriginalFilename(), file.getSize()));
+                allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes",
+                        file.getOriginalFilename(), file.getSize()));
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }
-            fuenteService.saveSource(sourcesJson, informeFuente, observation, allFiles);
-            logger.info("Fuente guardada exitosamente");
+            fuenteService.guardarFuente(sourcesJson, informeFuente, observation, allFiles);
             return ResponseEntity.ok("Archivos procesados correctamente");
         } catch (Exception e) {
             logger.debug("Error al procesar los archivos: {}", e.getMessage());
@@ -115,7 +110,7 @@ public class FuenteController {
         logger.info("Solicitud recibida para eliminar la fuente con ID: {}", oid);
         Fuente fuente = null;
         try {
-            fuente = fuenteService.findByOid(oid);
+            fuente = fuenteService.buscarPorId(oid);
             if (fuente == null) {
                 logger.warn("Fuente con ID {} no encontrada", oid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fuente no encontrada");
@@ -126,7 +121,7 @@ public class FuenteController {
         }
 
         try {
-            fuenteService.delete(oid);
+            fuenteService.eliminar(oid);
             logger.info("Fuente con ID {} eliminada exitosamente", oid);
         } catch (Exception e) {
             logger.error("Error al eliminar la fuente con ID {}: {}", oid, e.getMessage(), e);
@@ -139,14 +134,14 @@ public class FuenteController {
      * Endpoint para descargar un archivo asociado a una fuente.
      *
      * @param id       El ID de la fuente.
-     * @param isReport Bandera para determinar si se debe descargar el informe (true) o el documento fuente (false).
+     * @param isReport Bandera para determinar si se debe descargar el informe
+     *                 (true) o el documento fuente (false).
      * @return El archivo solicitado como recurso descargable.
      */
     @GetMapping("/download/{id}")
     public ResponseEntity<?> downloadFile(
             @PathVariable("id") Integer id,
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
-        logger.info("Solicitud recibida para descargar archivo de la fuente con ID {} con bandera de informe {}", id, isReport);
-        return fuenteService.getFile(id, isReport);
+        return fuenteService.obtenerArchivo(id, isReport);
     }
 }

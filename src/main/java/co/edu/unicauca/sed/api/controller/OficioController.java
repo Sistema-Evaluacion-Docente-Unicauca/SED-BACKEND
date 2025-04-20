@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import co.edu.unicauca.sed.api.domain.Oficio;
-import co.edu.unicauca.sed.api.service.OficioService;
+import co.edu.unicauca.sed.api.service.proceso.OficioService;
 
 @Controller
 @RequestMapping("api/oficio")

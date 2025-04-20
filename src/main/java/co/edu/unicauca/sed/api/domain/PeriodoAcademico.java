@@ -1,7 +1,11 @@
 package co.edu.unicauca.sed.api.domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -48,6 +52,17 @@ public class PeriodoAcademico {
 
     @Column(name = "FECHAFIN")
     private Date fechaFin;
+
+    @Column(name = "IDPERIODOAPI", unique = true)
+    private Integer idPeriodoApi;
+
+    @Column(name = "FECHACREACION", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "FECHAACTUALIZACION", nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime fechaActualizacion;
 
     @JsonIgnore
     @OneToMany(mappedBy = "oidPeriodoAcademico", cascade = CascadeType.REMOVE)

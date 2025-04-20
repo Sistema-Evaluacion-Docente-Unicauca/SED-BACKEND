@@ -1,84 +1,76 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.domain.Pregunta;
-import co.edu.unicauca.sed.api.service.PreguntaService;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.service.evaluacion_docente.PreguntaService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import org.springframework.data.domain.Page;
 
-@Controller
+/**
+ * Controlador para la gestión de preguntas.
+ */
+@RestController
 @RequestMapping("api/pregunta")
+@RequiredArgsConstructor
 public class PreguntaController {
 
-    @Autowired
-    private PreguntaService preguntaService;
+    private final PreguntaService preguntaService;
 
+    /**
+     * Obtiene todas las preguntas registradas.
+     *
+     * @return Lista de preguntas.
+     */
     @GetMapping
-    public ResponseEntity<?> findAll() {
-        try {
-            List<Pregunta> list = preguntaService.findAll();
-            if (list != null && !list.isEmpty()) {
-                return ResponseEntity.ok().body(list);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Page<Pregunta>>> obtenerTodos(Pageable pageable) {
+        return ResponseEntity.ok(preguntaService.obtenerTodos(pageable));
     }
 
+    /**
+     * Busca una pregunta por su identificador único (OID).
+     *
+     * @param oid Identificador de la pregunta.
+     * @return Pregunta encontrada o error si no existe.
+     */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> findById(@PathVariable Integer oid) {
-        Pregunta pregunta = preguntaService.findByOid(oid);
-        if (pregunta != null) {
-            return ResponseEntity.ok().body(pregunta);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Pregunta>> obtenerPorOid(@PathVariable Integer oid) {
+        return ResponseEntity.ok(preguntaService.buscarPorOid(oid));
     }
 
+    /**
+     * Guarda una nueva pregunta en la base de datos.
+     *
+     * @param pregunta Datos de la pregunta a guardar.
+     * @return Pregunta guardada o error si ocurre una excepción.
+     */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody Pregunta pregunta) {
-        try {
-            Pregunta savedPregunta = preguntaService.save(pregunta);
-            if (savedPregunta != null) {
-                return ResponseEntity.ok(savedPregunta);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
-        }
-        return ResponseEntity.internalServerError().body("Error: Resultado nulo");
+    public ResponseEntity<ApiResponse<Pregunta>> guardar(@RequestBody Pregunta pregunta) {
+        return ResponseEntity.ok(preguntaService.guardar(pregunta));
     }
 
-    // Nuevo método para guardar múltiples preguntas
-    @PostMapping("saveAll")
-    public ResponseEntity<?> saveAll(@RequestBody List<Pregunta> preguntas) {
-        try {
-            List<Pregunta> savedPreguntas = preguntaService.saveAll(preguntas);
-            if (savedPreguntas != null && !savedPreguntas.isEmpty()) {
-                return ResponseEntity.ok(savedPreguntas);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
-        }
-        return ResponseEntity.internalServerError().body("Error: No se pudieron guardar las preguntas");
+    /**
+     * Guarda múltiples preguntas en la base de datos.
+     *
+     * @param preguntas Lista de preguntas a guardar.
+     * @return Lista de preguntas guardadas o error si ocurre una excepción.
+     */
+    @PostMapping("guardarTodas")
+    public ResponseEntity<ApiResponse<List<Pregunta>>> guardarTodas(@RequestBody List<Pregunta> preguntas) {
+        return ResponseEntity.ok(preguntaService.guardarTodas(preguntas));
     }
 
+    /**
+     * Elimina una pregunta por su identificador.
+     *
+     * @param oid Identificador de la pregunta a eliminar.
+     * @return Respuesta indicando el resultado de la eliminación.
+     */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
-        Pregunta pregunta = preguntaService.findByOid(oid);
-        if (pregunta == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pregunta no encontrada");
-        }
-
-        try {
-            preguntaService.delete(oid);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
-        }
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer oid) {
+        return ResponseEntity.ok(preguntaService.eliminar(oid));
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import co.edu.unicauca.sed.api.domain.Consolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
@@ -15,9 +14,8 @@ import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
-import co.edu.unicauca.sed.api.service.ConsolidadoService;
+import co.edu.unicauca.sed.api.service.consolidado.ConsolidadoService;
 import jakarta.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -30,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -43,6 +42,12 @@ public class ConsolidadoController {
 
     @Autowired
     private ConsolidadoRepository consolidadoRepository;
+
+    @GetMapping("/obtener-todos")
+    public ResponseEntity<ApiResponse<List<InformacionConsolidadoDTO>>> obtenerTodos() {
+        ApiResponse<List<InformacionConsolidadoDTO>> response = consolidadoService.obtenerTodos();
+        return ResponseEntity.status(response.getCodigo()).body(response);
+    }
 
     /**
      * Recupera todos los consolidados con soporte de paginación y ordenamiento.

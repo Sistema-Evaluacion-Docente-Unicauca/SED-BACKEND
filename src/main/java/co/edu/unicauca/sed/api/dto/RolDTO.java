@@ -1,18 +1,13 @@
 package co.edu.unicauca.sed.api.dto;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RolDTO {
     private String nombre;
-
-    public RolDTO(String nombre) {
-        this.nombre = nombre;
-    }
-
-    // Getters and setters
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
 }

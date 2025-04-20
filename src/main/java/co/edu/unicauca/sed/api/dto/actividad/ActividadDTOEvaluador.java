@@ -4,13 +4,14 @@ import co.edu.unicauca.sed.api.domain.EstadoActividad;
 import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-
+import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * DTO for representing activity details with evaluator information.
  */
+@Data
 public class ActividadDTOEvaluador {
 
     private Integer oidActividad;
@@ -67,95 +68,5 @@ public class ActividadDTOEvaluador {
 
     // Default constructor
     public ActividadDTOEvaluador() {
-    }
-
-    // Getters and setters
-
-    public Integer getOidActividad() {
-        return oidActividad;
-    }
-
-    public void setOidActividad(Integer oidActividad) {
-        this.oidActividad = oidActividad;
-    }
-
-    public String getNombreActividad() {
-        return nombreActividad;
-    }
-
-    public void setNombreActividad(String nombreActividad) {
-        this.nombreActividad = nombreActividad;
-    }
-
-    public Float getHoras() {
-        return horas;
-    }
-
-    public void setHoras(Float horas) {
-        this.horas = horas;
-    }
-
-    public Float getSemanas() {
-        return semanas;
-    }
-
-    public void setSemanas(Float semanas) {
-        this.semanas = semanas;
-    }
-
-    public EstadoActividad getEstadoActividad() {
-        return estadoActividad;
-    }
-
-    public void setEstadoActividad(EstadoActividad estadoActividad) {
-        this.estadoActividad = estadoActividad;
-    }
-
-    public Boolean getInformeEjecutivo() {
-        return informeEjecutivo;
-    }
-
-    public void setInformeEjecutivo(Boolean informeEjecutivo) {
-        this.informeEjecutivo = informeEjecutivo;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public TipoActividad getTipoActividad() {
-        return tipoActividad;
-    }
-
-    public void setTipoActividad(TipoActividad tipoActividad) {
-        this.tipoActividad = tipoActividad;
-    }
-
-    public List<FuenteDTO> getFuentes() {
-        return fuentes;
-    }
-
-    public void setFuentes(List<FuenteDTO> fuentes) {
-        this.fuentes = fuentes;
-    }
-
-    public UsuarioDTO getEvaluado() {
-        return evaluado;
-    }
-
-    public void setEvaluado(UsuarioDTO evaluado) {
-        this.evaluado = evaluado;
     }
 }
