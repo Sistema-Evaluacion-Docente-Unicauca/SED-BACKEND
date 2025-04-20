@@ -13,6 +13,8 @@ import co.edu.unicauca.sed.api.domain.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaSpecificationExecutor<Usuario> {
         Usuario findByIdentificacion(String identificacion);
 
+        Optional<Usuario> findByCorreo(String correo);
+
         boolean existsByRolesNombre(String nombreRol);
 
         @Query("SELECT COUNT(u) FROM Usuario u JOIN u.roles r JOIN u.estadoUsuario e " +

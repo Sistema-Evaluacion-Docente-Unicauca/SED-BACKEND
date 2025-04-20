@@ -9,6 +9,7 @@ import co.edu.unicauca.sed.api.service.RolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Clase encargada de mapear UsuarioDocenteDTO a Usuario.
@@ -85,5 +86,19 @@ public class UsuarioMapper {
     
     private boolean esRolDeDepartamento(String rolNombre) {
         return ROLES_DEPARTAMENTO.contains(rolNombre.toUpperCase());
+    }
+
+    public void validarCorreoExistente(String correo, Integer idActual) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(correo);
+    
+        if (usuarioOpt.isPresent()) {
+            if (idActual == null || !usuarioOpt.get().getOidUsuario().equals(idActual)) {
+                throw new RuntimeException("Ya existe un usuario registrado con el correo: " + correo);
+            }
+        }
+    }
+
+    public Optional<Usuario> obtenerUsuarioPorCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo);
     }
 }
