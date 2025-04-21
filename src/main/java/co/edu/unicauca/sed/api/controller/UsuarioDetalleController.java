@@ -1,33 +1,28 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.List;
+import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
+import co.edu.unicauca.sed.api.service.usuario.UsuarioDetalleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
-import co.edu.unicauca.sed.api.service.usuario.UsuarioDetalleService;
+import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("api/usuario-detalle")
+@Tag(name = "Usuario Detalle", description = "Gestión de detalles de usuario")
 public class UsuarioDetalleController {
 
     @Autowired
     private UsuarioDetalleService usuarioDetalleService;
 
-    /**
-     * Retrieves all user details.
-     *
-     * @return List of all user details or 404 if none found.
-     */
     @GetMapping
+    @Operation(summary = "Listar detalles de usuario", description = "Obtiene todos los detalles de usuario registrados")
     public ResponseEntity<?> findAll() {
         try {
             List<UsuarioDetalle> list = usuarioDetalleService.obtenerTodos();
@@ -35,19 +30,15 @@ public class UsuarioDetalleController {
                 return ResponseEntity.ok().body(list);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getStackTrace());
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Finds a specific user detail by its ID.
-     *
-     * @param oid The ID of the user detail.
-     * @return The user detail if found, or 404 if not.
-     */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
+    @Operation(summary = "Buscar detalle por ID", description = "Consulta un detalle de usuario específico por su ID")
+    public ResponseEntity<?> find(
+            @Parameter(description = "ID del detalle de usuario") @PathVariable Integer oid) {
         UsuarioDetalle resultado = usuarioDetalleService.buscarPorOid(oid);
         if (resultado != null) {
             return ResponseEntity.ok().body(resultado);
@@ -55,14 +46,11 @@ public class UsuarioDetalleController {
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Saves a new user detail.
-     *
-     * @param usuarioDetalle The user detail to save.
-     * @return The saved user detail, or an error if something goes wrong.
-     */
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody UsuarioDetalle usuarioDetalle) {
+    @Operation(summary = "Guardar detalle de usuario", description = "Registra un nuevo detalle de usuario")
+    public ResponseEntity<?> save(
+            @RequestBody(description = "Objeto UsuarioDetalle a guardar", required = true)
+            @org.springframework.web.bind.annotation.RequestBody UsuarioDetalle usuarioDetalle) {
         try {
             UsuarioDetalle resultado = usuarioDetalleService.guardar(usuarioDetalle);
             if (resultado != null) {
@@ -74,14 +62,10 @@ public class UsuarioDetalleController {
         return ResponseEntity.internalServerError().body("Error: Resultado nulo");
     }
 
-    /**
-     * Deletes a user detail by its ID.
-     *
-     * @param oid The ID of the user detail to delete.
-     * @return Confirmation if deleted, or an error if conflicts exist.
-     */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
+    @Operation(summary = "Eliminar detalle de usuario", description = "Elimina un detalle de usuario por su ID")
+    public ResponseEntity<?> delete(
+            @Parameter(description = "ID del detalle de usuario a eliminar") @PathVariable Integer oid) {
         UsuarioDetalle usuarioDetalle = null;
         try {
             usuarioDetalle = usuarioDetalleService.buscarPorOid(oid);
@@ -95,7 +79,6 @@ public class UsuarioDetalleController {
         try {
             usuarioDetalleService.eliminar(oid);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No se puede borrar por conflictos con otros datos");
         }
         return ResponseEntity.ok().build();

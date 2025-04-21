@@ -1,27 +1,26 @@
 package co.edu.unicauca.sed.api.controller;
 
-import java.util.Map;
+import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.service.fuente.FuenteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
-import co.edu.unicauca.sed.api.domain.Fuente;
-import co.edu.unicauca.sed.api.service.fuente.FuenteService;
+import java.util.Map;
 
-/**
- * Controlador para la gestión de las fuentes (Fuentes).
- * Proporciona endpoints para operaciones CRUD y manejo de archivos asociados.
- */
-@Controller
+@RestController
 @RequestMapping("api/fuente")
+@Tag(name = "Fuente", description = "Gestión de fuentes y documentos asociados")
 public class FuenteController {
 
     private static final Logger logger = LoggerFactory.getLogger(FuenteController.class);
@@ -29,12 +28,8 @@ public class FuenteController {
     @Autowired
     private FuenteService fuenteService;
 
-    /**
-     * Recupera todas las fuentes y las devuelve en la respuesta.
-     *
-     * @return Lista de todas las fuentes o un error en caso de falla.
-     */
     @GetMapping
+    @Operation(summary = "Listar fuentes", description = "Obtiene todas las fuentes registradas con paginación")
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -52,14 +47,10 @@ public class FuenteController {
         }
     }
 
-    /**
-     * Encuentra una fuente específica por su ID.
-     *
-     * @param oid El ID de la fuente.
-     * @return La fuente si es encontrada, o un error 404 si no lo es.
-     */
     @GetMapping("/{oid}")
-    public ResponseEntity<?> find(@PathVariable Integer oid) {
+    @Operation(summary = "Buscar fuente por ID", description = "Consulta una fuente específica por su identificador")
+    public ResponseEntity<?> find(
+            @Parameter(description = "ID de la fuente") @PathVariable Integer oid) {
         Fuente resultado = fuenteService.buscarPorId(oid);
         if (resultado != null) {
             return ResponseEntity.ok().body(resultado);
@@ -68,16 +59,8 @@ public class FuenteController {
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Guarda una nueva fuente junto con un archivo asociado.
-     *
-     * @param informeFuente El archivo a asociar con la fuente.
-     * @param observation   Observaciones relacionadas con la fuente.
-     * @param sourcesJson   Información de las fuentes en formato JSON.
-     * @param allFiles      Map opcional de archivos adicionales.
-     * @return Mensaje de éxito o error en caso de problemas al procesar.
-     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Guardar fuente con archivo", description = "Guarda una fuente junto con un archivo adjunto e información adicional")
     public ResponseEntity<?> saveFuente(
             @RequestParam("informeFuente") MultipartFile informeFuente,
             @RequestParam("observation") String observation,
@@ -99,14 +82,10 @@ public class FuenteController {
         }
     }
 
-    /**
-     * Elimina una fuente por su ID.
-     *
-     * @param oid El ID de la fuente a eliminar.
-     * @return Mensaje de confirmación si se elimina, o error en caso de conflictos.
-     */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<?> delete(@PathVariable Integer oid) {
+    @Operation(summary = "Eliminar fuente", description = "Elimina una fuente por su ID")
+    public ResponseEntity<?> delete(
+            @Parameter(description = "ID de la fuente a eliminar") @PathVariable Integer oid) {
         logger.info("Solicitud recibida para eliminar la fuente con ID: {}", oid);
         Fuente fuente = null;
         try {
@@ -130,17 +109,11 @@ public class FuenteController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Endpoint para descargar un archivo asociado a una fuente.
-     *
-     * @param id       El ID de la fuente.
-     * @param isReport Bandera para determinar si se debe descargar el informe
-     *                 (true) o el documento fuente (false).
-     * @return El archivo solicitado como recurso descargable.
-     */
     @GetMapping("/download/{id}")
+    @Operation(summary = "Descargar archivo de fuente", description = "Descarga el archivo asociado a una fuente, ya sea el informe o el documento fuente")
     public ResponseEntity<?> downloadFile(
-            @PathVariable("id") Integer id,
+            @Parameter(description = "ID de la fuente") @PathVariable("id") Integer id,
+            @Parameter(description = "Indica si se debe descargar el informe (true) o el documento fuente (false)")
             @RequestParam(name = "report", defaultValue = "false") boolean isReport) {
         return fuenteService.obtenerArchivo(id, isReport);
     }

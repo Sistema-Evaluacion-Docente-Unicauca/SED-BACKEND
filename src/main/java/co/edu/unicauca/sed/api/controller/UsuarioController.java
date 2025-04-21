@@ -1,26 +1,27 @@
 package co.edu.unicauca.sed.api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.service.fuente.DocenteEvaluacionService;
 import co.edu.unicauca.sed.api.service.usuario.UsuarioService;
-import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador para gestionar las operaciones relacionadas con los usuarios en el sistema.
- * Incluye funcionalidades como la creación, actualización, eliminación y obtención de usuarios, así como la evaluación de docentes.
- */
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("api/usuarios")
+@Tag(name = "Usuarios", description = "Gestión de usuarios y evaluación docente")
 public class UsuarioController {
 
     @Autowired
@@ -29,14 +30,8 @@ public class UsuarioController {
     @Autowired
     private DocenteEvaluacionService docenteEvaluacionService;
 
-    /**
-     * Obtiene todos los usuarios registrados en el sistema con soporte de paginación.
-     *
-     * @param page Número de página (opcional, por defecto 0).
-     * @param size Tamaño de la página (opcional, por defecto 10).
-     * @return Lista paginada de usuarios o un mensaje de error si ocurre algún problema.
-     */
     @GetMapping
+    @Operation(summary = "Listar usuarios", description = "Obtiene todos los usuarios registrados con filtros opcionales")
     public ResponseEntity<ApiResponse<Page<Usuario>>> findAll(
             @RequestParam(required = false) String identificacion,
             @RequestParam(required = false) String nombre,
@@ -54,65 +49,43 @@ public class UsuarioController {
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Busca un usuario específico por su ID.
-     * 
-     * @param oid ID del usuario a buscar.
-     * @return Información del usuario encontrado o un mensaje de error si no existe.
-     */
     @GetMapping("/{oid}")
-    public ResponseEntity<ApiResponse<Usuario>> findByOid(@PathVariable Integer oid) {
+    @Operation(summary = "Buscar usuario por ID", description = "Consulta un usuario específico por su ID")
+    public ResponseEntity<ApiResponse<Usuario>> findByOid(
+            @Parameter(description = "ID del usuario") @PathVariable Integer oid) {
         ApiResponse<Usuario> response = usuarioService.buscarPorId(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Guarda uno o varios usuarios en el sistema.
-     * 
-     * @param usuarios Lista de objetos Usuario a guardar.
-     * @return Lista de usuarios guardados o un mensaje de error si ocurre algún problema.
-     */
     @PostMapping
-    public ResponseEntity<ApiResponse<List<Usuario>>> save(@RequestBody List<Usuario> usuarios) {
+    @Operation(summary = "Guardar usuarios", description = "Guarda una lista de nuevos usuarios")
+    public ResponseEntity<ApiResponse<List<Usuario>>> save(
+            @RequestBody(description = "Lista de usuarios a guardar", required = true)
+            @org.springframework.web.bind.annotation.RequestBody List<Usuario> usuarios) {
         ApiResponse<List<Usuario>> response = usuarioService.guardar(usuarios);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Actualiza un usuario existente en el sistema.
-     * 
-     * @param idUsuario          ID del usuario a actualizar.
-     * @param usuarioActualizado Objeto que contiene los datos actualizados del usuario.
-     * @return Usuario actualizado o un mensaje de error si no se encuentra o ocurre un problema.
-     */
     @PutMapping("/{idUsuario}")
-    public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Integer idUsuario,
-            @RequestBody Usuario usuarioActualizado) {
+    @Operation(summary = "Actualizar usuario", description = "Actualiza un usuario existente")
+    public ResponseEntity<ApiResponse<Usuario>> update(
+            @Parameter(description = "ID del usuario a actualizar") @PathVariable Integer idUsuario,
+            @RequestBody(description = "Datos actualizados del usuario", required = true)
+            @org.springframework.web.bind.annotation.RequestBody Usuario usuarioActualizado) {
         ApiResponse<Usuario> response = usuarioService.actualizar(idUsuario, usuarioActualizado);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Elimina un usuario del sistema por su ID.
-     * 
-     * @param oid ID del usuario a eliminar.
-     * @return Respuesta de éxito o un mensaje de error si el usuario no existe o no puede ser eliminado.
-     */
     @DeleteMapping("/{oid}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
+    @Operation(summary = "Eliminar usuario", description = "Elimina un usuario por su ID")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @Parameter(description = "ID del usuario a eliminar") @PathVariable Integer oid) {
         ApiResponse<Void> response = usuarioService.eliminar(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Obtiene las evaluaciones de docentes según los filtros proporcionados.
-     * 
-     * @param idEvaluado         ID del docente evaluado (opcional).
-     * @param idPeriodoAcademico ID del período académico (opcional).
-     * @param departamento       Departamento del docente (opcional).
-     * @return Lista de evaluaciones de docentes o un mensaje de error.
-     */
     @GetMapping("/obtenerEvaluacionDocente")
+    @Operation(summary = "Obtener evaluaciones docentes", description = "Consulta evaluaciones de docentes con filtros opcionales")
     public ResponseEntity<ApiResponse<Page<DocenteEvaluacionDTO>>> obtenerEvaluacionDocentes(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
@@ -124,13 +97,12 @@ public class UsuarioController {
     }
 
     @GetMapping("/logueado")
+    @Operation(summary = "Obtener usuario actual", description = "Obtiene el usuario actualmente autenticado")
     public ResponseEntity<ApiResponse<Usuario>> obtenerUsuarioActual(Authentication authentication) {
         try {
             String correo = authentication.getName();
             Usuario usuario = usuarioService.obtenerUsuarioActual(correo);
-    
             return ResponseEntity.ok(new ApiResponse<>(200, "Usuario obtenido correctamente", usuario));
-    
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el usuario: " + e.getMessage(), null));
         }
