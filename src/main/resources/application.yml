@@ -49,12 +49,11 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
     operations-sorter: method
   default-produces-media-type: application/json
 
 info:
   app:
-    title: Microservicio EstaGestion Dodente
+    title: Microservicio Sistema Evaluación Dodente
     description: API para Gestion docente
     version: 1.0.0
