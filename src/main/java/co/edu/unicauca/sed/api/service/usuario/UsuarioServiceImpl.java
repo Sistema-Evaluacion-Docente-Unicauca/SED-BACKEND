@@ -3,6 +3,8 @@ package co.edu.unicauca.sed.api.service.usuario;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,8 @@ import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.RolDTO;
+import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.mapper.UsuarioMapper;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
@@ -157,5 +161,14 @@ public class UsuarioServiceImpl implements UsuarioService {
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error al eliminar el usuario: " + e.getMessage(), null);
         }
+    }
+
+    @Override
+    public Usuario obtenerUsuarioActual(String correo) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(correo);
+
+        Usuario usuario = usuarioOpt.orElseThrow(() -> new RuntimeException("Usuario no encontrado con correo: " + correo));
+
+        return usuario;
     }
 }

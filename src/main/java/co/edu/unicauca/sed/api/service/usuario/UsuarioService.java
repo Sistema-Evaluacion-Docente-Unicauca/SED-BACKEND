@@ -2,6 +2,8 @@ package co.edu.unicauca.sed.api.service.usuario;
 
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.UsuarioDTO;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -38,4 +40,6 @@ public interface UsuarioService {
      * Elimina un usuario por su ID.
      */
     ApiResponse<Void> eliminar(Integer oid);
+
+    Usuario obtenerUsuarioActual(String correo);
 }
