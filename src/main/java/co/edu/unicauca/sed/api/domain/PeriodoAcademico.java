@@ -1,5 +1,6 @@
 package co.edu.unicauca.sed.api.domain;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -48,10 +49,10 @@ public class PeriodoAcademico {
     private String idPeriodo;
 
     @Column(name = "FECHAINICIO")
-    private Date fechaInicio;
+    private LocalDate fechaInicio;
 
     @Column(name = "FECHAFIN")
-    private Date fechaFin;
+    private LocalDate fechaFin;
 
     @Column(name = "IDPERIODOAPI", unique = true)
     private Integer idPeriodoApi;
