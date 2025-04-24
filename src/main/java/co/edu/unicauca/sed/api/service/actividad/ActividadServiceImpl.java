@@ -106,7 +106,7 @@ public class ActividadServiceImpl implements ActividadService {
     public ApiResponse<ActividadBaseDTO> buscarDTOPorId(Integer id) {
         try {
             Actividad actividad = actividadRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("No se encontró una actividad con el ID: " + id));
-            return new ApiResponse<>(200, "Actividad encontrada.",actividadDTOService.buildActividadBaseDTO(actividad));
+            return new ApiResponse<>(200, "Actividad encontrada.", actividadDTOService.buildActividadBaseDTO(actividad));
         } catch (IllegalArgumentException e) {
             return new ApiResponse<>(404, e.getMessage(), null);
         }

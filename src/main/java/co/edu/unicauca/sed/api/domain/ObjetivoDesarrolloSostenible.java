@@ -21,5 +21,5 @@ public class ObjetivoDesarrolloSostenible {
     private String descripcion;
 
     @Column(name = "ESTADO", nullable = false)
-    private Short estado;
+    private Boolean estado;
 }
