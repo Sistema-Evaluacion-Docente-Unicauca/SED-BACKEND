@@ -56,7 +56,7 @@ public class FuenteDTOServiceImpl implements FuenteDTOService {
         }
     
         return fuentes.stream()
-                .sorted(Comparator.comparing(Fuente::getTipoFuente)) // 👈 orden ascendente
+                .sorted(Comparator.comparing(Fuente::getTipoFuente))
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }    
