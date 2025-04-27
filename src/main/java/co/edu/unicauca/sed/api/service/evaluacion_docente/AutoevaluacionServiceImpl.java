@@ -125,15 +125,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
 
     private Autoevaluacion procesarAutoevaluacion(Autoevaluacion autoevaluacion, Fuente fuente, MultipartFile firma, MultipartFile screenshotSimca, String descripcion) {
         try {
-            if (firma != null) {
-                String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firma, PREFIJO_FIRMA);
-                if (rutaFirma != null) {
-                    autoevaluacion.setRutaDocumentoFirma(rutaFirma);
-                    String nombreArchivo = ArchivoUtils.extraerNombreArchivo(rutaFirma);
-                    autoevaluacion.setFirma(nombreArchivo);
-                }
-            }
-
             if (screenshotSimca != null) {
                 String timestamp = String.valueOf(System.currentTimeMillis());
                 String prefijo = PREFIJO_SCREENSHOT + "-" + timestamp;
