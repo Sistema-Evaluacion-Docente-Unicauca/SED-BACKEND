@@ -1,9 +1,10 @@
-package co.edu.unicauca.sed.api.service.actividad;
+package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.EstadoActividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.repository.EstadoActividadRepository;
+import co.edu.unicauca.sed.api.service.actividad.EstadoActividadService;
 import co.edu.unicauca.sed.api.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

@@ -1,9 +1,12 @@
-package co.edu.unicauca.sed.api.service.actividad;
+package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Fuente;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
+import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;

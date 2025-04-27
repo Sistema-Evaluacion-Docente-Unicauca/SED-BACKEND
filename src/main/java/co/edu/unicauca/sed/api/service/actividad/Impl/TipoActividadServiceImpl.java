@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service.actividad;
+package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
+import co.edu.unicauca.sed.api.service.actividad.TipoActividadService;
 
 /**
  * Implementación del servicio de gestión de Tipos de Actividad.
