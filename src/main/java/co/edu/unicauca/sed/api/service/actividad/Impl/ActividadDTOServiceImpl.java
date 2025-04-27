@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service.actividad;
+package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Fuente;
@@ -10,9 +10,11 @@ import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
+import co.edu.unicauca.sed.api.service.actividad.ActividadDTOService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteDTOService;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,8 +64,9 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
     public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad) {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
         List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream()
-                .map(this::convertFuenteToDTO)
-                .collect(Collectors.toList());
+        .sorted(Comparator.comparing(Fuente::getTipoFuente))
+        .map(this::convertFuenteToDTO)
+        .collect(Collectors.toList());
 
         return buildActividadDTOEvaluador(actividad, fuenteDTOs, evaluadoDTO);
     }
@@ -71,6 +74,7 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
     @Override
     public ActividadDTOEvaluador convertToDTOWithEvaluado(Actividad actividad, String tipoFuente, String estadoFuente) {
         UsuarioDTO evaluadoDTO = convertToUsuarioDTO(actividad.getProceso().getEvaluado());
+        
         List<FuenteDTO> fuenteDTOs = actividad.getFuentes().stream()
                 .filter(fuente -> {
                     boolean tipoMatch = (tipoFuente == null || fuente.getTipoFuente().equalsIgnoreCase(tipoFuente));
@@ -78,11 +82,12 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
                             || fuente.getEstadoFuente().getNombreEstado().equalsIgnoreCase(estadoFuente));
                     return tipoMatch && estadoMatch;
                 })
+                .sorted(Comparator.comparing(Fuente::getTipoFuente))
                 .map(this::convertFuenteToDTO)
                 .collect(Collectors.toList());
-
+    
         return buildActividadDTOEvaluador(actividad, fuenteDTOs, evaluadoDTO);
-    }
+    }    
 
     private ActividadDTOEvaluador buildActividadDTOEvaluador(Actividad actividad, List<FuenteDTO> fuenteDTOs,
             UsuarioDTO evaluadoDTO) {

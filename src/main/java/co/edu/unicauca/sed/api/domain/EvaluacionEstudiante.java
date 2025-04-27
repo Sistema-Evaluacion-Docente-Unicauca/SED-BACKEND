@@ -34,9 +34,6 @@ public class EvaluacionEstudiante {
     @Column(name = "OBSERVACION")
     private String observacion;
 
-    @Column(name = "FIRMA", nullable = false)
-    private String firma;
-
     @CreationTimestamp
     @Column(name = "FECHAEVALUACION", nullable = false)
     private LocalDateTime fechaEvaluacion;

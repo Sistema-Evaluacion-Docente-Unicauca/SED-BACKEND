@@ -1,21 +1,26 @@
 spring:
+  jackson:
+      time-zone: America/Bogota
   jpa:
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
-        default_schema: SEDOCENTE
+        # Elimina esta línea si estás usando el esquema por defecto (public)
+        # default_schema: SEDOCENTE 
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: ${DESARROLLO_DATASOURCE_URL}
     username: ${DESARROLLO_DATASOURCE_USER}
     password: ${DESARROLLO_DATASOURCE_PASSWORD}
-    driver-class-name: oracle.jdbc.OracleDriver
+    driver-class-name: org.postgresql.Driver
   servlet:
     multipart:
       enabled: true
       max-file-size: ${MULTIPART_MAX_FILE_SIZE}
       max-request-size: ${MULTIPART_MAX_REQUEST_SIZE}
+
   notification:
     service:
       url: ${NOTIFICATION_SERVICE_URL}
@@ -41,7 +46,7 @@ logging:
     max-history: ${LOG_FILE_MAX_HISTORY}
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
-  
+
 app:
   jwtSecret: ${JWT_SECRET}
 
@@ -54,6 +59,6 @@ springdoc:
 
 info:
   app:
-    title: Microservicio Sistema Evaluación Dodente
-    description: API para Gestion docente
+    title: Microservicio Sistema Evaluación Docente
+    description: API para Gestión Docente
     version: 1.0.0

@@ -4,6 +4,8 @@ import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.actividad.*;
 
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +62,7 @@ public class ActividadMapper {
                         fuente.setOidFuente(fuenteDTO.getOidFuente());
                         return fuente;
                     })
+                    .sorted(Comparator.comparing(Fuente::getTipoFuente))
                     .collect(Collectors.toList());
             actividad.setFuentes(fuentes);
         }

@@ -1,4 +1,4 @@
-package co.edu.unicauca.sed.api.service.actividad;
+package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.domain.Usuario;
@@ -6,6 +6,8 @@ import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
+import co.edu.unicauca.sed.api.service.actividad.ActividadDetalleService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

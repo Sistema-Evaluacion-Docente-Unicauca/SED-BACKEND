@@ -46,6 +46,9 @@ public class Actividad {
     @Column(name = "SEMANAS", nullable = false)
     private Float semanas;
 
+    @Column(name = "ASIGNACIONDEFAULT", nullable = false)
+    private Boolean asignacionDefault = false;
+
     @Column(name = "INFORMEEJECUTIVO", nullable = false)
     private Boolean informeEjecutivo;
 

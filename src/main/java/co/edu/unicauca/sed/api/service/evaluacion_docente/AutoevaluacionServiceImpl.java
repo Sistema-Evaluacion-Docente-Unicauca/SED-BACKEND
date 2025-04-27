@@ -15,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -125,8 +123,7 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
         });
     }
 
-    private Autoevaluacion procesarAutoevaluacion(Autoevaluacion autoevaluacion, Fuente fuente,
-            MultipartFile firma, MultipartFile screenshotSimca, String descripcion) {
+    private Autoevaluacion procesarAutoevaluacion(Autoevaluacion autoevaluacion, Fuente fuente, MultipartFile firma, MultipartFile screenshotSimca, String descripcion) {
         try {
             if (firma != null) {
                 String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firma, PREFIJO_FIRMA);

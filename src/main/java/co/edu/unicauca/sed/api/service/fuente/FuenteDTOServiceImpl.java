@@ -5,6 +5,7 @@ import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,9 +54,10 @@ public class FuenteDTOServiceImpl implements FuenteDTOService {
         if (fuentes == null || fuentes.isEmpty()) {
             return new ArrayList<>();
         }
-
+    
         return fuentes.stream()
+                .sorted(Comparator.comparing(Fuente::getTipoFuente))
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
-    }
+    }    
 }

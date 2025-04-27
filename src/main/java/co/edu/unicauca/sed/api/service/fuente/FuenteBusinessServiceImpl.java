@@ -116,15 +116,14 @@ public class FuenteBusinessServiceImpl implements FuenteBusinessService {
         try {
             EstadoFuente estadoFuentePendiente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
                     .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
-            if (fuente.getEstadoFuente() != null
-                    && fuente.getEstadoFuente().getOidEstadoFuente() == estadoFuentePendiente.getOidEstadoFuente()) {
+            if (fuente.getEstadoFuente() != null && fuente.getEstadoFuente().getOidEstadoFuente() == estadoFuentePendiente.getOidEstadoFuente()) {
                 EstadoFuente estadoFuenteDiligenciado = estadoFuenteRepository.findByNombreEstado("DILIGENCIADO")
                         .orElseThrow(() -> new IllegalArgumentException("Estado de fuente no válido."));
                 return estadoFuenteService.createEstadoFuente(estadoFuenteDiligenciado.getOidEstadoFuente());
             } else if (fuente.getEstadoFuente() != null) {
                 return fuente.getEstadoFuente();
             } else {
-                return estadoFuenteService.createEstadoFuente(2);
+                return estadoFuenteService.createEstadoFuente(estadoFuentePendiente.getOidEstadoFuente());
             }
         } catch (Exception e) {
             logger.error("Error al determinar el estado de la fuente", e);
