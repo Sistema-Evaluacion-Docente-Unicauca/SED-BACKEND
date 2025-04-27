@@ -308,14 +308,14 @@ public class ActividadServiceImpl implements ActividadService {
 
         try {
             switch (oidTipoActividad) {
-                case 5: { // ADMINISTRACIÓN → DECANO
+                case 4: { // ADMINISTRACIÓN → DECANO
                     String key = claveEvaluador("FACULTAD", facultad, ROL_DECANO);
                     Usuario evaluador = cacheEvaluadores.computeIfAbsent(key,
                         k -> usuarioRepository.findFirstActiveByFacultadAndRolId(facultad, ROL_DECANO)
                             .orElseThrow(() -> new RuntimeException("No se encontró Decano activo para la facultad " + facultad)));
                     return new EvaluadorAsignacionDTO(evaluador, false);
                 }
-                case 1, 2, 3, 4, 6, 7, 8, 9:
+                case 1, 2, 3, 5, 6, 7, 8, 9:
                 default: { // Todo lo demás → JEFE DE DEPARTAMENTO
                     String key = claveEvaluador("DEPARTAMENTO", departamento, ROL_JEFE_DEPTO);
                     Usuario evaluador = cacheEvaluadores.computeIfAbsent(key,

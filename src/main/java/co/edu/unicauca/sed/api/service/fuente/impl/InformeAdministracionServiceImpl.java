@@ -114,8 +114,8 @@ public class InformeAdministracionServiceImpl implements InformeAdministracionSe
                 String ruta = fuenteService.guardarDocumentoFuente(fuente, documentoAdministracion, prefijo);
                 String nombreArchivo = Paths.get(ruta).getFileName().toString();
 
-                fuente.setNombreDocumentoInforme(nombreArchivo);
-                fuente.setRutaDocumentoInforme(ruta);
+                fuente.setNombreDocumentoFuente(nombreArchivo);
+                fuente.setRutaDocumentoFuente(ruta);
             }
         } catch (IOException e) {
             LOGGER.error("❌ Error al guardar documento de administración: {}", e.getMessage());
