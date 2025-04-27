@@ -38,41 +38,18 @@ public class DocenteEvaluacionService {
      * @param departamento       Departamento del docente (opcional).
      * @return Lista de evaluaciones de docentes.
      */
-    public ApiResponse<Page<DocenteEvaluacionDTO>> obtenerEvaluacionDocentes(
-            Integer idEvaluado, Integer idPeriodoAcademico, String departamento, Pageable pageable) {
+    public ApiResponse<Page<DocenteEvaluacionDTO>> obtenerEvaluacionDocentes(Integer idEvaluado, Integer idPeriodoAcademico, String departamento, String nombre, 
+        String tipoContrato, String identificacion, Pageable pageable) {
 
         try {
-            if (idPeriodoAcademico == null) {
-                idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
-            }
+            Integer periodoFinal = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
 
-            final Integer periodoFinal = idPeriodoAcademico;
+            List<Usuario> evaluados = cargarUsuariosEvaluados(idEvaluado, periodoFinal);
+            evaluados = aplicarFiltros(evaluados, departamento, nombre, tipoContrato, identificacion, idEvaluado);
 
-            List<Usuario> evaluados = obtenerUsuariosEvaluados(idEvaluado, idPeriodoAcademico);
+            List<DocenteEvaluacionDTO> evaluacionDTOs = mapearADocenteEvaluacionDTO(evaluados, periodoFinal);
 
-            if (departamento != null) {
-                evaluados = filtrarPorDepartamento(evaluados, departamento);
-                if (evaluados.isEmpty() && idEvaluado == null) {
-                    return new ApiResponse<>(404, "No se encontraron docentes para el departamento: " + departamento,
-                        Page.empty());
-                }
-            }
-
-            List<DocenteEvaluacionDTO> evaluacionDTOs = evaluados.stream()
-                .map(evaluado -> {
-                    List<Actividad> actividades = procesoRepository
-                        .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
-                                evaluado.getOidUsuario(), periodoFinal)
-                        .stream().flatMap(proceso -> proceso.getActividades().stream())
-                        .collect(Collectors.toList());
-                    return DocenteEvaluacionMapper.toDto(evaluado, actividades);
-                }).collect(Collectors.toList());
-
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), evaluacionDTOs.size());
-            List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
-
-            Page<DocenteEvaluacionDTO> pageResult = new PageImpl<>(paginatedList, pageable, evaluacionDTOs.size());
+            Page<DocenteEvaluacionDTO> pageResult = paginarResultados(evaluacionDTOs, pageable);
 
             return new ApiResponse<>(200, "Evaluaciones obtenidas correctamente.", pageResult);
 
@@ -84,6 +61,71 @@ public class DocenteEvaluacionService {
                     Page.empty());
         }
     }
+
+    private List<Usuario> cargarUsuariosEvaluados(Integer idEvaluado, Integer idPeriodoAcademico) {
+        return obtenerUsuariosEvaluados(idEvaluado, idPeriodoAcademico);
+    }
+
+    private List<Usuario> aplicarFiltros(List<Usuario> evaluados, String departamento, String nombre,
+            String tipoContrato, String identificacion, Integer idEvaluado) {
+        if (departamento != null) {
+            evaluados = filtrarPorDepartamento(evaluados, departamento);
+        }
+
+        if (nombre != null && !nombre.isBlank()) {
+            evaluados = evaluados.stream()
+                    .filter(usuario -> {
+                        String nombreCompleto = (usuario.getNombres() != null ? usuario.getNombres() : "") + " " +
+                                (usuario.getApellidos() != null ? usuario.getApellidos() : "");
+                        return nombreCompleto.trim().toLowerCase().contains(nombre.toLowerCase());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (tipoContrato != null && !tipoContrato.isBlank()) {
+            evaluados = evaluados.stream()
+                    .filter(usuario -> (usuario.getUsuarioDetalle() != null)
+                            && (usuario.getUsuarioDetalle().getContratacion() != null)
+                            && usuario.getUsuarioDetalle().getContratacion().toLowerCase()
+                                    .contains(tipoContrato.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        if (identificacion != null && !identificacion.isBlank()) {
+            evaluados = evaluados.stream()
+                    .filter(usuario -> (usuario.getIdentificacion() != null)
+                            && usuario.getIdentificacion().toLowerCase().contains(identificacion.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        if (evaluados.isEmpty() && idEvaluado == null) {
+            throw new IllegalArgumentException("No se encontraron docentes con los filtros proporcionados.");
+        }
+
+        return evaluados;
+    }
+
+    private Page<DocenteEvaluacionDTO> paginarResultados(List<DocenteEvaluacionDTO> evaluacionDTOs, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), evaluacionDTOs.size());
+        List<DocenteEvaluacionDTO> paginatedList = evaluacionDTOs.subList(start, end);
+
+        return new PageImpl<>(paginatedList, pageable, evaluacionDTOs.size());
+    }
+
+    private List<DocenteEvaluacionDTO> mapearADocenteEvaluacionDTO(List<Usuario> evaluados, Integer periodoFinal) {
+        return evaluados.stream()
+                .map(evaluado -> {
+                    List<Actividad> actividades = procesoRepository
+                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
+                                    evaluado.getOidUsuario(), periodoFinal)
+                            .stream()
+                            .flatMap(proceso -> proceso.getActividades().stream())
+                            .collect(Collectors.toList());
+                    return DocenteEvaluacionMapper.toDto(evaluado, actividades);
+                }).collect(Collectors.toList());
+    }
+
 
     /**
      * Filtra la lista de evaluados según el departamento proporcionado.

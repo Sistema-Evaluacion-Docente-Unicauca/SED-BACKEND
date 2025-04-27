@@ -90,9 +90,16 @@ public class UsuarioController {
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,
             @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String tipoContrato,
+            @RequestParam(required = false) String identificacion,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(idEvaluado,idPeriodoAcademico, departamento, PageRequest.of(page, size));
+    
+        ApiResponse<Page<DocenteEvaluacionDTO>> response = docenteEvaluacionService.obtenerEvaluacionDocentes(
+                idEvaluado, idPeriodoAcademico, departamento, nombre, tipoContrato, identificacion, PageRequest.of(page, size)
+        );
+    
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 

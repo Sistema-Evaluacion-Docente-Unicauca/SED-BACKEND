@@ -74,12 +74,9 @@ public class CatalogoService {
         }
     }
 
-    // Métodos auxiliares para obtener los datos
-
     private List<Map<String, String>> obtenerFacultades() {
         return FacultadEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
+            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
             .collect(Collectors.toList());
     }
 
@@ -92,29 +89,25 @@ public class CatalogoService {
 
     private List<Map<String, String>> obtenerCategorias() {
         return CategoriaEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
+            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())))).collect(Collectors.toList());
     }
 
     private List<Map<String, String>> obtenerContrataciones() {
         return ContratacionEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
+            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
             .collect(Collectors.toList());
     }
 
     private List<Map<String, String>> obtenerDedicaciones() {
         return DedicacionEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
+            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
             .collect(Collectors.toList());
     }
 
     private List<Map<String, String>> obtenerEstudios() {
         return EstudiosEnum.getSelectOptions().stream()
             .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
             .collect(Collectors.toList());
     }
 
@@ -125,8 +118,7 @@ public class CatalogoService {
                 estadoMap.put("oidEstadoEtapaDesarrollo", estado.getOidEstadoEtapaDesarrollo());
                 estadoMap.put("nombre", estado.getNombre());
                 return estadoMap;
-            })
-            .collect(Collectors.toList());
+            }).collect(Collectors.toList());
     }
 
     private List<Map<String, Object>> obtenerRoles() {
@@ -139,8 +131,7 @@ public class CatalogoService {
     private List<Map<String, Object>> obtenerTipoActividades() {
         return tipoActividadRepository.findAll().stream()
             .filter(Objects::nonNull)
-            .map(tipoActividad -> Map.<String, Object>of("codigo", tipoActividad.getOidTipoActividad(),
-                    "nombre", tipoActividad.getNombre()))
+            .map(tipoActividad -> Map.<String, Object>of("codigo", tipoActividad.getOidTipoActividad(), "nombre", tipoActividad.getNombre()))
             .collect(Collectors.toList());
     }
 
@@ -152,7 +143,6 @@ public class CatalogoService {
                     preguntaMap.put("oidPregunta", pregunta.getOidPregunta());
                     preguntaMap.put("pregunta", pregunta.getPregunta());
                     return preguntaMap;
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
     }    
 }

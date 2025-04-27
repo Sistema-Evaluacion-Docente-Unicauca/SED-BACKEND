@@ -26,7 +26,7 @@ public class UsuarioMapper {
     @Autowired
     private RolService rolService;
 
-    private static final List<String> ROLES_DEPARTAMENTO = List.of("JEFE DE DEPARTAMENTO", "COORDINADOR", "CPD");
+    private static final List<String> ROLES_DEPARTAMENTO = List.of("JEFE DE DEPARTAMENTO");
 
     public void generarNombreUsuario(Usuario usuario) {
         if (usuario.getCorreo() != null && (usuario.getUsername() == null || usuario.getUsername().isEmpty())) {
@@ -73,10 +73,10 @@ public class UsuarioMapper {
     
         if (esRolDeDepartamento(rolNombre)) {
             count = usuarioRepository.countByUsuarioDetalle_DepartamentoAndRoles_NombreInExcludingUser(
-                    usuario.getUsuarioDetalle().getDepartamento(), rolBuscado, idUsuario);
+                usuario.getUsuarioDetalle().getDepartamento(), rolBuscado, idUsuario);
         } else {
             count = usuarioRepository.countByUsuarioDetalle_FacultadAndRoles_NombreInExcludingUser(
-                    usuario.getUsuarioDetalle().getFacultad(), rolBuscado, idUsuario);
+                usuario.getUsuarioDetalle().getFacultad(), rolBuscado, idUsuario);
         }
     
         if (count > 0) {
