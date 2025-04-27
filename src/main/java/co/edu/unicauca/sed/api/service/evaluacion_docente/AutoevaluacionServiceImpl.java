@@ -28,7 +28,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
     private static final String MSG_AUTOEVALUACION_ERROR = "Error inesperado al guardar la autoevaluación.";
     private static final String MSG_BUSQUEDA_ERROR = "Error inesperado al buscar la autoevaluación.";
     private static final String MSG_NO_EVALUACION = "No se encontró autoevaluación para la fuente con ID: ";
-    private static final String PREFIJO_FIRMA = "firma";
     private static final String PREFIJO_SCREENSHOT = "screenshot";
     private static final String PREFIJO_FUENTE_1 = "fuente-1";
     private final AutoevaluacionRepository autoevaluacionRepository;
@@ -91,7 +90,6 @@ public class AutoevaluacionServiceImpl implements AutoevaluacionService {
             );
             resultado.put("Fuente", informacionFuente);
             resultado.put("actividad", obtenerInformacionActividad(fuente.getActividad()));
-            resultado.put("firma", autoevaluacion.getFirma());
             resultado.put("Descripcion", autoevaluacion.getDescripcion());
             resultado.put("screenshotSimca", autoevaluacion.getScreenshotSimca());
             resultado.put("odsSeleccionados", autoevaluacionOdsService.obtenerOds(autoevaluacion));

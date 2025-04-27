@@ -24,12 +24,6 @@ public class Autoevaluacion {
     @Column(name = "DESCRIPCION")
     private String descripcion;
 
-    @Column(name = "FIRMA")
-    private String firma;
-
-    @Column(name = "RUTADOCUMENTOFIRMA")
-    private String rutaDocumentoFirma;
-
     @Column(name = "SCREENSHOTSIMCA")
     private String screenshotSimca;
 

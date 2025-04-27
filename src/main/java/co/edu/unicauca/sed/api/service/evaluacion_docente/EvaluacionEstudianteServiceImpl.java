@@ -105,10 +105,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             // Obtener la fuente
             Fuente fuente = obtenerFuente(dto.getOidFuente());
 
-            // Guardar firma si existe
-            String rutaFirma = fuenteService.guardarDocumentoFuente(fuente, firmaEstudiante, PREFIJO_FIRMA);
-            if (rutaFirma != null) dto.setFirma(rutaFirma);
-
             // Guardar o actualizar EvaluacionEstudiante
             EvaluacionEstudiante evaluacionEstudiante = guardarEvaluacionEstudiante(dto, fuente);
 
@@ -121,7 +117,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
             String prefijo = PREFIJO_FUENTE_2 + "-" + timestamp;
             String rutaDocumento = fuenteService.guardarDocumentoFuente(fuente, documentoFuente, prefijo);
             if (rutaDocumento != null) {
-                dto.setFirma(rutaFirma);
                 fuente.setRutaDocumentoFuente(rutaDocumento);
                 fuente.setNombreDocumentoFuente(Paths.get(rutaDocumento).getFileName().toString());
             }
