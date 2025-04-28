@@ -315,14 +315,14 @@ public class ActividadServiceImpl implements ActividadService {
                             .orElseThrow(() -> new RuntimeException("No se encontró Decano activo para la facultad " + facultad)));
                     return new EvaluadorAsignacionDTO(evaluador, false);
                 }
-                case 1, 2, 3, 5: {
+                case 3, 5, 6, 8, 9: {
                     String key = claveEvaluador("DEPARTAMENTO", departamento, ROL_JEFE_DEPTO);
                     Usuario evaluador = cacheEvaluadores.computeIfAbsent(key,
                         k -> usuarioRepository.findFirstActiveByDepartamentoAndRolId(departamento, ROL_JEFE_DEPTO)
                             .orElseThrow(() -> new RuntimeException("No se encontró Jefe de Departamento activo para el departamento " + departamento)));
                     return new EvaluadorAsignacionDTO(evaluador, false);
                 }
-                case 6, 7, 8, 9:
+                case 1, 2, 7:
                 default: {
                     String key = claveEvaluador("DEPARTAMENTO", departamento, ROL_JEFE_DEPTO);
                     Usuario evaluador = cacheEvaluadores.computeIfAbsent(key,
@@ -338,7 +338,7 @@ public class ActividadServiceImpl implements ActividadService {
                     k -> usuarioRepository.findFirstActiveByFacultadAndRolId(facultad, ROL_SECRETARIA)
                         .orElseThrow(() -> new RuntimeException("❌ No se encontró secretaria/o activa para la facultad " + facultad)));
             return new EvaluadorAsignacionDTO(evaluadorFallback, true);
-        }        
+        }
     }
 
     private String claveEvaluador(String tipo, String valor, int rolId) {

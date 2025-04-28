@@ -62,11 +62,10 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
 
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
         List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
-                .map(actividadDTOService::buildActividadBaseDTO)
-                .collect(Collectors.toList());
+            .map(actividadDTOService::buildActividadBaseDTO).collect(Collectors.toList());
 
         return new ApiResponse<>(200, "Actividades obtenidas correctamente.",
-                new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements()));
+            new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements()));
     }
 
     @Override
@@ -82,8 +81,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
         List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
                 .map(activity -> (sourceType != null || sourceStatus != null)
                         ? actividadDTOService.convertToDTOWithEvaluado(activity, sourceType, sourceStatus)
-                        : actividadDTOService.convertToDTOWithEvaluado(activity))
-                .collect(Collectors.toList());
+                        : actividadDTOService.convertToDTOWithEvaluado(activity)).collect(Collectors.toList());
 
         return new ApiResponse<>(200, "Actividades obtenidas correctamente.",
                 new PageImpl<>(activityDTOs, pageable, activitiesPage.getTotalElements()));
