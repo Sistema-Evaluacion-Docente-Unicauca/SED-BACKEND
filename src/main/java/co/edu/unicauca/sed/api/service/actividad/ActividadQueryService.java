@@ -54,9 +54,9 @@ public interface ActividadQueryService {
      * @return ApiResponse con la lista de actividades en formato paginado.
      */
     ApiResponse<Page<ActividadDTOEvaluador>> buscarActividadesPorEvaluador(
-            Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
-            String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
-            Boolean ordenAscendente, Integer idPeriodoAcademico, Pageable paginacion);
+        Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType,
+        String evaluatorName, List<String> roles, String sourceType, String sourceStatus,
+        Boolean ascendingOrder, Integer idPeriodoAcademico, Boolean asignacionDefault, Pageable pageable);
 
     /**
      * Genera un filtro dinámico para la consulta de actividades.
@@ -76,7 +76,7 @@ public interface ActividadQueryService {
     Specification<Actividad> filtrarActividades(
             Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
             String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
-            Boolean ordenAscendente, Integer idPeriodoAcademico);
+            Boolean ordenAscendente, Integer idPeriodoAcademico, Boolean asignacionDefault);
 
     /**
      * Obtiene actividades asociadas a procesos de forma paginada.
@@ -91,7 +91,8 @@ public interface ActividadQueryService {
      * Ordena una lista de actividades por el nombre del tipo de actividad.
      *
      * @param actividades    Lista de actividades en formato DTO.
-     * @param ascendingOrder Indica si el orden debe ser ascendente (true) o descendente (false).
+     * @param ascendingOrder Indica si el orden debe ser ascendente (true) o
+     *                       descendente (false).
      * @return Lista de actividades ordenadas según el criterio especificado.
      */
     List<ActividadBaseDTO> ordenarActividadesPorTipo(List<ActividadBaseDTO> actividades, Boolean ascendingOrder);

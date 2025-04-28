@@ -209,7 +209,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             Pageable pageable) {
         try {
             Specification<Actividad> spec = actividadQueryService.filtrarActividades(null, idEvaluado, nombreActividad, idTipoActividad, null, null,
-                idTipoFuente, idEstadoFuente, true, idPeriodoAcademico);
+                idTipoFuente, idEstadoFuente, true, idPeriodoAcademico, false);
 
             Page<Actividad> actividadPage = actividadRepository.findAll(spec, pageable);
             ActividadPaginadaDTO actividadPaginadaDTO = transformacionService.construirActividadPaginadaDTO(actividadPage);

@@ -58,7 +58,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
             Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
 
         Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico, false);
 
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
         List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
@@ -71,12 +71,12 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
 
     @Override
     public ApiResponse<Page<ActividadDTOEvaluador>> buscarActividadesPorEvaluador(
-            Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType,
-            String evaluatorName, List<String> roles, String sourceType, String sourceStatus,
-            Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
+        Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType,
+        String evaluatorName, List<String> roles, String sourceType, String sourceStatus,
+        Boolean ascendingOrder, Integer idPeriodoAcademico, Boolean asignacionDefault, Pageable pageable) {
 
-        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico);
+        Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode, activityType, evaluatorName, 
+        roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico, asignacionDefault);
 
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
         List<ActividadDTOEvaluador> activityDTOs = activitiesPage.getContent().stream()
@@ -99,7 +99,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
     public Specification<Actividad> filtrarActividades(
             Integer userEvaluatorId, Integer userEvaluatedId, String activityCode, String activityType,
             String evaluatorName, List<String> roles, String sourceType, String sourceStatus,
-            Boolean ascendingOrder, Integer idPeriodoAcademico) {
+            Boolean ascendingOrder, Integer idPeriodoAcademico, Boolean asignacionDefault) {
 
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -145,6 +145,10 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
                     Join<Usuario, Rol> joinRoles = root.join("proceso").join("evaluador").join("roles");
                     predicates.add(joinRoles.get("oid").in(roles));
                 }
+            }
+
+            if (asignacionDefault != null) {
+                predicates.add(cb.equal(root.get("asignacionDefault"), asignacionDefault));
             }
 
             if (activityCode != null && !activityCode.isEmpty()) {
