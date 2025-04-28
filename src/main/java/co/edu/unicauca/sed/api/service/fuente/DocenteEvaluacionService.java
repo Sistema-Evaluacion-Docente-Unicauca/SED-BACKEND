@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,8 @@ public class DocenteEvaluacionService {
             evaluados = aplicarFiltros(evaluados, departamento, nombre, tipoContrato, identificacion, idEvaluado);
 
             List<DocenteEvaluacionDTO> evaluacionDTOs = mapearADocenteEvaluacionDTO(evaluados, periodoFinal);
+
+            evaluacionDTOs.sort(Comparator.comparing(DocenteEvaluacionDTO::getPorcentajeEvaluacionCompletado,Comparator.nullsLast(Comparator.reverseOrder())));
 
             Page<DocenteEvaluacionDTO> pageResult = paginarResultados(evaluacionDTOs, pageable);
 

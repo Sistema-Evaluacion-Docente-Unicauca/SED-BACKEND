@@ -110,8 +110,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
                 logger.warn("⚠️ [PERIODO] No se encontró un período académico activo antes de ejecutar la consulta.");
                 throw new EntityNotFoundException("No se encontró un período académico activo.");
             }
-            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"),
-                    finalIdPeriodoAcademico));
+            predicates.add(cb.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"), finalIdPeriodoAcademico));
 
             if (userEvaluatorId != null) {
                 predicates.add(cb.equal(root.join("proceso").join("evaluador").get("oidUsuario"), userEvaluatorId));
