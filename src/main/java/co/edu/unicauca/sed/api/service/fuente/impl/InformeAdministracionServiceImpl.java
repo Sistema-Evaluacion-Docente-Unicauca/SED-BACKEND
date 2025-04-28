@@ -61,8 +61,7 @@ public class InformeAdministracionServiceImpl implements InformeAdministracionSe
                 .orElseThrow(() -> new RuntimeException("Fuente no encontrada con ID: " + oidFuente));
     }
 
-    private void actualizarDatosFuente(Fuente fuente, InformeAdministracionFuenteDTO informeDTO,
-            MultipartFile documentoAdministracion) {
+    private void actualizarDatosFuente(Fuente fuente, InformeAdministracionFuenteDTO informeDTO, MultipartFile documentoAdministracion) {
         fuente.setTipoCalificacion(informeDTO.getTipoCalificacion());
         fuente.setCalificacion(informeDTO.getCalificacion());
         fuente.setObservacion(informeDTO.getObservacion());

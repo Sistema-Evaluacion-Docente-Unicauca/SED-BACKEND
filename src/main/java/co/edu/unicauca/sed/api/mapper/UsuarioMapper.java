@@ -61,7 +61,7 @@ public class UsuarioMapper {
     }
 
     private void validarRolUnicoPorNombre(Usuario usuario, Integer idUsuario, String rolNombre) {
-        if (List.of("JEFE DE DEPARTAMENTO", "COORDINADOR", "CPD", "DECANO", "SECRETARIA/O FACULTAD").contains(rolNombre)) {
+        if (List.of("JEFE DE DEPARTAMENTO", "DECANO", "SECRETARIA/O FACULTAD").contains(rolNombre)) {
             validarRolUnico(usuario, idUsuario, rolNombre);
         }
     }

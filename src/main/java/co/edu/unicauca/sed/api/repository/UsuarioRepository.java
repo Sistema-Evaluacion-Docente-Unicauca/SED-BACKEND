@@ -22,6 +22,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer>, JpaS
                         "AND r.nombre IN :roles " +
                         "AND e.nombre = 'ACTIVO' " +
                         "AND (:idUsuario IS NULL OR u.oidUsuario <> :idUsuario)")
+
         long countByUsuarioDetalle_DepartamentoAndRoles_NombreInExcludingUser(
                         @Param("departamento") String departamento,
                         @Param("roles") List<String> roles,
