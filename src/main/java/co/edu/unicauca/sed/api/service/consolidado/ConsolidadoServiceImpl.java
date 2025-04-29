@@ -204,9 +204,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
     @Override
     @Transactional
     public ApiResponse<ActividadPaginadaDTO> filtrarActividadesPaginadas(Integer idEvaluado, Integer idPeriodoAcademico,
-            String nombreActividad, String idTipoActividad,
-            String idTipoFuente, String idEstadoFuente,
-            Pageable pageable) {
+            String nombreActividad, String idTipoActividad, String idTipoFuente, String idEstadoFuente, Pageable pageable) {
         try {
             Specification<Actividad> spec = actividadQueryService.filtrarActividades(null, idEvaluado, nombreActividad, idTipoActividad, null, null,
                 idTipoFuente, idEstadoFuente, true, idPeriodoAcademico, false);

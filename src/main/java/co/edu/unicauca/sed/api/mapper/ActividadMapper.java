@@ -32,6 +32,7 @@ public class ActividadMapper {
         actividad.setInformeEjecutivo(actividadDTO.getInformeEjecutivo());
         actividad.setFechaCreacion(actividadDTO.getFechaCreacion());
         actividad.setFechaActualizacion(actividadDTO.getFechaActualizacion());
+        actividad.setIdLaborDocente(actividadDTO.getIdLaborDocente());
 
         // Mapear el tipo de actividad si está presente
         if (actividadDTO.getTipoActividad() != null) {

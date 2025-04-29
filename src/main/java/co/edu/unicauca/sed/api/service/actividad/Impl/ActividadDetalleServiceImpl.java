@@ -1,7 +1,6 @@
 package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.TipoActividad;
-import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
@@ -38,41 +37,41 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
         List<AtributoDTO> atributos = actividadDTO.getAtributos();
     
         // Buscar valores específicos de los atributos según el tipo de actividad
-        String codigo = obtenerValorAtributo(atributos, "CODIGO");
+        String nombreEstudiante = obtenerValorAtributo(atributos, "NOMBREESTUDIANTE");
         String materia = obtenerValorAtributo(atributos, "MATERIA");
         String grupo = obtenerValorAtributo(atributos, "GRUPO");
-        String actoAdministrativo = obtenerValorAtributo(atributos, "ACTOADMINISTRATIVO");
-        String vri = obtenerValorAtributo(atributos, "VRI");
         String nombreProyecto = obtenerValorAtributo(atributos, "NOMBREPROYECTO");
+        String actividad = obtenerValorAtributo(atributos, "ACTIVIDAD");
+        String semillero = obtenerValorAtributo(atributos, "SEMILLERO");
     
         Integer idUsuario = actividadDTO.getOidEvaluador();
-        Usuario usuario = usuarioRepository.findById(idUsuario)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario));
-        String identificacion = usuario.getIdentificacion();
+        /*Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario));*/
     
         // Generar el nombre de la actividad según el tipo de actividad
         String nombreGenerado;
         switch (nombreTipoActividad.toUpperCase()) {
             case "DOCENCIA":
-                nombreGenerado = String.format("%s-%s-%s", codigo, materia, grupo);
+                nombreGenerado = String.format("%s-%s", materia, grupo);
                 break;
-            case "TRABAJO DE DOCENCIA":
-            case "TRABAJO DE INVESTIGACIÓN":
-                nombreGenerado = String.format("%s-%s", actoAdministrativo, identificacion);
+            case "TRABAJOS DOCENCIA":
+            case "TRABAJOS DE INVESTIGACION":
+            nombreGenerado = String.format("Trabajo %s-%s", nombreEstudiante);
                 break;
-            case "PROYECTO DE INVESTIGACIÓN":
-                nombreGenerado = String.format("%s-%s", vri, nombreProyecto);
+            case "PROYECTOS INVESTIGACIÓN":
+                nombreGenerado = String.format("%s", nombreProyecto);
                 break;
             case "ADMINISTRACIÓN":
             case "OTROS SERVICIOS":
             case "CAPACITACIÓN":
-                nombreGenerado = String.format("%s-ACTIVIDAD", actoAdministrativo);
+            case "ASESORÍA":
+                nombreGenerado = String.format("%s", actividad);
                 break;
             case "EXTENSIÓN":
-                nombreGenerado = String.format("%s-%s", actoAdministrativo, nombreProyecto);
+                nombreGenerado = String.format("%s-%s", nombreProyecto);
                 break;
-            case "ASESORÍA":
-                nombreGenerado = String.format("%s-%s", actoAdministrativo);
+            case "SEMILLEROS DE INVESTIGACIÓN":
+                nombreGenerado = String.format("%s", semillero);
                 break;
             default:
                 nombreGenerado = "ACTIVIDAD-GENERICA-" + idTipoActividad;

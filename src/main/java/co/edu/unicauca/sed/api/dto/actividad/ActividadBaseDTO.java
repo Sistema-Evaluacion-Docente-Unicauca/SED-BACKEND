@@ -7,9 +7,13 @@ import co.edu.unicauca.sed.api.domain.TipoActividad;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ActividadBaseDTO {
 
     private Integer oidActividad;
@@ -27,6 +31,8 @@ public class ActividadBaseDTO {
     private UsuarioDTO evaluador;
     private Integer oidEvaluado;
     private Integer oidEvaluador;
+    private Integer idLaborDocente;
+    private Boolean esLaborDocente;
 
     // Constructor completo
     public ActividadBaseDTO(Integer oidActividad, TipoActividad tipoActividad, Integer oidProceso, Integer oidEstadoActividad,
