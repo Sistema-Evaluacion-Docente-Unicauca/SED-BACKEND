@@ -56,7 +56,7 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
                 break;
             case "TRABAJOS DOCENCIA":
             case "TRABAJOS DE INVESTIGACION":
-            nombreGenerado = String.format("Trabajo %s-%s", nombreEstudiante);
+                nombreGenerado = String.format("Trabajo %s", nombreEstudiante);
                 break;
             case "PROYECTOS INVESTIGACIÓN":
                 nombreGenerado = String.format("%s", nombreProyecto);
@@ -65,10 +65,8 @@ public class ActividadDetalleServiceImpl implements ActividadDetalleService {
             case "OTROS SERVICIOS":
             case "CAPACITACIÓN":
             case "ASESORÍA":
-                nombreGenerado = String.format("%s", actividad);
-                break;
             case "EXTENSIÓN":
-                nombreGenerado = String.format("%s-%s", nombreProyecto);
+                nombreGenerado = String.format("%s", actividad);
                 break;
             case "SEMILLEROS DE INVESTIGACIÓN":
                 nombreGenerado = String.format("%s", semillero);
