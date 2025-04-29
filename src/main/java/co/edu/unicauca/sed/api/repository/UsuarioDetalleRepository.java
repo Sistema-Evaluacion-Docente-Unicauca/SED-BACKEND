@@ -17,7 +17,7 @@ public interface UsuarioDetalleRepository extends JpaRepository<UsuarioDetalle, 
   @Query("SELECT DISTINCT u.departamento FROM UsuarioDetalle u")
   List<String> findDistinctDepartamento();
 
-  @Query("SELECT DISTINCT u.categoria FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.categoria FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctCategoria();
 
   @Query("SELECT DISTINCT u.contratacion FROM UsuarioDetalle u")

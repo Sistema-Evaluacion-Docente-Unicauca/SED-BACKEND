@@ -10,6 +10,7 @@ import co.edu.unicauca.sed.api.enums.EstudiosEnum;
 import co.edu.unicauca.sed.api.enums.FacultadEnum;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
+import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.service.evaluacion_docente.EstadoEtapaDesarrolloService;
 import co.edu.unicauca.sed.api.repository.PreguntaRepository;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
@@ -37,6 +38,9 @@ public class CatalogoService {
 
     @Autowired
     private EstadoEtapaDesarrolloRepository estadoEtapaDesarrolloRepository;
+
+    @Autowired
+    private UsuarioDetalleRepository usuarioDetalleRepository;
 
     CatalogoService(EstadoEtapaDesarrolloService estadoEtapaDesarrolloService) {
         this.estadoEtapaDesarrolloService = estadoEtapaDesarrolloService;
@@ -88,8 +92,23 @@ public class CatalogoService {
     }
 
     private List<Map<String, String>> obtenerCategorias() {
+        List<String> categoriasBD = usuarioDetalleRepository.findDistinctCategoria();
+    
+        if (categoriasBD != null && !categoriasBD.isEmpty()) {
+            return categoriasBD.stream()
+                .map(valor -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("codigo", String.valueOf(valor));
+                    map.put("nombre", String.valueOf(valor));
+                    return map;
+                })
+                .collect(Collectors.toList());
+        }
+    
         return CategoriaEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())))).collect(Collectors.toList());
+            .map(map -> map.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
+            .collect(Collectors.toList());
     }
 
     private List<Map<String, String>> obtenerContrataciones() {

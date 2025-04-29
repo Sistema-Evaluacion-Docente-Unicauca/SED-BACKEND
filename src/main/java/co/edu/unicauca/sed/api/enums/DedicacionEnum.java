@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 public enum DedicacionEnum {
     TIEMPO_COMPLETO("TIEMPO COMPLETO"),
     MEDIO_TIEMPO("MEDIO TIEMPO"),
-    HORAS_CATEDRA("HORAS_CÁTEDRA");
+    HORAS_CATEDRA("HORAS CÁTEDRA");
 
     private final String nombre;
 
