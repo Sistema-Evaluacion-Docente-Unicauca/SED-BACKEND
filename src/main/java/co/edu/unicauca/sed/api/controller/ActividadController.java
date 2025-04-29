@@ -69,11 +69,12 @@ public class ActividadController {
             @RequestParam(required = false) String tipoFuente,
             @RequestParam(required = false) String estadoFuente,
             @RequestParam(required = false) Boolean orden,
-            @RequestParam(required = false) Integer idPeriodo) {
+            @RequestParam(required = false) Integer idPeriodo,
+            @RequestParam(required = false) Boolean asignacionDefault) {
 
         ApiResponse<Page<ActividadBaseDTO>> response = actividadQueryService.buscarActividadesPorEvaluado(
                 idEvaluador, idEvaluado, nombreActividad, tipoActividad, nombreEvaluador,
-                roles, tipoFuente, estadoFuente, orden, idPeriodo, PageRequest.of(page, size));
+                roles, tipoFuente, estadoFuente, orden, idPeriodo, asignacionDefault, PageRequest.of(page, size));
 
         return ResponseEntity.status(response.getCodigo()).body(response);
     }

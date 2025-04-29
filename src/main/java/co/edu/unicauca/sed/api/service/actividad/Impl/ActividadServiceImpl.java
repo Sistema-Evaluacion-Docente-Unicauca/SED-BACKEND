@@ -158,7 +158,7 @@ public class ActividadServiceImpl implements ActividadService {
             }
         }
 
-        if (!actividadesGuardadas.isEmpty()) {
+            if (!actividadesGuardadas.isEmpty()) {
             String mensaje = construirMensajeFinal(actividadesGuardadas.size(), errores.size());
             return new ApiResponse<>(201, mensaje, actividadesGuardadas);
         } else {

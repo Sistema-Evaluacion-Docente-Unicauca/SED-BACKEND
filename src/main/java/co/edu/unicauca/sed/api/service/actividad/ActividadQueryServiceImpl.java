@@ -55,10 +55,10 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
     public ApiResponse<Page<ActividadBaseDTO>> buscarActividadesPorEvaluado(
             Integer evaluatorUserId, Integer evaluatedUserId, String activityCode, String activityType,
             String evaluatorName, List<String> roles, String sourceType, String sourceStatus,
-            Boolean ascendingOrder, Integer idPeriodoAcademico, Pageable pageable) {
+            Boolean ascendingOrder, Integer idPeriodoAcademico, Boolean asignacionDefault, Pageable pageable) {
 
         Specification<Actividad> spec = filtrarActividades(evaluatorUserId, evaluatedUserId, activityCode,
-                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico, false);
+                activityType, evaluatorName, roles, sourceType, sourceStatus, ascendingOrder, idPeriodoAcademico, asignacionDefault);
 
         Page<Actividad> activitiesPage = actividadRepository.findAll(spec, pageable);
         List<ActividadBaseDTO> activityDTOs = activitiesPage.getContent().stream()
@@ -104,8 +104,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
 
             Integer finalIdPeriodoAcademico;
             try {
-                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico
-                        : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+                finalIdPeriodoAcademico = (idPeriodoAcademico != null) ? idPeriodoAcademico : periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
             } catch (IllegalStateException e) {
                 logger.warn("⚠️ [PERIODO] No se encontró un período académico activo antes de ejecutar la consulta.");
                 throw new EntityNotFoundException("No se encontró un período académico activo.");
@@ -153,8 +152,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
             }
 
             if (activityType != null && !activityType.isEmpty()) {
-                predicates.add(
-                        cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
+                predicates.add(cb.equal(root.join("tipoActividad").get("oidTipoActividad"), Integer.parseInt(activityType)));
             }
 
             query.distinct(true);
@@ -170,8 +168,7 @@ public class ActividadQueryServiceImpl implements ActividadQueryService {
         boolean isAscending = (ascendingOrder != null) ? ascendingOrder : DEFAULT_ASCENDING_ORDER;
         List<Order> orderList = new ArrayList<>();
 
-        boolean ordenarPorFuente = (sourceType != null && !sourceType.isEmpty())
-                || (sourceStatus != null && !sourceStatus.isEmpty());
+        boolean ordenarPorFuente = (sourceType != null && !sourceType.isEmpty()) || (sourceStatus != null && !sourceStatus.isEmpty());
 
         if (ordenarPorFuente) {
             Join<Actividad, Fuente> fuenteJoin = root.join("fuentes", JoinType.LEFT);
