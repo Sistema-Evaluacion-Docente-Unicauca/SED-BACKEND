@@ -33,3 +33,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# --- Archivos de configuración de entorno (excepto el de ejemplo) ---
+.env
+.env.local
+.env.prod
