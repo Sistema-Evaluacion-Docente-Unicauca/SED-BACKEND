@@ -49,6 +49,9 @@ public class Actividad {
     @Column(name = "ASIGNACIONDEFAULT", nullable = false)
     private Boolean asignacionDefault = false;
 
+    @Column(name = "IDLABORDOCENTE")
+    private Integer idLaborDocente;
+
     @Column(name = "INFORMEEJECUTIVO", nullable = false)
     private Boolean informeEjecutivo;
 

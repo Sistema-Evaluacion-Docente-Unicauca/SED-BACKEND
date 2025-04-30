@@ -125,7 +125,7 @@ public class ActividadServiceImpl implements ActividadService {
         List<String> errores = new ArrayList<>();
 
         Map<String, EavAtributo> cacheAtributos = eavAtributoRepository.findAll().stream()
-        .collect(Collectors.toMap(EavAtributo::getNombre, Function.identity()));
+            .collect(Collectors.toMap(EavAtributo::getNombre, Function.identity()));
 
         EstadoFuente estadoFuentePendiente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
         .orElseThrow(() -> new IllegalArgumentException("Estado 'PENDIENTE' no encontrado."));
@@ -138,6 +138,16 @@ public class ActividadServiceImpl implements ActividadService {
 
         for (ActividadBaseDTO dto : actividadesDTO) {
             try {
+                /* 
+                if (dto.getEsLaborDocente()) {
+                    Optional<Actividad> existente = actividadRepository.findByIdLaborDocente(dto.getIdLaborDocente());
+                    if (existente.isPresent()) {
+                        logger.info("Actividad duplicada detectada con idLaborDocente: " + dto.getIdLaborDocente());
+                        errores.add("Actividad duplicada con idLaborDocente: " + dto.getIdLaborDocente());
+                        continue;
+                    }
+                }
+                */
                 Actividad guardada = guardarActividad(dto, cacheAtributos, estadoFuentePendiente, idPeriodoAcademico, cacheUsuariosPorId, cacheUsuariosPorIdentificacion, cacheEvaluadores);
                 actividadesGuardadas.add(guardada);
             } catch (DataIntegrityViolationException e) {
@@ -148,7 +158,7 @@ public class ActividadServiceImpl implements ActividadService {
             }
         }
 
-        if (!actividadesGuardadas.isEmpty()) {
+            if (!actividadesGuardadas.isEmpty()) {
             String mensaje = construirMensajeFinal(actividadesGuardadas.size(), errores.size());
             return new ApiResponse<>(201, mensaje, actividadesGuardadas);
         } else {
@@ -296,7 +306,7 @@ public class ActividadServiceImpl implements ActividadService {
         PeriodoAcademico periodoAcademico = new PeriodoAcademico();
         periodoAcademico.setOidPeriodoAcademico(idPeriodoAcademico);
         actividad.getProceso().setOidPeriodoAcademico(periodoAcademico);
-    }    
+    }
 
     private EvaluadorAsignacionDTO obtenerEvaluadorAutomatico(Integer oidTipoActividad,Usuario evaluado,Map<String, Usuario> cacheEvaluadores) {
         final int ROL_DECANO = 3;

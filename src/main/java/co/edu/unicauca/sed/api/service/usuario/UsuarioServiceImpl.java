@@ -81,13 +81,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public ApiResponse<List<Usuario>> guardar(List<Usuario> usuarios) {
         List<Usuario> usuariosGuardados = new ArrayList<>();
+        List<String> errores = new ArrayList<>();
     
         for (Usuario usuario : usuarios) {
             try {
                 usuarioMapper.validarUsuarioExistente(usuario);
-
                 usuarioMapper.validarCorreoExistente(usuario.getCorreo(), null);
-
+    
                 usuario.setNombres(usuario.getNombres().toUpperCase());
                 usuario.setApellidos(usuario.getApellidos().toUpperCase());
                 usuarioMapper.generarNombreUsuario(usuario);
@@ -99,16 +99,30 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuariosGuardados.add(usuarioRepository.save(usuario));
     
             } catch (RuntimeException e) {
-                LOGGER.warn("Usuario con identificación {} no fue guardado: {}", usuario.getIdentificacion(), e.getMessage());
+                String mensajeError = String.format("Usuario con identificación %s no fue guardado: %s",
+                        usuario.getIdentificacion(), e.getMessage());
+                LOGGER.warn(mensajeError);
+                errores.add(mensajeError);
             } catch (Exception e) {
-                LOGGER.error("Error inesperado al guardar usuario {}: {}", usuario.getIdentificacion(), e.getMessage());
+                String mensajeError = String.format("Error inesperado al guardar usuario %s: %s",
+                        usuario.getIdentificacion(), e.getMessage());
+                LOGGER.error(mensajeError);
+                errores.add(mensajeError);
             }
         }
     
         if (!usuariosGuardados.isEmpty()) {
-            return new ApiResponse<>(200, "Usuarios guardados correctamente.", usuariosGuardados);
+            String mensaje = "Usuarios guardados correctamente.";
+            if (!errores.isEmpty()) {
+                mensaje += " Sin embargo, algunos usuarios no pudieron guardarse: " + String.join(" | ", errores);
+            }
+            return new ApiResponse<>(200, mensaje, usuariosGuardados);
         } else {
-            return new ApiResponse<>(400, "No se pudo guardar ningún usuario.", null);
+            String mensaje = "No se pudo guardar ningún usuario.";
+            if (!errores.isEmpty()) {
+                mensaje += " Detalles: " + String.join(" | ", errores);
+            }
+            return new ApiResponse<>(400, mensaje, null);
         }
     }
 

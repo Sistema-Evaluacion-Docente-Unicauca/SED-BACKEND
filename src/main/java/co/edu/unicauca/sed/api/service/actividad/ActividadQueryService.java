@@ -35,7 +35,7 @@ public interface ActividadQueryService {
     ApiResponse<Page<ActividadBaseDTO>> buscarActividadesPorEvaluado(
             Integer idEvaluador, Integer idEvaluado, String codigoActividad, String tipoActividad,
             String nombreEvaluador, List<String> roles, String tipoFuente, String estadoFuente,
-            Boolean ordenAscendente, Integer idPeriodoAcademico, Pageable paginacion);
+            Boolean ordenAscendente, Integer idPeriodoAcademico, Boolean asignacionDefault, Pageable paginacion);
 
     /**
      * Busca actividades donde un usuario es el evaluador.
