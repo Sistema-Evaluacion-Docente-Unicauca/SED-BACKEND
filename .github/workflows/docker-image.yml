@@ -1,0 +1,59 @@
+name: Build & Push sed-backend to Docker Hub with Versioning and Release
+
+on:
+  push:
+    branches: [ "staging" ]
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Read and bump version
+        id: bump
+        run: |
+          VERSION_FILE=VERSION
+          OLD_VERSION=$(cat $VERSION_FILE | sed 's/v//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$OLD_VERSION"
+          NEW_VERSION="v$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "$NEW_VERSION" > $VERSION_FILE
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add $VERSION_FILE
+          git commit -m "ci: bump version to $NEW_VERSION"
+          git push
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            sedunicauca/sed-backend:latest
+            sedunicauca/sed-backend:${{ env.NEW_VERSION }}
+
+      - name: Create Git tag
+        run: |
+          git tag ${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          name: Release ${{ env.NEW_VERSION }}
+          body: |
+            🚀 Versión generada automáticamente.
+            - Imagen Docker publicada: `sedunicauca/sed-backend:${{ env.NEW_VERSION }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
