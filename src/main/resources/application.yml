@@ -7,8 +7,6 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
-        # Elimina esta línea si estás usando el esquema por defecto (public)
-        # default_schema: SEDOCENTE 
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: ${DESARROLLO_DATASOURCE_URL}

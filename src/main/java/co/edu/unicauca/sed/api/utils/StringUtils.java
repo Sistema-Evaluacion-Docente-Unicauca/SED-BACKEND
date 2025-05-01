@@ -9,7 +9,7 @@ public class StringUtils {
     }
 
     public String safeToUpperCase(String value) {
-        return (value != null && !value.isBlank()) ? value.toUpperCase() : value;
+        return (value != null && !value.isBlank()) ? value.trim().toUpperCase() : value;
     }
 
     /**
