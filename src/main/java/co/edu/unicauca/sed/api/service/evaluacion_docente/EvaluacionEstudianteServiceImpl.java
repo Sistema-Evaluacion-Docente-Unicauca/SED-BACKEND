@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -212,12 +213,16 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
 
     private List<Map<String, Object>> obtenerPreguntasDeEncuesta(Encuesta encuesta) {
         List<EncuestaRespuesta> respuestas = encuestaRespuestaRepository.findByEncuesta(encuesta);
-        return respuestas.stream().map(respuesta -> {
-            Map<String, Object> preguntaMap = new HashMap<>();
-            preguntaMap.put("oidPregunta", respuesta.getPregunta().getOidPregunta());
-            preguntaMap.put("respuesta", Integer.parseInt(respuesta.getRespuesta())); // Convertir a número
-            return preguntaMap;
-        }).collect(Collectors.toList());
+        
+        return respuestas.stream()
+            .sorted(Comparator.comparing(respuesta -> respuesta.getPregunta().getOidPregunta()))
+            .map(respuesta -> {
+                Map<String, Object> preguntaMap = new HashMap<>();
+                preguntaMap.put("oidPregunta", respuesta.getPregunta().getOidPregunta());
+                preguntaMap.put("respuesta", Integer.parseInt(respuesta.getRespuesta())); // Convertir a número
+                return preguntaMap;
+            })
+            .collect(Collectors.toList());
     }
 
     private Map<String, Object> construirResultado(Fuente fuente, EvaluacionEstudiante evaluacionEstudiante, Encuesta encuesta, List<Map<String, Object>> preguntas) {
