@@ -36,6 +36,7 @@ import co.edu.unicauca.sed.api.mapper.ActividadMapper;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.EavAtributoRepository;
 import co.edu.unicauca.sed.api.repository.EstadoFuenteRepository;
+import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.fuente.FuenteService;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
@@ -84,6 +85,9 @@ public class ActividadServiceImpl implements ActividadService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private TipoActividadRepository tipoActividadRepository;
 
     @Override
     public ApiResponse<Page<ActividadBaseDTO>> obtenerTodos(Pageable paginacion, Boolean ordenAscendente) {
@@ -148,6 +152,22 @@ public class ActividadServiceImpl implements ActividadService {
                     }
                 }
                 */
+                if (dto.getOidEvaluado() == null) {
+                    throw new ValidationException(400, "El id evaluado no puede ser nulo.");
+                }
+                if (dto.getTipoActividad() == null || dto.getTipoActividad().getOidTipoActividad() == null) {
+                    throw new ValidationException(400, "El tipo de actividad no puede ser nulo.");
+                }
+                tipoActividadRepository.findById(dto.getTipoActividad().getOidTipoActividad())
+                    .orElseThrow(() -> new ValidationException(400, "El tipo de actividad con ID "
+                            + dto.getTipoActividad().getOidTipoActividad() + " no existe."));
+
+                if (dto.getHoras() == null || dto.getHoras() <= 0) {
+                    throw new ValidationException(400, "La cantidad de horas no puede ser nula o negativa.");
+                }
+                if (dto.getSemanas() == null || dto.getSemanas() <= 0) {
+                    throw new ValidationException(400, "La cantidad de semanas no puede ser nula o negativa.");
+                }
                 Actividad guardada = guardarActividad(dto, cacheAtributos, estadoFuentePendiente, idPeriodoAcademico, cacheUsuariosPorId, cacheUsuariosPorIdentificacion, cacheEvaluadores);
                 actividadesGuardadas.add(guardada);
             } catch (DataIntegrityViolationException e) {
@@ -158,7 +178,7 @@ public class ActividadServiceImpl implements ActividadService {
             }
         }
 
-            if (!actividadesGuardadas.isEmpty()) {
+        if (!actividadesGuardadas.isEmpty()) {
             String mensaje = construirMensajeFinal(actividadesGuardadas.size(), errores.size());
             return new ApiResponse<>(201, mensaje, actividadesGuardadas);
         } else {
@@ -355,9 +375,7 @@ public class ActividadServiceImpl implements ActividadService {
         return tipo + ":" + valor + ":" + rolId;
     }
 
-    private Usuario obtenerUsuarioEvaluado(ActividadBaseDTO dto,
-            Map<Integer, Usuario> cachePorId,
-            Map<String, Usuario> cachePorIdentificacion) {
+    private Usuario obtenerUsuarioEvaluado(ActividadBaseDTO dto,Map<Integer, Usuario> cachePorId, Map<String, Usuario> cachePorIdentificacion) {
         Integer oidEvaluado = dto.getOidEvaluado();
 
         // 1. Buscar por ID en caché

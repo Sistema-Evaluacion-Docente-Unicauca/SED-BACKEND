@@ -170,6 +170,7 @@ public class PeriodoAcademicoServiceImpl implements PeriodoAcademicoService {
      *
      * @return Un Optional que contiene el período académico activo si existe.
      */
+    @Override
     public ApiResponse<PeriodoAcademico> obtenerPeriodoAcademicoActivo() {
         String nombreEstadoActivo = "ACTIVO";
 

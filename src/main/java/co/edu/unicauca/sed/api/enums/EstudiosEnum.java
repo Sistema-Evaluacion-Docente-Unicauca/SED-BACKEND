@@ -1,29 +1,22 @@
 package co.edu.unicauca.sed.api.enums;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import co.edu.unicauca.sed.api.utils.EnumUtils;
 
-public enum EstudiosEnum {
+public enum EstudiosEnum implements EnumUtils.ValorEnum {
     MAESTRIA("MAESTRÍA"),
     DOCTORADO("DOCTORADO"),
     POSDOCTORADO("POSDOCTORADO"),
+    PROFESIONAL("PROFESIONAL"),
     ESPECIALIZACION("ESPECIALIZACIÓN");
 
-    private final String nombre;
+    private final String valor;
 
-    EstudiosEnum(String nombre) {
-        this.nombre = nombre;
+    EstudiosEnum(String valor) {
+        this.valor = valor;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public static List<Map<String, String>> getSelectOptions() {
-        return Arrays.stream(EstudiosEnum.values())
-            .map(estudio -> Map.of("codigo", estudio.getNombre(), "nombre", estudio.getNombre()))
-            .collect(Collectors.toList());
+    @Override
+    public String getValor() {
+        return valor;
     }
 }

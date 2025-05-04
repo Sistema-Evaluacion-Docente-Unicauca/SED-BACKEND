@@ -12,7 +12,7 @@ public class UsuarioSpecification {
 
     public static Specification<Usuario> byFilters(
             String identificacion, String nombre, String facultad, String departamento, String categoria,
-            String contratacion, String dedicacion, String estudios, String rol, String estado) {
+            String contratacion, String dedicacion, String estudios, String rol, String estado, String programa) {
 
         Specification<Usuario> spec = Specification.where(null);
 
@@ -55,6 +55,10 @@ public class UsuarioSpecification {
 
         if (StringUtils.hasText(rol)) {
             spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("roles").get("oid"), rol));
+        }
+
+        if (StringUtils.hasText(programa)) {
+            spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("usuarioDetalle").get("programa"), programa));
         }
 
         if (StringUtils.hasText(estado)) {

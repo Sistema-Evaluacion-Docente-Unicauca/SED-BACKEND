@@ -43,8 +43,11 @@ public class UsuarioController {
             @RequestParam(required = false) String estudios,
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String programa,
             Pageable pageable) {
-        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,departamento, categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
+        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,
+                departamento, categoria, contratacion,
+                dedicacion, estudios, rol, estado, programa, pageable);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 

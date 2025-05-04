@@ -12,14 +12,20 @@ import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
 import co.edu.unicauca.sed.api.service.evaluacion_docente.EstadoEtapaDesarrolloService;
+import co.edu.unicauca.sed.api.utils.EnumUtils;
 import co.edu.unicauca.sed.api.repository.PreguntaRepository;
 import co.edu.unicauca.sed.api.repository.EstadoEtapaDesarrolloRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,55 +85,60 @@ public class CatalogoService {
     }
 
     private List<Map<String, String>> obtenerFacultades() {
-        return FacultadEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
+        return obtenerValor(usuarioDetalleRepository.findDistinctFacultad(), FacultadEnum.class);
     }
-
-    private List<Map<String, String>> obtenerDepartamentos() {
-        return DepartamentoEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
-    }
-
-    private List<Map<String, String>> obtenerCategorias() {
-        List<String> categoriasBD = usuarioDetalleRepository.findDistinctCategoria();
     
-        if (categoriasBD != null && !categoriasBD.isEmpty()) {
-            return categoriasBD.stream()
+    private List<Map<String, String>> obtenerDepartamentos() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctDepartamento(), DepartamentoEnum.class);
+    }
+    
+    private List<Map<String, String>> obtenerCategorias() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctCategoria(), CategoriaEnum.class);
+    }
+    
+    private List<Map<String, String>> obtenerContrataciones() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctContratacion(), ContratacionEnum.class);
+    }
+    
+    private List<Map<String, String>> obtenerDedicaciones() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctDedicacion(), DedicacionEnum.class);
+    }
+    
+    private List<Map<String, String>> obtenerEstudios() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctEstudios(), EstudiosEnum.class);
+    }
+    
+    private List<Map<String, String>> obtenerValor(List<String> listaBD,
+            Class<? extends Enum<? extends EnumUtils.ValorEnum>> enumClass) {
+
+        // Usamos LinkedHashMap para mantener el orden y evitar duplicados basados en el valor
+        Map<String, String> mapaUnificado = new LinkedHashMap<>();
+
+        // 1. Agregar valores desde la BD
+        if (listaBD != null) {
+            listaBD.forEach(valor -> {
+                String clave = valor.trim().toLowerCase();
+                mapaUnificado.putIfAbsent(clave, valor);
+            });
+        }
+
+        // 2. Agregar valores desde el enum
+        Arrays.stream(enumClass.getEnumConstants())
+                .map(e -> (EnumUtils.ValorEnum) e)
+                .forEach(e -> {
+                    String clave = e.getValor().trim().toLowerCase();
+                    mapaUnificado.putIfAbsent(clave, e.getValor());
+                });
+
+        // 3. Convertir a List<Map<String, String>>
+        return mapaUnificado.values().stream()
                 .map(valor -> {
                     Map<String, String> map = new HashMap<>();
-                    map.put("codigo", String.valueOf(valor));
-                    map.put("nombre", String.valueOf(valor));
+                    map.put("codigo", valor); // puedes ajustar si quieres usar name() aquí
+                    map.put("nombre", valor);
                     return map;
                 })
                 .collect(Collectors.toList());
-        }
-    
-        return CategoriaEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
-    }
-
-    private List<Map<String, String>> obtenerContrataciones() {
-        return ContratacionEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
-    }
-
-    private List<Map<String, String>> obtenerDedicaciones() {
-        return DedicacionEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
-    }
-
-    private List<Map<String, String>> obtenerEstudios() {
-        return EstudiosEnum.getSelectOptions().stream()
-            .map(map -> map.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))))
-            .collect(Collectors.toList());
     }
 
     private List<Map<String, Object>> obtenerEstadoEtapasDesarrollo() {
@@ -163,5 +174,5 @@ public class CatalogoService {
                     preguntaMap.put("pregunta", pregunta.getPregunta());
                     return preguntaMap;
                 }).collect(Collectors.toList());
-    }    
+    }
 }

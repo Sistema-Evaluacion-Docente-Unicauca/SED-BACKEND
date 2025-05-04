@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +13,6 @@ import co.edu.unicauca.sed.api.domain.EstadoUsuario;
 import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.dto.RolDTO;
-import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.mapper.UsuarioMapper;
 import co.edu.unicauca.sed.api.repository.EstadoUsuarioRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
@@ -49,15 +45,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public ApiResponse<Page<Usuario>> obtenerTodos(String identificacion, String nombre, String facultad,
-                                                   String departamento, String categoria, String contratacion,
-                                                   String dedicacion, String estudios, String rol, String estado,
-                                                   Pageable pageable) {
+            String departamento, String categoria, String contratacion, String dedicacion, String estudios, 
+            String rol, String estado, String programa, Pageable pageable) {
         try {
             Page<Usuario> usuarios = usuarioRepository.findAll(
-                    UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento,
-                            categoria, contratacion, dedicacion, estudios, rol, estado),
-                    PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                            Sort.by("fechaCreacion").descending()));
+                UsuarioSpecification.byFilters(identificacion, nombre, facultad, departamento, categoria,
+                    contratacion, dedicacion, estudios, rol, estado, programa),
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),Sort.by("fechaCreacion").descending()));
             return new ApiResponse<>(200, "Usuarios encontrados correctamente.", usuarios);
         } catch (Exception e) {
             return new ApiResponse<>(500, "Error al recuperar los usuarios: " + e.getMessage(), null);

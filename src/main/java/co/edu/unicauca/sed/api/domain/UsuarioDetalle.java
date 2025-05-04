@@ -29,6 +29,9 @@ public class UsuarioDetalle {
     @Column(name = "DEPARTAMENTO")
     private String departamento;
 
+    @Column(name = "PROGRAMA")
+    private String programa;
+
     @Column(name = "CATEGORIA")
     private String categoria;
 

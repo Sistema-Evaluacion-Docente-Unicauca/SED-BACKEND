@@ -1,29 +1,21 @@
 package co.edu.unicauca.sed.api.enums;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import co.edu.unicauca.sed.api.utils.EnumUtils;
 
-public enum DepartamentoEnum {
+public enum DepartamentoEnum implements EnumUtils.ValorEnum {
     ELECTRONICA_INSTRUMENTACION_CONTROL("DEPARTAMENTO DE ELECTRONICA INSTRUMENTACION Y CONTROL"),
     TELEMATICA("DEPARTAMENTO DE TELEMATICA"),
     TELECOMUNICACIONES("DEPARTAMENTO DE TELECOMUNICACIONES"),
     SISTEMAS("DEPARTAMENTO DE SISTEMAS");
 
-    private final String nombre;
+    private final String valor;
 
-    DepartamentoEnum(String nombre) {
-        this.nombre = nombre;
+    DepartamentoEnum(String valor) {
+        this.valor = valor;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public static List<Map<String, String>> getSelectOptions() {
-        return Arrays.stream(DepartamentoEnum.values())
-            .map(depto -> Map.of("codigo", depto.getNombre(), "nombre", depto.getNombre()))
-            .collect(Collectors.toList());
+    @Override
+    public String getValor() {
+        return valor;
     }
 }
