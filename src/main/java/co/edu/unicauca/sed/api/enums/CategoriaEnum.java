@@ -1,27 +1,26 @@
 package co.edu.unicauca.sed.api.enums;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import co.edu.unicauca.sed.api.utils.EnumUtils;
 
-public enum CategoriaEnum {
+public enum CategoriaEnum implements EnumUtils.ValorEnum {
     ASOCIADO("ASOCIADO"),
-    TITULAR("TITULAR");
+    TITULAR("TITULAR"),
+    AUXILIAR("AUXILIAR"),
+    ASISTENTE("ASISTENTE"),
+    NINGUNO("NINGUNO"),
+    A("A"),
+    B("B"),
+    C("C"),
+    D("D");
 
-    private final String nombre;
+    private final String valor;
 
-    CategoriaEnum(String nombre) {
-        this.nombre = nombre;
+    CategoriaEnum(String valor) {
+        this.valor = valor;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public static List<Map<String, String>> getSelectOptions() {
-        return Arrays.stream(CategoriaEnum.values())
-            .map(categoria -> Map.of("codigo", categoria.getNombre(), "nombre", categoria.getNombre()))
-            .collect(Collectors.toList());
+    @Override
+    public String getValor() {
+        return valor;
     }
 }

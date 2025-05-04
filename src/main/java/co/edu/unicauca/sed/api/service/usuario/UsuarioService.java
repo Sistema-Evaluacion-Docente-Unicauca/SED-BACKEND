@@ -2,8 +2,6 @@ package co.edu.unicauca.sed.api.service.usuario;
 
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
-import co.edu.unicauca.sed.api.dto.UsuarioDTO;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -17,9 +15,9 @@ public interface UsuarioService {
      * Obtiene una lista de usuarios filtrados y paginados.
      */
     ApiResponse<Page<Usuario>> obtenerTodos(String identificacion, String nombre, String facultad,
-                                            String departamento, String categoria, String contratacion,
-                                            String dedicacion, String estudios, String rol, String estado,
-                                            Pageable pageable);
+            String departamento, String categoria, String contratacion,
+            String dedicacion, String estudios, String rol, String estado,
+            Pageable pageable);
 
     /**
      * Obtiene un usuario por su ID.

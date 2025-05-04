@@ -2,7 +2,6 @@ package co.edu.unicauca.sed.api.domain;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;

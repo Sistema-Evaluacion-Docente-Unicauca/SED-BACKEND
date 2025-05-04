@@ -1,8 +1,6 @@
 package co.edu.unicauca.sed.api.controller;
 
-import co.edu.unicauca.sed.api.domain.Rol;
 import co.edu.unicauca.sed.api.domain.Resolucion;
-import co.edu.unicauca.sed.api.service.RolService;
 import co.edu.unicauca.sed.api.service.proceso.ResolucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

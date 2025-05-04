@@ -11,21 +11,21 @@ import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
 public interface UsuarioDetalleRepository extends JpaRepository<UsuarioDetalle, Integer> {
 
   // Métodos para UsuarioDetalle
-  @Query("SELECT DISTINCT u.facultad FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.facultad FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctFacultad();
 
-  @Query("SELECT DISTINCT u.departamento FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.departamento FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctDepartamento();
 
   @Query("SELECT DISTINCT u.categoria FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctCategoria();
 
-  @Query("SELECT DISTINCT u.contratacion FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.contratacion FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctContratacion();
 
-  @Query("SELECT DISTINCT u.dedicacion FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.dedicacion FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctDedicacion();
 
-  @Query("SELECT DISTINCT u.estudios FROM UsuarioDetalle u")
+  @Query("SELECT DISTINCT u.estudios FROM UsuarioDetalle u WHERE u.categoria IS NOT NULL")
   List<String> findDistinctEstudios();
 }
