@@ -8,6 +8,7 @@ import co.edu.unicauca.sed.api.enums.DedicacionEnum;
 import co.edu.unicauca.sed.api.enums.DepartamentoEnum;
 import co.edu.unicauca.sed.api.enums.EstudiosEnum;
 import co.edu.unicauca.sed.api.enums.FacultadEnum;
+import co.edu.unicauca.sed.api.enums.ProgramaEnum;
 import co.edu.unicauca.sed.api.repository.RolRepository;
 import co.edu.unicauca.sed.api.repository.TipoActividadRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioDetalleRepository;
@@ -66,6 +67,7 @@ public class CatalogoService {
             catalogoDTO.setContrataciones(obtenerContrataciones());
             catalogoDTO.setDedicaciones(obtenerDedicaciones());
             catalogoDTO.setEstudios(obtenerEstudios());
+            catalogoDTO.setProgramas(obtenerProgramas());
             catalogoDTO.setEstadoEtapaDesarrollo(obtenerEstadoEtapasDesarrollo());
 
             // Obtener Roles
@@ -106,6 +108,10 @@ public class CatalogoService {
     
     private List<Map<String, String>> obtenerEstudios() {
         return obtenerValor(usuarioDetalleRepository.findDistinctEstudios(), EstudiosEnum.class);
+    }
+
+    private List<Map<String, String>> obtenerProgramas() {
+        return obtenerValor(usuarioDetalleRepository.findDistinctProgramas(), ProgramaEnum.class);
     }
     
     private List<Map<String, String>> obtenerValor(List<String> listaBD,
