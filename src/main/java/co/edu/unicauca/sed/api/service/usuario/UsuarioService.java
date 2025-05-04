@@ -14,10 +14,9 @@ public interface UsuarioService {
     /**
      * Obtiene una lista de usuarios filtrados y paginados.
      */
-    ApiResponse<Page<Usuario>> obtenerTodos(String identificacion, String nombre, String facultad,
-            String departamento, String categoria, String contratacion,
-            String dedicacion, String estudios, String rol, String estado,
-            Pageable pageable);
+    ApiResponse<Page<Usuario>> obtenerTodos(String identificacion, String nombre, String facultad, String departamento,
+            String categoria, String contratacion, String dedicacion, String estudios, String rol, String estado,
+            String programa, Pageable pageable);
 
     /**
      * Obtiene un usuario por su ID.
