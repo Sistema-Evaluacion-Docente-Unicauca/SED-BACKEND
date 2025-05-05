@@ -1,0 +1,18 @@
+package co.edu.unicauca.sed.api.service;
+import co.edu.unicauca.sed.api.dto.ApiResponse;
+import co.edu.unicauca.sed.api.dto.LaborDocenteRequestDTO;
+import co.edu.unicauca.sed.api.domain.LaborDocente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface LaborDocenteService {
+    ApiResponse<Page<LaborDocente>> listarTodos(Pageable pageable);
+
+    ApiResponse<LaborDocente> buscarPorId(Integer id);
+
+    ApiResponse<Void> guardar(LaborDocenteRequestDTO dto);
+
+    ApiResponse<LaborDocente> actualizar(Integer id, LaborDocenteRequestDTO dto);
+
+    ApiResponse<Void> eliminar(Integer id);
+}

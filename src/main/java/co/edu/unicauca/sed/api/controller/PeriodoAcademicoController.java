@@ -95,6 +95,7 @@ public class PeriodoAcademicoController {
         summary = "Obtener período académico activo",
         description = "Consulta el período académico que se encuentra actualmente activo."
     )
+
     public ResponseEntity<ApiResponse<PeriodoAcademico>> obtenerPeriodoAcademicoActivo() {
         ApiResponse<PeriodoAcademico> response = periodoAcademicoService.obtenerPeriodoAcademicoActivo();
         return ResponseEntity.status(response.getCodigo()).body(response);

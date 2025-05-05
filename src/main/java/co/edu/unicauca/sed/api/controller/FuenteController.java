@@ -70,7 +70,7 @@ public class FuenteController {
         try {
             if (allFiles != null) {
                 allFiles.forEach((key, file) -> logger.debug("   ➝ Archivo '{}' con tamaño {} bytes",
-                        file.getOriginalFilename(), file.getSize()));
+                    file.getOriginalFilename(), file.getSize()));
             } else {
                 logger.debug("📌 Parámetro [allFiles]: No se recibieron archivos adicionales.");
             }

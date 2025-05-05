@@ -93,13 +93,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuariosGuardados.add(usuarioRepository.save(usuario));
     
             } catch (RuntimeException e) {
-                String mensajeError = String.format("Usuario con identificación %s no fue guardado: %s",
-                        usuario.getIdentificacion(), e.getMessage());
+                String mensajeError = String.format("Usuario con identificación %s no fue guardado: %s", usuario.getIdentificacion(), e.getMessage());
                 LOGGER.warn(mensajeError);
                 errores.add(mensajeError);
             } catch (Exception e) {
-                String mensajeError = String.format("Error inesperado al guardar usuario %s: %s",
-                        usuario.getIdentificacion(), e.getMessage());
+                String mensajeError = String.format("Error inesperado al guardar usuario %s: %s", usuario.getIdentificacion(), e.getMessage());
                 LOGGER.error(mensajeError);
                 errores.add(mensajeError);
             }
