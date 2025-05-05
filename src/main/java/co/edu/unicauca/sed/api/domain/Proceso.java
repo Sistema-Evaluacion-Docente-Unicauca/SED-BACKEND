@@ -58,10 +58,6 @@ public class Proceso {
 
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
-    private List<Comentario> comentarios;
-
-    @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonManagedReference
     private List<Resolucion> resolucion;
 
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
