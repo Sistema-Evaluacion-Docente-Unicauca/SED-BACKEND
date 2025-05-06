@@ -50,10 +50,10 @@ public class EvaluacionEstudianteController {
             @RequestParam("data") String evaluacionJson,
             @RequestParam(value = "documentoFuente", required = false) MultipartFile documentoFuente,
             @RequestParam(value = "firmaEstudiante", required = false) MultipartFile firmaEstudiante) {
-        // Convertir JSON en DTO
+
         EvaluacionDocenteDTO dto = integrationService.convertirJsonAEvaluacion(evaluacionJson);
 
-        // 🔄 Guardar Evaluación con documentos
+        // Guardar Evaluación con documentos
         ApiResponse<Void> response = evaluacionEstudianteService.guardarEvaluacionDocente(dto, documentoFuente, firmaEstudiante);
 
         return ResponseEntity.status(response.getCodigo()).body(response);

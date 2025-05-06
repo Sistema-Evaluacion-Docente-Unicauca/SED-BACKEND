@@ -19,14 +19,14 @@ public class InformeAdministracionController {
 
     private final InformeAdministracionService informeAdministracionService;
 
-@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Void> guardar(
             @RequestPart("data") String dataJson,
             @RequestPart(value = "documentoAdministracion", required = false) MultipartFile documentoAdministracion) {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            InformeAdministracionFuenteDTO informeDTO = mapper.readValue(dataJson, InformeAdministracionFuenteDTO.class);
+            InformeAdministracionFuenteDTO informeDTO = mapper.readValue(dataJson,InformeAdministracionFuenteDTO.class);
 
             informeAdministracionService.guardar(informeDTO, documentoAdministracion);
 

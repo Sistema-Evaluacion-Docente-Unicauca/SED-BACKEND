@@ -5,11 +5,13 @@ import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.LaborDocenteRequestDTO;
 import co.edu.unicauca.sed.api.service.LaborDocenteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 
 @RestController
@@ -30,13 +32,18 @@ public class LaborDocenteController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Void>> guardarLaborDocente(
-            @RequestPart("data") LaborDocenteRequestDTO dto,
+    public ApiResponse<Void> guardar(
+            @RequestPart("data") String dataJson,
             @RequestPart("documento") MultipartFile documento) {
-    
-        dto.setDocumento(documento);
-        ApiResponse<Void> respuesta = laborDocenteService.guardar(dto);
-        return ResponseEntity.status(respuesta.getCodigo()).body(respuesta);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            LaborDocenteRequestDTO dto = mapper.readValue(dataJson, LaborDocenteRequestDTO.class);
+            dto.setDocumento(documento);
+            laborDocenteService.guardar(dto);
+            return new ApiResponse<>(200, "Labor docente guardada correctamente.", null);
+        } catch (Exception e) {
+            return new ApiResponse<>(400, "Error procesando la solicitud: " + e.getMessage(), null);
+        }
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -53,5 +60,10 @@ public class LaborDocenteController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
         return ResponseEntity.ok(laborDocenteService.eliminar(id));
+    }
+
+    @GetMapping("/descargar")
+    public ResponseEntity<Resource> descargarDocumento(@RequestParam("oidUsuario") Integer oidUsuario) {
+        return laborDocenteService.descargarDocumento(oidUsuario);
     }
 }

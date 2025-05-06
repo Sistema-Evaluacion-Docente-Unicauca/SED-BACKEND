@@ -11,14 +11,21 @@ import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService
 import co.edu.unicauca.sed.api.service.documento.FileService;
 import co.edu.unicauca.sed.api.utils.ArchivoUtils;
 import co.edu.unicauca.sed.api.utils.StringUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -152,5 +159,34 @@ public class LaborDocenteServiceImpl implements LaborDocenteService {
         laborDocente.setRutaDocumento(rutaArchivo.toString());
         laborDocente.setNombreDocumento(ArchivoUtils.extraerNombreArchivo(rutaArchivo.toString()));
         laborDocente.setFechaActualizacion(LocalDateTime.now());
+    }
+
+    @Override
+    public ResponseEntity<Resource> descargarDocumento(Integer oidUsuario) {
+        try {
+            LaborDocente laborDocente = laborDocenteRepository.findByUsuarioOidUsuario(oidUsuario)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "No se encontró la labor docente para el usuario con OID: " + oidUsuario));
+
+            Path archivoPath = Paths.get(laborDocente.getRutaDocumento());
+
+            if (!Files.exists(archivoPath)) {
+                throw new FileNotFoundException("El archivo no existe en la ruta: " + archivoPath);
+            }
+
+            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(archivoPath));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + archivoPath.getFileName().toString() + "\"");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(Files.size(archivoPath))
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
