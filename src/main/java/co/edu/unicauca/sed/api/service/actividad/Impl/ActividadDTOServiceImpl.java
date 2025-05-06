@@ -2,6 +2,7 @@ package co.edu.unicauca.sed.api.service.actividad.Impl;
 
 import co.edu.unicauca.sed.api.domain.Actividad;
 import co.edu.unicauca.sed.api.domain.Fuente;
+import co.edu.unicauca.sed.api.domain.LaborDocente;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.dto.AtributoDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
@@ -9,13 +10,17 @@ import co.edu.unicauca.sed.api.dto.RolDTO;
 import co.edu.unicauca.sed.api.dto.UsuarioDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadBaseDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadDTOEvaluador;
+import co.edu.unicauca.sed.api.repository.LaborDocenteRepository;
 import co.edu.unicauca.sed.api.service.EavAtributoService;
 import co.edu.unicauca.sed.api.service.actividad.ActividadDTOService;
 import co.edu.unicauca.sed.api.service.fuente.FuenteDTOService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +35,9 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
     private final FuenteDTOService fuenteDTOService;
     private final EavAtributoService eavAtributoService;
 
+    @Autowired
+    private LaborDocenteRepository laborDocenteRepository;
+
     public ActividadDTOServiceImpl(FuenteDTOService fuenteDTOService, EavAtributoService eavAtributoService) {
         this.fuenteDTOService = fuenteDTOService;
         this.eavAtributoService = eavAtributoService;
@@ -41,6 +49,16 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
 
         // Obtener los atributos dinámicos en formato AtributoDTO
         List<AtributoDTO> atributos = eavAtributoService.obtenerAtributosPorActividad(actividad);
+
+        // Verifica si hay LaborDocente en BD
+        Optional<LaborDocente> laborDocenteOpt = laborDocenteRepository.findByUsuarioAndPeriodoAcademico(
+                actividad.getProceso().getEvaluado(),
+                actividad.getProceso().getOidPeriodoAcademico());
+
+        // Determinar si tiene relación con LaborDocente
+        Integer idLabor = actividad.getIdLaborDocente();
+        Boolean esLabor = (idLabor != null);
+        Boolean archivoLaborDocente = laborDocenteOpt.isPresent();
 
         return new ActividadBaseDTO(
                 actividad.getOidActividad(),
@@ -57,7 +75,10 @@ public class ActividadDTOServiceImpl implements ActividadDTOService {
                 atributos,
                 evaluadorDTO,
                 actividad.getProceso().getEvaluado().getOidUsuario(),
-                actividad.getProceso().getEvaluador().getOidUsuario());
+                actividad.getProceso().getEvaluador().getOidUsuario(),
+                actividad.getIdLaborDocente(),
+                esLabor,
+                archivoLaborDocente);
     }
 
     @Override
