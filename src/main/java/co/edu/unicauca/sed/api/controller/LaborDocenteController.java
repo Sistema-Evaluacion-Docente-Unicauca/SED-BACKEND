@@ -46,17 +46,6 @@ public class LaborDocenteController {
         }
     }
 
-    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<LaborDocente>> actualizar(
-            @PathVariable Integer id,
-            @RequestPart("datos") LaborDocenteRequestDTO dto,
-            @RequestPart("documento") MultipartFile documento) {
-    
-        dto.setDocumento(documento);
-        ApiResponse<LaborDocente> response = laborDocenteService.actualizar(id, dto);
-        return ResponseEntity.status(response.getCodigo()).body(response);
-    }    
-
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
         return ResponseEntity.ok(laborDocenteService.eliminar(id));

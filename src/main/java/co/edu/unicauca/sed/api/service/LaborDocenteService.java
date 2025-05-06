@@ -14,8 +14,6 @@ public interface LaborDocenteService {
 
     ApiResponse<Void> guardar(LaborDocenteRequestDTO dto);
 
-    ApiResponse<LaborDocente> actualizar(Integer id, LaborDocenteRequestDTO dto);
-
     ApiResponse<Void> eliminar(Integer id);
 
     ResponseEntity<Resource> descargarDocumento(Integer oidUsuario);

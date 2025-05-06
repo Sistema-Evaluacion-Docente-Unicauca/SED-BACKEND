@@ -14,18 +14,16 @@ import co.edu.unicauca.sed.api.utils.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -38,7 +36,6 @@ public class LaborDocenteServiceImpl implements LaborDocenteService {
     private final LaborDocenteRepository laborDocenteRepository;
     private final co.edu.unicauca.sed.api.service.usuario.UsuarioService usuarioService;
     private final PeriodoAcademicoService periodoAcademicoService;
-
     private final FileService fileService;
 
     @Override
@@ -69,46 +66,37 @@ public class LaborDocenteServiceImpl implements LaborDocenteService {
         try {
             Usuario usuario = obtenerUsuario(dto.getOidUsuario());
             PeriodoAcademico periodo = obtenerPeriodoAcademico(dto.getOidPeriodoAcademico());
-            Path rutaArchivo = guardarArchivo(dto.getDocumento(), periodo, usuario);
-            LaborDocente laborDocente = construirLaborDocente(usuario, periodo, rutaArchivo);
-            laborDocenteRepository.save(laborDocente);
-            return new ApiResponse<>(200, "Labor docente guardada correctamente", null);
-        } catch (Exception e) {
-            log.error("❌ Error al guardar labor docente", e);
-            return new ApiResponse<>(500, "Error al guardar la labor docente", null);
-        }
-    }
 
-    @Override
-    public ApiResponse<LaborDocente> actualizar(Integer id, LaborDocenteRequestDTO dto) {
-        try {
-            LaborDocente laborDocente = laborDocenteRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Labor docente no encontrada"));
+            // Buscar si ya existe una labor docente para el usuario y el periodo
+            Optional<LaborDocente> laborExistenteOpt = laborDocenteRepository.findByUsuarioAndPeriodoAcademico(usuario, periodo);
+            LaborDocente laborDocente = laborExistenteOpt.orElseGet(LaborDocente::new);
 
-            // Eliminar el archivo anterior si existe
-            String rutaAnterior = laborDocente.getRutaDocumento();
-            if (rutaAnterior != null && !rutaAnterior.isEmpty()) {
-                fileService.eliminarArchivo(rutaAnterior);
+            // Eliminar archivo anterior si es diferente
+            if (laborExistenteOpt.isPresent()) {
+                String rutaAnterior = laborDocente.getRutaDocumento();
+
+                if (rutaAnterior != null && !rutaAnterior.isEmpty()) {
+                    fileService.eliminarArchivo(rutaAnterior);
+                    log.info("📁 Archivo anterior eliminado: {}", rutaAnterior);
+                }
             }
-
-            // Obtener usuario y período académico
-            Usuario usuario = obtenerUsuario(dto.getOidUsuario());
-            PeriodoAcademico periodo = obtenerPeriodoAcademico(dto.getOidPeriodoAcademico());
 
             // Guardar el nuevo archivo
             Path rutaArchivo = guardarArchivo(dto.getDocumento(), periodo, usuario);
 
-            // Actualizar la entidad LaborDocente
+            // Crear o actualizar entidad
             actualizarCamposLaborDocente(laborDocente, usuario, periodo, rutaArchivo);
-            laborDocenteRepository.save(laborDocente);
 
-            return new ApiResponse<>(200, "Labor docente actualizada correctamente", laborDocente);
-        } catch (IllegalArgumentException e) {
-            log.warn("⚠️ {}", e.getMessage());
-            return new ApiResponse<>(404, e.getMessage(), null);
+            if (!laborExistenteOpt.isPresent()) {
+                laborDocente.setFechaCreacion(LocalDateTime.now());
+            }
+
+            laborDocenteRepository.save(laborDocente);
+            return new ApiResponse<>(200, "Labor docente guardada correctamente", null);
+
         } catch (Exception e) {
-            log.error("❌ Error al actualizar labor docente", e);
-            return new ApiResponse<>(500, "Error al actualizar la labor docente", null);
+            log.error("❌ Error al guardar/actualizar labor docente", e);
+            return new ApiResponse<>(500, "Error al guardar la labor docente", null);
         }
     }
 
@@ -144,13 +132,6 @@ public class LaborDocenteServiceImpl implements LaborDocenteService {
         return fileService.guardarArchivo(
                 documento, periodo.getIdPeriodo(), nombreEvaluado, usuario.getUsuarioDetalle().getContratacion(),
                 usuario.getUsuarioDetalle().getDepartamento(), null, null, prefijo);
-    }
-
-    private LaborDocente construirLaborDocente(Usuario usuario, PeriodoAcademico periodo, Path rutaArchivo) {
-        LaborDocente laborDocente = new LaborDocente();
-        actualizarCamposLaborDocente(laborDocente, usuario, periodo, rutaArchivo);
-        laborDocente.setFechaCreacion(LocalDateTime.now());
-        return laborDocente;
     }
 
     private void actualizarCamposLaborDocente(LaborDocente laborDocente, Usuario usuario, PeriodoAcademico periodo, Path rutaArchivo) {
