@@ -169,7 +169,7 @@ public class FuenteServiceImpl implements FuenteService {
     
         Optional<Fuente> fuenteOpcional = Optional.of(fuente);
     
-        Path rutaAbsoluta = fuenteFileService.manejarArchivoFuente(
+        Path ruta = fuenteFileService.manejarArchivoFuente(
                 fuenteOpcional, 
                 documentoFuente, 
                 proceso.getOidPeriodoAcademico().getIdPeriodo().toString(),
@@ -181,10 +181,7 @@ public class FuenteServiceImpl implements FuenteService {
                 prefijo
         );
     
-        Path base = Path.of(rutaSubida).toAbsolutePath().normalize();
-        String rutaRelativa = base.relativize(rutaAbsoluta).toString();
-
-        return rutaRelativa;
+        return ruta.toString();
     }
 
     @Override
