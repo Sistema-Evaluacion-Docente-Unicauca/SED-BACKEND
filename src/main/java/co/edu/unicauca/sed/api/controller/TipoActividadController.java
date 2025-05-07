@@ -50,8 +50,8 @@ public class TipoActividadController {
 
     @GetMapping
     @Operation(summary = "Listar tipos de actividad", description = "Obtiene todos los tipos de actividad con paginación")
-    public ResponseEntity<Page<TipoActividad>> findAll(Pageable pageable) {
-        return ResponseEntity.ok(service.obtenerTodos(pageable));
+    public ResponseEntity<ApiResponse<Page<TipoActividad>>> buscarTodos(Pageable pageable) {
+        return ResponseEntity.ok(service.listarTodos(pageable));
     }
 
     @PutMapping("/{id}")

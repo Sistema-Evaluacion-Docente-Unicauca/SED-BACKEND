@@ -23,8 +23,9 @@ public class TipoActividadServiceImpl implements TipoActividadService {
     private TipoActividadRepository tipoActividadRepository;
 
     @Override
-    public Page<TipoActividad> obtenerTodos(Pageable pageable) {
-        return tipoActividadRepository.findAll(pageable);
+    public ApiResponse<Page<TipoActividad>> listarTodos(Pageable pageable) {
+        Page<TipoActividad> pagina = tipoActividadRepository.findAll(pageable);
+        return new ApiResponse<>(200, "Consulta realizada correctamente", pagina);
     }
 
     @Override
