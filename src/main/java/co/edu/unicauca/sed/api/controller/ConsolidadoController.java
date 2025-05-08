@@ -164,21 +164,24 @@ public class ConsolidadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
     @GetMapping("/historico-calificaciones")
-    public ResponseEntity<ApiResponse<List<HistoricoCalificacionesDTO>>> obtenerHistoricoCalificaciones(
-        @RequestParam(name = "periodos") List<Integer> periodos,
-        @RequestParam(name = "idUsuario", required = false) Integer idUsuario,
-        @RequestParam(name = "nombre", required = false) String nombre,
-        @RequestParam(name = "identificacion", required = false) String identificacion,
-        @RequestParam(name = "facultad", required = false) String facultad,
-        @RequestParam(name = "departamento", required = false) String departamento,
-        @RequestParam(name = "categoria", required = false) String categoria) {
+    public ResponseEntity<ApiResponse<Page<HistoricoCalificacionesDTO>>> obtenerHistoricoCalificaciones(
+            @RequestParam(name = "periodos") List<Integer> periodos,
+            @RequestParam(name = "idUsuario", required = false) Integer idUsuario,
+            @RequestParam(name = "nombre", required = false) String nombre,
+            @RequestParam(name = "identificacion", required = false) String identificacion,
+            @RequestParam(name = "facultad", required = false) String facultad,
+            @RequestParam(name = "departamento", required = false) String departamento,
+            @RequestParam(name = "categoria", required = false) String categoria,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
     
-        ApiResponse<List<HistoricoCalificacionesDTO>> response = consolidadoService.obtenerHistoricoCalificaciones(
-            periodos, idUsuario, nombre, identificacion, facultad, departamento, categoria
+        Pageable pageable = PageRequest.of(page, size);
+    
+        ApiResponse<Page<HistoricoCalificacionesDTO>> response = consolidadoService.obtenerHistoricoCalificaciones(
+                periodos, idUsuario, nombre, identificacion, facultad, departamento, categoria, pageable
         );
     
         return ResponseEntity.status(response.getCodigo()).body(response);
-    }
+    }    
 }

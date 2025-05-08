@@ -13,13 +13,15 @@ public class DocenteEvaluacionDTO {
     private String contratacion;
     private Float porcentajeEvaluacionCompletado;
     private String estadoConsolidado;
+    private Double totalAcumulado;
 
-    public DocenteEvaluacionDTO(Integer oidUsuario, String nombreDocente, String identificacion, String contratacion, float porcentajeEvaluacionCompletado, String estadoConsolidado) {
+    public DocenteEvaluacionDTO(Integer oidUsuario, String nombreDocente, String identificacion, String contratacion, float porcentajeEvaluacionCompletado, String estadoConsolidado, double totalAcumulado) {
         this.oidUsuario = oidUsuario;
         this.nombreDocente = nombreDocente;
         this.identificacion = identificacion;
         this.contratacion = contratacion;
         this.porcentajeEvaluacionCompletado = porcentajeEvaluacionCompletado;
         this.estadoConsolidado = estadoConsolidado;
+        this.totalAcumulado = totalAcumulado;
     }
 }

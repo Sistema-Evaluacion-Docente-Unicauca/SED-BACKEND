@@ -67,7 +67,7 @@ public interface ConsolidadoService {
 
     ApiResponse<List<InformacionConsolidadoDTO>> obtenerTodos();
 
-    ApiResponse<List<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
+    ApiResponse<Page<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
         List<Integer> periodos, Integer idUsuario, String nombre, String identificacion,
-        String facultad, String departamento, String categoria);
+        String facultad, String departamento, String categoria, Pageable pageable);
 }

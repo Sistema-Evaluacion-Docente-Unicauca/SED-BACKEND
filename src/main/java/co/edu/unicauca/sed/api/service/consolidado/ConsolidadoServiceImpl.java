@@ -296,35 +296,43 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse<List<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
+    public ApiResponse<Page<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
             List<Integer> periodos, Integer idUsuario, String nombre, String identificacion,
-            String facultad, String departamento, String categoria) {
-    
+            String facultad, String departamento, String categoria, Pageable pageable) {
+
         try {
             ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
             Specification<Consolidado> spec = specBuilder.byMultiplePeriodos(
-                idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria
-            );
-    
+                    idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria);
+
             List<Consolidado> consolidadoList = consolidadoRepository.findAll(spec);
-    
+
             if (consolidadoList.isEmpty()) {
-                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.", List.of());
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.",
+                        Page.empty());
             }
-    
+
+            // Agrupar por usuario
             Map<Integer, List<Consolidado>> agrupadoPorUsuario = consolidadoList.stream()
-                .collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
-    
-            List<HistoricoCalificacionesDTO> resultado = agrupadoPorUsuario.entrySet().stream()
-                .map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue()))
-                .filter(Objects::nonNull)
-                .toList();
-    
-            return new ApiResponse<>(200, "Histórico de calificaciones obtenido correctamente.", resultado);
-    
+                    .collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
+
+            List<HistoricoCalificacionesDTO> todos = agrupadoPorUsuario.entrySet().stream()
+                    .map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue()))
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            // Paginación manual
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), todos.size());
+            List<HistoricoCalificacionesDTO> paginados = (start < end) ? todos.subList(start, end) : List.of();
+
+            Page<HistoricoCalificacionesDTO> pageResult = new PageImpl<>(paginados, pageable, todos.size());
+
+            return new ApiResponse<>(200, "Histórico de calificaciones obtenido correctamente.", pageResult);
+
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al obtener histórico de calificaciones: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, "Error inesperado al obtener el histórico de calificaciones.", List.of());
+            return new ApiResponse<>(500, "Error inesperado al obtener el histórico de calificaciones.", Page.empty());
         }
     }
 }

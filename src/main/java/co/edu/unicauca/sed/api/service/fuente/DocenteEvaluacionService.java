@@ -9,13 +9,11 @@ import co.edu.unicauca.sed.api.mapper.DocenteEvaluacionMapper;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +29,9 @@ public class DocenteEvaluacionService {
 
     @Autowired
     private PeriodoAcademicoService periodoAcademicoService;
+
+    @Autowired
+    private DocenteEvaluacionMapper docenteEvaluacionMapper;
 
     /**
      * Obtener evaluaciones de docentes con filtros opcionales.
@@ -119,15 +120,12 @@ public class DocenteEvaluacionService {
 
     private List<DocenteEvaluacionDTO> mapearADocenteEvaluacionDTO(List<Usuario> evaluados, Integer periodoFinal) {
         return evaluados.stream()
-                .map(evaluado -> {
-                    List<Actividad> actividades = procesoRepository
-                            .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico(
-                                    evaluado.getOidUsuario(), periodoFinal)
-                            .stream()
-                            .flatMap(proceso -> proceso.getActividades().stream())
-                            .collect(Collectors.toList());
-                    return DocenteEvaluacionMapper.toDto(evaluado, actividades);
-                }).collect(Collectors.toList());
+            .map(evaluado -> {
+                List<Actividad> actividades = procesoRepository
+                    .findByEvaluado_OidUsuarioAndOidPeriodoAcademico_OidPeriodoAcademico( evaluado.getOidUsuario(), periodoFinal)
+                    .stream().flatMap(proceso -> proceso.getActividades().stream()).collect(Collectors.toList());
+                return docenteEvaluacionMapper.toDto(evaluado, actividades);
+            }).collect(Collectors.toList());
     }
 
 
