@@ -4,6 +4,7 @@ import co.edu.unicauca.sed.api.domain.Consolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.HistoricoCalificacionesDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import java.util.List;
@@ -65,4 +66,8 @@ public interface ConsolidadoService {
     ApiResponse<Void> delete(Integer oid);
 
     ApiResponse<List<InformacionConsolidadoDTO>> obtenerTodos();
+
+    ApiResponse<List<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
+        List<Integer> periodos, Integer idUsuario, String nombre, String identificacion,
+        String facultad, String departamento, String categoria);
 }

@@ -11,6 +11,7 @@ import co.edu.unicauca.sed.api.domain.Consolidado;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.HistoricoCalificacionesDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
@@ -102,8 +103,7 @@ public class ConsolidadoController {
     public ResponseEntity<ApiResponse<ConsolidadoDTO>> obtenerInformacionGeneral(
             @RequestParam Integer idEvaluado,
             @RequestParam(required = false) Integer periodoAcademico) {
-        ApiResponse<ConsolidadoDTO> response = consolidadoService.generarInformacionGeneral(idEvaluado,
-                periodoAcademico);
+        ApiResponse<ConsolidadoDTO> response = consolidadoService.generarInformacionGeneral(idEvaluado, periodoAcademico);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -133,7 +133,6 @@ public class ConsolidadoController {
             @RequestParam Integer idEvaluador,
             @RequestParam(required = false) Integer periodoAcademico,
             @RequestParam(required = false) String nota) {
-
         ApiResponse<ConsolidadoArchivoDTO> response = consolidadoService.aprobarConsolidado(idEvaluado, idEvaluador, periodoAcademico, nota);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
@@ -157,13 +156,29 @@ public class ConsolidadoController {
             ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(archivoPath));
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + archivoPath.getFileName().toString() + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource);
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + archivoPath.getFileName().toString() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
         } catch (IOException e) {
             logger.error("❌ [ERROR] No se pudo leer el archivo: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/historico-calificaciones")
+    public ResponseEntity<ApiResponse<List<HistoricoCalificacionesDTO>>> obtenerHistoricoCalificaciones(
+        @RequestParam(name = "periodos") List<Integer> periodos,
+        @RequestParam(name = "idUsuario", required = false) Integer idUsuario,
+        @RequestParam(name = "nombre", required = false) String nombre,
+        @RequestParam(name = "identificacion", required = false) String identificacion,
+        @RequestParam(name = "facultad", required = false) String facultad,
+        @RequestParam(name = "departamento", required = false) String departamento,
+        @RequestParam(name = "categoria", required = false) String categoria) {
+    
+        ApiResponse<List<HistoricoCalificacionesDTO>> response = consolidadoService.obtenerHistoricoCalificaciones(
+            periodos, idUsuario, nombre, identificacion, facultad, departamento, categoria
+        );
+    
+        return ResponseEntity.status(response.getCodigo()).body(response);
     }
 }

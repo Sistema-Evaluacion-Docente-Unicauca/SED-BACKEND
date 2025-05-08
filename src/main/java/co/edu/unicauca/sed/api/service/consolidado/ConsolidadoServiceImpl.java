@@ -4,7 +4,9 @@ import co.edu.unicauca.sed.api.domain.*;
 import co.edu.unicauca.sed.api.dto.ApiResponse;
 import co.edu.unicauca.sed.api.dto.ConsolidadoArchivoDTO;
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.HistoricoCalificacionesDTO;
 import co.edu.unicauca.sed.api.dto.BaseConsolidadoDataDTO;
+import co.edu.unicauca.sed.api.dto.CalificacionPorPeriodoDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.ActividadRepository;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -288,6 +291,40 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
         } catch (Exception e) {
             logger.error("❌ [ERROR] Error al obtener todos los consolidados: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al obtener los consolidados.", List.of());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<List<HistoricoCalificacionesDTO>> obtenerHistoricoCalificaciones(
+            List<Integer> periodos, Integer idUsuario, String nombre, String identificacion,
+            String facultad, String departamento, String categoria) {
+    
+        try {
+            ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
+            Specification<Consolidado> spec = specBuilder.byMultiplePeriodos(
+                idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria
+            );
+    
+            List<Consolidado> consolidadoList = consolidadoRepository.findAll(spec);
+    
+            if (consolidadoList.isEmpty()) {
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.", List.of());
+            }
+    
+            Map<Integer, List<Consolidado>> agrupadoPorUsuario = consolidadoList.stream()
+                .collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
+    
+            List<HistoricoCalificacionesDTO> resultado = agrupadoPorUsuario.entrySet().stream()
+                .map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue()))
+                .filter(Objects::nonNull)
+                .toList();
+    
+            return new ApiResponse<>(200, "Histórico de calificaciones obtenido correctamente.", resultado);
+    
+        } catch (Exception e) {
+            logger.error("❌ [ERROR] Error al obtener histórico de calificaciones: {}", e.getMessage(), e);
+            return new ApiResponse<>(500, "Error inesperado al obtener el histórico de calificaciones.", List.of());
         }
     }
 }
