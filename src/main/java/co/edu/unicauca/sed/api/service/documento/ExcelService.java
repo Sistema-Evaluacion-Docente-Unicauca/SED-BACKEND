@@ -1,6 +1,7 @@
 package co.edu.unicauca.sed.api.service.documento;
 
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
 import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 
@@ -264,6 +265,42 @@ public class ExcelService {
         } finally {
             workbook.close();
         }
-    }    
+    }
 
+    public ByteArrayOutputStream generarExcelEvaluacionDocente(List<DocenteEvaluacionDTO> data, String[] headers)
+            throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Evaluación Docente");
+
+            Row headerRow = sheet.createRow(0);
+            CellStyle headerStyle = crearEstiloTitulo(workbook);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIdx = 1;
+            for (DocenteEvaluacionDTO item : data) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(item.getNombreDocente());
+                row.createCell(1).setCellValue(item.getIdentificacion());
+                row.createCell(2).setCellValue(item.getContratacion());
+                row.createCell(3)
+                        .setCellValue(item.getPorcentajeEvaluacionCompletado() != null
+                                ? item.getPorcentajeEvaluacionCompletado()
+                                : 0);
+                row.createCell(4).setCellValue(item.getEstadoConsolidado());
+                row.createCell(5).setCellValue(item.getTotalAcumulado() != null ? item.getTotalAcumulado() : 0);
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            return out;
+        }
+    }
 }
