@@ -1,6 +1,6 @@
 spring:
   jackson:
-      time-zone: America/Bogota
+    time-zone: America/Bogota
   jpa:
     hibernate:
       naming:
@@ -28,9 +28,12 @@ spring:
 
 server:
   port: ${SERVER_PORT}
+  servlet:
+    context-path: /sed-back
 
 files:
   basePath: ${FILES_BASE_PATH}
+
 document:
   upload-dir: ${DOCUMENT_UPLOAD_DIR}
 
