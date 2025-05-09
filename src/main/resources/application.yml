@@ -8,6 +8,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: sed
   datasource:
     url: ${DESARROLLO_DATASOURCE_URL}
     username: ${DESARROLLO_DATASOURCE_USER}
