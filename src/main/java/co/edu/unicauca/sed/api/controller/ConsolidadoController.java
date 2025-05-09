@@ -16,6 +16,7 @@ import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 import co.edu.unicauca.sed.api.dto.actividad.ActividadPaginadaDTO;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.service.consolidado.ConsolidadoService;
+import co.edu.unicauca.sed.api.service.documento.ExcelService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,20 +46,15 @@ public class ConsolidadoController {
     @Autowired
     private ConsolidadoRepository consolidadoRepository;
 
+    @Autowired
+    private ExcelService excelService;
+
     @GetMapping("/obtener-todos")
     public ResponseEntity<ApiResponse<List<InformacionConsolidadoDTO>>> obtenerTodos() {
         ApiResponse<List<InformacionConsolidadoDTO>> response = consolidadoService.obtenerTodos();
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
-    /**
-     * Recupera todos los consolidados con soporte de paginación y ordenamiento.
-     *
-     * @param page           Número de página.
-     * @param size           Tamaño de página.
-     * @param ascendingOrder Orden ascendente o descendente.
-     * @return Página de Consolidado o mensaje de error.
-     */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<InformacionConsolidadoDTO>>> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -86,12 +83,6 @@ public class ConsolidadoController {
     public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer oidConsolidado,
             @RequestBody Consolidado consolidado) {
         ApiResponse<Void> response = consolidadoService.updateAllFromConsolidado(oidConsolidado, consolidado);
-        return ResponseEntity.status(response.getCodigo()).body(response);
-    }
-
-    @DeleteMapping("/{oid}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer oid) {
-        ApiResponse<Void> response = consolidadoService.delete(oid);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -164,6 +155,7 @@ public class ConsolidadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @GetMapping("/historico-calificaciones")
     public ResponseEntity<ApiResponse<Page<HistoricoCalificacionesDTO>>> obtenerHistoricoCalificaciones(
             @RequestParam(name = "periodos") List<Integer> periodos,
@@ -183,5 +175,24 @@ public class ConsolidadoController {
         );
     
         return ResponseEntity.status(response.getCodigo()).body(response);
-    }    
+    }
+
+    @GetMapping("/exportar-informacion-general")
+    public ResponseEntity<Resource> exportarConsolidadoExcel(
+            @RequestParam(defaultValue = "true") Boolean ascendingOrder,
+            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) Integer idUsuario,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String identificacion,
+            @RequestParam(required = false) String facultad,
+            @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String categoria) throws IOException {
+
+        ByteArrayResource excelResource = consolidadoService.generarExcel(ascendingOrder, idPeriodoAcademico, idUsuario, nombre, identificacion, facultad, departamento, categoria);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ConsolidadoResumen.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelResource);
+    }
 }

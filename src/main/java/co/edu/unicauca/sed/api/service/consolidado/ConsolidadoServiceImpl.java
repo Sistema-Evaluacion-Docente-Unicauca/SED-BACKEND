@@ -13,9 +13,7 @@ import co.edu.unicauca.sed.api.repository.ActividadRepository;
 import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
 import co.edu.unicauca.sed.api.repository.ProcesoRepository;
 import co.edu.unicauca.sed.api.repository.UsuarioRepository;
-import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import co.edu.unicauca.sed.api.service.actividad.*;
 import co.edu.unicauca.sed.api.service.documento.ExcelService;
 import co.edu.unicauca.sed.api.service.notificacion.NotificacionDocumentoService;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
@@ -26,10 +24,12 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -161,25 +161,6 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
     @Override
     @Transactional
-    public ApiResponse<Void> delete(Integer oid) {
-        try {
-            logger.info("🗑 Eliminando consolidado con OID: {}", oid);
-            if (!consolidadoRepository.existsById(oid)) {
-                return new ApiResponse<>(404, "Consolidado con ID " + oid + " no encontrado.", null);
-            }
-
-            consolidadoRepository.deleteById(oid);
-            logger.info("✅ [DELETE] Consolidado eliminado con ID: {}", oid);
-            return new ApiResponse<>(200, "Consolidado eliminado correctamente.", null);
-
-        } catch (Exception e) {
-            logger.error("❌ [ERROR] Error al eliminar consolidado con ID {}: {}", oid, e.getMessage(), e);
-            return new ApiResponse<>(500, "Error inesperado al eliminar el consolidado.", null);
-        }
-    }
-
-    @Override
-    @Transactional
     public ApiResponse<ConsolidadoDTO> generarInformacionGeneral(Integer idEvaluado, Integer idPeriodoAcademico) {
         try {
             BaseConsolidadoDataDTO baseData = consolidadoHelper.obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
@@ -302,8 +283,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
         try {
             ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
-            Specification<Consolidado> spec = specBuilder.byMultiplePeriodos(
-                    idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria);
+            Specification<Consolidado> spec = specBuilder.byMultiplePeriodos(idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria);
 
             List<Consolidado> consolidadoList = consolidadoRepository.findAll(spec);
 
@@ -313,13 +293,10 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             }
 
             // Agrupar por usuario
-            Map<Integer, List<Consolidado>> agrupadoPorUsuario = consolidadoList.stream()
-                    .collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
+            Map<Integer, List<Consolidado>> agrupadoPorUsuario = consolidadoList.stream().collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
 
             List<HistoricoCalificacionesDTO> todos = agrupadoPorUsuario.entrySet().stream()
-                    .map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue()))
-                    .filter(Objects::nonNull)
-                    .toList();
+                .map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue())).filter(Objects::nonNull).toList();
 
             // Paginación manual
             int start = (int) pageable.getOffset();
@@ -334,5 +311,38 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             logger.error("❌ [ERROR] Error al obtener histórico de calificaciones: {}", e.getMessage(), e);
             return new ApiResponse<>(500, "Error inesperado al obtener el histórico de calificaciones.", Page.empty());
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ByteArrayResource generarExcel(Boolean ascendingOrder,
+            Integer idPeriodoAcademico, Integer idUsuario, String nombre,
+            String identificacion, String facultad, String departamento,
+            String categoria) throws IOException {
+
+        List<InformacionConsolidadoDTO> data = buscarConsolidadosSinPaginacion(ascendingOrder, idPeriodoAcademico, idUsuario, nombre, identificacion, facultad, departamento, categoria);
+
+        String[] headers = { "Nombre", "Identificación", "Facultad", "Departamento", "Categoría", "Calificación" };
+
+        ByteArrayOutputStream excelStream = excelService.generarExcelInformacionConsolidado(data, headers);
+        return new ByteArrayResource(excelStream.toByteArray());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InformacionConsolidadoDTO> buscarConsolidadosSinPaginacion(Boolean ascendingOrder, Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria) {
+
+        boolean order = (ascendingOrder != null) ? ascendingOrder : true;
+        Sort sort = order ? Sort.by("fechaCreacion").ascending() : Sort.by("fechaCreacion").descending();
+
+        if (idPeriodoAcademico == null) {
+            idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
+        }
+
+        ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
+        Specification<Consolidado> specification = specBuilder.byFilters(idUsuario, nombre, identificacion, facultad, departamento, categoria, idPeriodoAcademico);
+
+        List<Consolidado> consolidadoList = consolidadoRepository.findAll(specification, sort);
+
+        return consolidadoList.stream().map(consolidadoHelper::convertirAInformacionDTO).toList();
     }
 }
