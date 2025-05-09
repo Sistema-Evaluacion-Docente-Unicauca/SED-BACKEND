@@ -17,7 +17,7 @@ public interface TipoActividadService {
      * @param pageable Configuración de la paginación.
      * @return Página de actividades disponibles.
      */
-    Page<TipoActividad> obtenerTodos(Pageable pageable);
+    ApiResponse<Page<TipoActividad>> listarTodos(Pageable pageable);
 
     /**
      * Busca un tipo de actividad por su identificador único (OID).

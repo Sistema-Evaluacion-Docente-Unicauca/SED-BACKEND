@@ -6,10 +6,12 @@ import co.edu.unicauca.sed.api.domain.Proceso;
 import co.edu.unicauca.sed.api.domain.Usuario;
 import co.edu.unicauca.sed.api.domain.UsuarioDetalle;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class BaseConsolidadoDataDTO {
     private Usuario evaluado;
     private UsuarioDetalle detalleUsuario;

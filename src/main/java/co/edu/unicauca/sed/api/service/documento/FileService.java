@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,18 +30,16 @@ public class FileService {
         return guardarArchivo(archivo, periodoAcademico, nombreEvaluado, contratacion, departamento, null, null, null);
     }
 
-    public Path guardarArchivo(MultipartFile archivo, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String nombreActividad, String idEvaluador, String prefijo)
-            throws IOException {
+    public Path guardarArchivo(MultipartFile archivo, String periodoAcademico, String nombreEvaluado, String contratacion, String departamento, String nombreActividad, String idEvaluador, String prefijo) throws IOException {
 
-        Path directorioPath = construirRutaDinamica(directorioSubida, periodoAcademico, departamento, contratacion, nombreEvaluado, nombreActividad);
+        String contratacionLimpia = limpiarNombre(contratacion);
+        String actividad = limpiarNombre(nombreActividad);
+
+        Path directorioPath = construirRutaDinamica(directorioSubida, periodoAcademico, departamento, contratacionLimpia, nombreEvaluado, actividad);
         Files.createDirectories(directorioPath);
-
         String nombreOriginal = archivo.getOriginalFilename();
-
         String segmentoEvaluador = (idEvaluador != null && !idEvaluador.isEmpty()) ? idEvaluador + "-" : "";
-        String nombreConPrefijo = (prefijo != null && !prefijo.isEmpty() && !nombreOriginal.startsWith(prefijo + "-"))
-                ? prefijo + "-" + segmentoEvaluador + nombreOriginal
-                : nombreOriginal;
+        String nombreConPrefijo = (prefijo != null && !prefijo.isEmpty() && !nombreOriginal.startsWith(prefijo + "-")) ? limpiarNombre(prefijo + "-" + segmentoEvaluador + nombreOriginal) : nombreOriginal;
 
         Path rutaDestino = directorioPath.resolve(nombreConPrefijo);
 
@@ -94,5 +93,13 @@ public class FileService {
         }
 
         return Paths.get(segmentosValidos.get(0), segmentosValidos.subList(1, segmentosValidos.size()).toArray(new String[0]));
+    }
+
+    private String limpiarNombre(String valor) {
+        return Optional.ofNullable(valor)
+            .orElse("")
+            .replaceAll("[\\\\/:*?\"<>|]", "_")
+            .replaceAll("\\s+", "_")
+            .trim();
     }
 }

@@ -13,6 +13,7 @@ public class CatalogoDTO {
     private List<Map<String, String>> contrataciones;
     private List<Map<String, String>> dedicaciones;
     private List<Map<String, String>> estudios;
+    private List<Map<String, String>> programas;
     private List<Map<String, Object>> roles;
     private List<Map<String, Object>> tipoActividades;
     private List<Map<String, Object>> preguntaEvaluacionDocente;

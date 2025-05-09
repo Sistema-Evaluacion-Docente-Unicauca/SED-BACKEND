@@ -86,6 +86,7 @@ public class UsuarioDetalleServiceImpl implements UsuarioDetalleService {
         detalle.setContratacion(stringUtils.safeToUpperCase(detalle.getContratacion()));
         detalle.setDedicacion(stringUtils.safeToUpperCase(detalle.getDedicacion()));
         detalle.setEstudios(stringUtils.safeToUpperCase(detalle.getEstudios()));
+        detalle.setPrograma(stringUtils.safeToUpperCase(detalle.getPrograma()));
     }
 
     /**
@@ -101,5 +102,6 @@ public class UsuarioDetalleServiceImpl implements UsuarioDetalleService {
         existente.setContratacion(recibido.getContratacion());
         existente.setDedicacion(recibido.getDedicacion());
         existente.setEstudios(recibido.getEstudios());
+        existente.setPrograma(recibido.getPrograma());
     }
 }

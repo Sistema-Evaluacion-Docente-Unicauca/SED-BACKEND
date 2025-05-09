@@ -1,7 +1,9 @@
 package co.edu.unicauca.sed.api.service.documento;
 
 import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
+import co.edu.unicauca.sed.api.dto.DocenteEvaluacionDTO;
 import co.edu.unicauca.sed.api.dto.FuenteDTO;
+import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -30,7 +32,8 @@ public class ExcelService {
             Sheet sheet = workbook.createSheet("Consolidado");
 
             int currentRow = llenarDatosPrincipales(sheet, consolidadoDTO);
-            crearEncabezados(sheet, currentRow++);
+            String[] headers = {"ACTIVIDAD", "HS", "%", "Fuente 1", "Fuente 2", "Promedio", "Acumula"};
+            crearEncabezados(sheet, currentRow++, headers, workbook);
 
             double totalHS = 0;
             double totalPorcentaje = 0;
@@ -211,16 +214,93 @@ public class ExcelService {
         return rowIndex;
     }
 
-    private void crearEncabezados(Sheet sheet, int rowNumber) {
+    private void crearEncabezados(Sheet sheet, int rowNumber, String[] headers, Workbook workbook) {
         Row headerRow = sheet.createRow(rowNumber);
-        CellStyle headerStyle = crearEstiloTitulo(sheet.getWorkbook());
-    
-        String[] headers = {"ACTIVIDAD", "HS", "%", "Fuente 1", "Fuente 2", "Promedio", "Acumula"};
+        CellStyle headerStyle = crearEstiloTitulo(workbook);
     
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
             cell.setCellStyle(headerStyle);
+        }
+    }
+
+    public ByteArrayOutputStream generarExcelInformacionConsolidado(List<InformacionConsolidadoDTO> data, String[] headers) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+    
+        try {
+            Sheet sheet = workbook.createSheet("Resumen Consolidado");
+    
+            // Crear encabezados
+            Row headerRow = sheet.createRow(0);
+            CellStyle headerStyle = crearEstiloTitulo(workbook);
+    
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+    
+            // Agregar datos
+            int rowIdx = 1;
+            for (InformacionConsolidadoDTO item : data) {
+                Row row = sheet.createRow(rowIdx++);
+    
+                row.createCell(0).setCellValue(item.getNombreDocente());
+                row.createCell(1).setCellValue(item.getNumeroIdentificacion());
+                row.createCell(2).setCellValue(item.getFacultad());
+                row.createCell(3).setCellValue(item.getDepartamento());
+                row.createCell(4).setCellValue(item.getCategoria());
+                row.createCell(5).setCellValue(item.getCalificacion() != null ? item.getCalificacion() : 0);
+            }
+    
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+    
+            workbook.write(out);
+            return out;
+    
+        } finally {
+            workbook.close();
+        }
+    }
+
+    public ByteArrayOutputStream generarExcelEvaluacionDocente(List<DocenteEvaluacionDTO> data, String[] headers)
+            throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Evaluación Docente");
+
+            Row headerRow = sheet.createRow(0);
+            CellStyle headerStyle = crearEstiloTitulo(workbook);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIdx = 1;
+            for (DocenteEvaluacionDTO item : data) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(item.getNombreDocente());
+                row.createCell(1).setCellValue(item.getIdentificacion());
+                row.createCell(2).setCellValue(item.getContratacion());
+                row.createCell(3)
+                        .setCellValue(item.getPorcentajeEvaluacionCompletado() != null
+                                ? item.getPorcentajeEvaluacionCompletado()
+                                : 0);
+                row.createCell(4).setCellValue(item.getEstadoConsolidado());
+                row.createCell(5).setCellValue(item.getTotalAcumulado() != null ? item.getTotalAcumulado() : 0);
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            return out;
         }
     }
 }

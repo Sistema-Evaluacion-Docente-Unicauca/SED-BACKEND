@@ -1,15 +1,9 @@
 package co.edu.unicauca.sed.api.service.consolidado;
 
 import co.edu.unicauca.sed.api.domain.*;
-import co.edu.unicauca.sed.api.dto.BaseConsolidadoDataDTO;
-import co.edu.unicauca.sed.api.dto.ConsolidadoDTO;
-import co.edu.unicauca.sed.api.dto.InformacionConsolidadoDTO;
-import co.edu.unicauca.sed.api.repository.ConsolidadoRepository;
-import co.edu.unicauca.sed.api.repository.ProcesoRepository;
-import co.edu.unicauca.sed.api.repository.UsuarioRepository;
-import co.edu.unicauca.sed.api.service.actividad.ActividadCalculoService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadQueryService;
-import co.edu.unicauca.sed.api.service.actividad.ActividadTransformacionService;
+import co.edu.unicauca.sed.api.dto.*;
+import co.edu.unicauca.sed.api.repository.*;
+import co.edu.unicauca.sed.api.service.actividad.*;
 import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -34,11 +28,8 @@ public class ConsolidadoHelper {
     private final ActividadQueryService actividadQueryService;
     private final ConsolidadoRepository consolidadoRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(ConsolidadoServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConsolidadoHelper.class);
 
-    /**
-     * Obtiene los datos base del consolidado sin actividades.
-     */
     public BaseConsolidadoDataDTO obtenerBaseConsolidado(Integer idEvaluado, Integer idPeriodoAcademico) {
         try {
             Usuario evaluado = usuarioRepository.findById(idEvaluado)
@@ -53,29 +44,25 @@ public class ConsolidadoHelper {
             }
 
             return new BaseConsolidadoDataDTO(
-                evaluado,
-                evaluado.getUsuarioDetalle(),
-                procesos.get(0).getOidPeriodoAcademico(),
-                procesos);
+                    evaluado,
+                    evaluado.getUsuarioDetalle(),
+                    procesos.get(0).getOidPeriodoAcademico(),
+                    procesos);
         } catch (EntityNotFoundException e) {
-            logger.warn("⚠️ [ERROR] {}", e.getMessage());
+            logger.warn("\u26a0\ufe0f [ERROR] {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            logger.error("❌ [ERROR] Error en obtenerBaseConsolidado: {}", e.getMessage(), e);
+            logger.error("\u274c [ERROR] Error en obtenerBaseConsolidado: {}", e.getMessage(), e);
             throw new RuntimeException("Error al obtener los datos base del consolidado.", e);
         }
     }
 
-    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico,
-            Pageable pageable) {
+    public ConsolidadoDTO generarConsolidadoConActividades(Integer idEvaluado, Integer idPeriodoAcademico, Pageable pageable) {
         BaseConsolidadoDataDTO baseData = obtenerBaseConsolidado(idEvaluado, idPeriodoAcademico);
         Page<Actividad> actividadPage = actividadQueryService.obtenerActividadesPorProcesosPaginadas(baseData.getProcesos(), pageable);
         return construirConsolidadoDesdeActividades(baseData, actividadPage);
     }
 
-    /**
-     * Aprobar un consolidado y generar el documento.
-     */
     public Integer guardarConsolidado(Consolidado consolidadoExistente, String nombreDocumento, String rutaDocumento, String nota, Double totalAcumulado) {
         actualizarDatosConsolidado(consolidadoExistente, nombreDocumento, rutaDocumento, nota, totalAcumulado);
         return consolidadoExistente.getOidConsolidado();
@@ -91,22 +78,18 @@ public class ConsolidadoHelper {
     }
 
     public String generarNombreDocumento(ConsolidadoDTO consolidadoDTO) {
-        return "Consolidado-" + consolidadoDTO.getPeriodoAcademico() + "-"
-                + consolidadoDTO.getNombreDocente().replace(" ", "_");
+        return String.format("Consolidado-%s-%s", consolidadoDTO.getPeriodoAcademico(), consolidadoDTO.getNombreDocente().replace(" ", "_"));
     }
 
-    public ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoDataDTO baseData,
-            Page<Actividad> actividadPage) {
+    public ConsolidadoDTO construirConsolidadoDesdeActividades(BaseConsolidadoDataDTO baseData, Page<Actividad> actividadPage) {
         List<Actividad> actividades = actividadPage.getContent();
         float totalHoras = calculoService.calcularTotalHoras(actividades);
-
-        Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService
-                .agruparActividadesPorTipo(actividades, totalHoras);
+        Map<String, List<Map<String, Object>>> actividadesPorTipo = transformacionService.agruparActividadesPorTipo(actividades, totalHoras);
         double totalPorcentaje = calculoService.calcularTotalPorcentaje(actividadesPorTipo);
         double totalAcumulado = calculoService.calcularTotalAcumulado(actividadesPorTipo);
 
-        ConsolidadoDTO consolidado = construirConsolidado(baseData.getEvaluado(), baseData.getDetalleUsuario(),
-                baseData.getPeriodoAcademico(),
+        ConsolidadoDTO consolidado = construirConsolidado(
+                baseData.getEvaluado(), baseData.getDetalleUsuario(), baseData.getPeriodoAcademico(),
                 actividadesPorTipo, totalHoras, totalPorcentaje, totalAcumulado);
 
         consolidado.setCurrentPage(actividadPage.getNumber());
@@ -141,19 +124,12 @@ public class ConsolidadoHelper {
     }
 
     public InformacionConsolidadoDTO convertirAInformacionDTO(Consolidado consolidado) {
-        InformacionConsolidadoDTO dto = new InformacionConsolidadoDTO();
-
         Usuario evaluado = consolidado.getProceso().getEvaluado();
         UsuarioDetalle detalle = evaluado.getUsuarioDetalle();
 
-        dto.setOidUsuario(evaluado.getOidUsuario());
-        dto.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
-        dto.setNumeroIdentificacion(evaluado.getIdentificacion());
-        dto.setFacultad(detalle.getFacultad());
-        dto.setDepartamento(detalle.getDepartamento());
-        dto.setCategoria(detalle.getCategoria());
-        dto.setTipoContratacion(detalle.getContratacion());
-        dto.setDedicacion(detalle.getDedicacion());
+        InformacionConsolidadoDTO dto = new InformacionConsolidadoDTO();
+        cargarDatosGenerales(evaluado, detalle, dto);
+
         dto.setCalificacion(consolidado.getCalificacion());
         dto.setNombreArchivo(consolidado.getNombredocumento());
         dto.setRutaArchivo(consolidado.getRutaDocumento());
@@ -162,4 +138,46 @@ public class ConsolidadoHelper {
 
         return dto;
     }
-}
+
+    public HistoricoCalificacionesDTO construirHistoricoDTO(Integer oidUsuario, List<Consolidado> consolidados) {
+        if (consolidados == null || consolidados.isEmpty()) return null;
+
+        Consolidado base = consolidados.get(0);
+        Usuario evaluado = base.getProceso().getEvaluado();
+        UsuarioDetalle detalle = evaluado.getUsuarioDetalle();
+
+        HistoricoCalificacionesDTO dto = new HistoricoCalificacionesDTO();
+        cargarDatosGenerales(evaluado, detalle, dto);
+
+        List<CalificacionPorPeriodoDTO> calificaciones = consolidados.stream()
+                .map(c -> new CalificacionPorPeriodoDTO(
+                        c.getProceso().getOidPeriodoAcademico().getOidPeriodoAcademico(),
+                        c.getCalificacion()))
+                .toList();
+
+        dto.setCalificacionesPorPeriodo(calificaciones);
+        return dto;
+    }
+
+    private void cargarDatosGenerales(Usuario evaluado, UsuarioDetalle detalle, Object dto) {
+        if (dto instanceof InformacionConsolidadoDTO info) {
+            info.setOidUsuario(evaluado.getOidUsuario());
+            info.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
+            info.setNumeroIdentificacion(evaluado.getIdentificacion());
+            info.setFacultad(detalle.getFacultad());
+            info.setDepartamento(detalle.getDepartamento());
+            info.setCategoria(detalle.getCategoria());
+            info.setTipoContratacion(detalle.getContratacion());
+            info.setDedicacion(detalle.getDedicacion());
+        } else if (dto instanceof HistoricoCalificacionesDTO hist) {
+            hist.setOidUsuario(evaluado.getOidUsuario());
+            hist.setNombreDocente(evaluado.getNombres() + " " + evaluado.getApellidos());
+            hist.setNumeroIdentificacion(evaluado.getIdentificacion());
+            hist.setFacultad(detalle.getFacultad());
+            hist.setDepartamento(detalle.getDepartamento());
+            hist.setCategoria(detalle.getCategoria());
+            hist.setTipoContratacion(detalle.getContratacion());
+            hist.setDedicacion(detalle.getDedicacion());
+        }
+    }
+} 

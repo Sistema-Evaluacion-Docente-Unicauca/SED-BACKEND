@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import java.util.List;
+import org.springframework.core.io.Resource;
 
 @RestController
 @RequestMapping("api/usuarios")
@@ -43,8 +48,11 @@ public class UsuarioController {
             @RequestParam(required = false) String estudios,
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String programa,
             Pageable pageable) {
-        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,departamento, categoria, contratacion, dedicacion, estudios, rol, estado, pageable);
+        ApiResponse<Page<Usuario>> response = usuarioService.obtenerTodos(identificacion, nombre, facultad,
+                departamento, categoria, contratacion,
+                dedicacion, estudios, rol, estado, programa, pageable);
         return ResponseEntity.status(response.getCodigo()).body(response);
     }
 
@@ -112,5 +120,24 @@ public class UsuarioController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error al obtener el usuario: " + e.getMessage(), null));
         }
+    }
+
+    @GetMapping("/exportar-evaluacion-docente-excel")
+    public ResponseEntity<Resource> exportarEvaluacionDocenteExcel(
+            @RequestParam(required = false) Integer idEvaluado,
+            @RequestParam(required = false) Integer idPeriodoAcademico,
+            @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String tipoContrato,
+            @RequestParam(required = false) String identificacion) throws IOException {
+
+        ByteArrayResource resource = docenteEvaluacionService.exportarEvaluacionDocenteExcel(
+                idEvaluado, idPeriodoAcademico, departamento, nombre, tipoContrato, identificacion);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=EvaluacionesDocentes.xlsx")
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(resource);
     }
 }

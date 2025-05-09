@@ -53,7 +53,6 @@ public class EvaluacionEstudianteServiceImpl implements EvaluacionEstudianteServ
     private static final Logger LOGGER = LoggerFactory.getLogger(EvaluacionEstudianteServiceImpl.class);
 
     private static final String PREFIJO_FUENTE_2 = "fuente-2";
-    private static final String PREFIJO_FIRMA = "firma";
 
     @Autowired
     private EvaluacionEstudianteRepository evaluacionEstudianteRepository;
