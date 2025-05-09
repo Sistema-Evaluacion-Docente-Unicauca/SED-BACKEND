@@ -33,6 +33,7 @@ public class ActividadBaseDTO {
     private Integer oidEvaluador;
     private Integer idLaborDocente;
     private Boolean esLaborDocente;
+    private Boolean archivoLaborDocente;
 
     // Constructor completo
     public ActividadBaseDTO(Integer oidActividad, TipoActividad tipoActividad, Integer oidProceso, Integer oidEstadoActividad,

@@ -5,6 +5,9 @@ import co.edu.unicauca.sed.api.service.periodo_academico.PeriodoAcademicoService
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
+import jakarta.persistence.criteria.Expression;
+import java.util.List;
+
 
 public class ConsolidadoSpecification {
 
@@ -71,6 +74,21 @@ public class ConsolidadoSpecification {
             spec = spec.and((root, query, criteriaBuilder) -> 
                 criteriaBuilder.equal(root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico"), idPeriodoAcademico)
             );
+        }
+
+        return spec;
+    }
+
+    public Specification<Consolidado> byMultiplePeriodos(Integer idUsuario, List<Integer> periodos, String nombre, String identificacion,
+            String facultad, String departamento, String categoria) {
+
+        Specification<Consolidado> spec = byFilters(idUsuario, nombre, identificacion, facultad, departamento, categoria, null);
+
+        if (periodos != null && !periodos.isEmpty()) {
+            spec = spec.and((root, query, cb) -> {
+                Expression<Integer> periodoPath = root.get("proceso").get("oidPeriodoAcademico").get("oidPeriodoAcademico");
+                return periodoPath.in(periodos);
+            });
         }
 
         return spec;

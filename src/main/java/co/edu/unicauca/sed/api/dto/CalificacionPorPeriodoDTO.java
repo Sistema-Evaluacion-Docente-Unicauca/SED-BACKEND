@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AtributoDTO {
-    private String codigoAtributo;
-    private String valor;
+public class CalificacionPorPeriodoDTO {
+    private Integer idPeriodoAcademico;
+    private Double calificacion;
 }

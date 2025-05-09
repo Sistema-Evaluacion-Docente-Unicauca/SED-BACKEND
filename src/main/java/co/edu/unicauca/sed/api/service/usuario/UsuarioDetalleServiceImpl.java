@@ -102,5 +102,6 @@ public class UsuarioDetalleServiceImpl implements UsuarioDetalleService {
         existente.setContratacion(recibido.getContratacion());
         existente.setDedicacion(recibido.getDedicacion());
         existente.setEstudios(recibido.getEstudios());
+        existente.setPrograma(recibido.getPrograma());
     }
 }
