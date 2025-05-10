@@ -122,7 +122,7 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/exportar-evaluacion-docente-excel")
+    @GetMapping("/exportar-evaluacion-docente")
     public ResponseEntity<Resource> exportarEvaluacionDocenteExcel(
             @RequestParam(required = false) Integer idEvaluado,
             @RequestParam(required = false) Integer idPeriodoAcademico,

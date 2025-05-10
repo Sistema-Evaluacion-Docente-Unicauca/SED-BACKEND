@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -298,10 +299,10 @@ public class ExcelService {
         Sheet sheet = workbook.createSheet("Histórico Calificaciones");
     
         // Obtener todos los periodos únicos ordenados
-        Set<Integer> periodosUnicos = datos.stream()
-            .flatMap(dto -> dto.getCalificacionesPorPeriodo().stream())
-            .map(CalificacionPorPeriodoDTO::getIdPeriodoAcademico)
-            .collect(Collectors.toCollection(TreeSet::new));
+        Set<String> periodosUnicos = datos.stream()
+                .flatMap(dto -> dto.getCalificacionesPorPeriodo().stream())
+                .map(CalificacionPorPeriodoDTO::getIdPeriodo)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     
         // Crear encabezados
         Row header = sheet.createRow(0);
@@ -312,8 +313,8 @@ public class ExcelService {
         header.createCell(col++).setCellValue("Departamento");
         header.createCell(col++).setCellValue("Categoria");
     
-        Map<Integer, Integer> colPorPeriodo = new HashMap<>();
-        for (Integer periodo : periodosUnicos) {
+        Map<String, Integer> colPorPeriodo = new HashMap<>();
+        for (String periodo : periodosUnicos) {
             header.createCell(col).setCellValue("Periodo " + periodo);
             colPorPeriodo.put(periodo, col++);
         }
@@ -332,8 +333,8 @@ public class ExcelService {
             row.createCell(c++).setCellValue(dto.getCategoria());
     
             for (CalificacionPorPeriodoDTO cal : dto.getCalificacionesPorPeriodo()) {
-                if (cal.getCalificacion() != null && colPorPeriodo.containsKey(cal.getIdPeriodoAcademico())) {
-                    int colPos = colPorPeriodo.get(cal.getIdPeriodoAcademico());
+                if (cal.getCalificacion() != null && colPorPeriodo.containsKey(cal.getIdPeriodo())) {
+                    int colPos = colPorPeriodo.get(cal.getIdPeriodo());
                     row.createCell(colPos).setCellValue(cal.getCalificacion());
                 }
             }

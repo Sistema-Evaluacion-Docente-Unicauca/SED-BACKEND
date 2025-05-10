@@ -152,6 +152,7 @@ public class ConsolidadoHelper {
         List<CalificacionPorPeriodoDTO> calificaciones = consolidados.stream()
                 .map(c -> new CalificacionPorPeriodoDTO(
                         c.getProceso().getOidPeriodoAcademico().getOidPeriodoAcademico(),
+                        c.getProceso().getOidPeriodoAcademico().getIdPeriodo(),
                         c.getCalificacion()))
                 .toList();
 
