@@ -155,6 +155,15 @@ public class ConsolidadoHelper {
                         c.getCalificacion()))
                 .toList();
 
+        // Calcular promedio
+        double promedio = calificaciones.stream()
+                .filter(c -> c.getCalificacion() != null)
+                .mapToDouble(CalificacionPorPeriodoDTO::getCalificacion)
+                .average()
+                .orElse(0);
+
+        dto.setPromedioGeneral(promedio);
+
         dto.setCalificacionesPorPeriodo(calificaciones);
         return dto;
     }

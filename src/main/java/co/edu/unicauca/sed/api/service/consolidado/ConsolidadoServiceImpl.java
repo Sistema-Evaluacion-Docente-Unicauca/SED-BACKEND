@@ -44,30 +44,18 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
     private static final Logger logger = LoggerFactory.getLogger(ConsolidadoServiceImpl.class);
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
-    private ProcesoRepository procesoRepository;
-    @Autowired
-    private ActividadRepository actividadRepository;
-    @Autowired
-    private ActividadCalculoService calculoService;
-    @Autowired
-    private ActividadTransformacionService transformacionService;
-    @Autowired
-    private PeriodoAcademicoService periodoAcademicoService;
-    @Autowired
-    private ActividadQueryService actividadQueryService;
-    @Autowired
-    private ExcelService excelService;
-    @Autowired
-    private ConsolidadoRepository consolidadoRepository;
-    @Autowired
-    private ProcesoService procesoService;
-    @Autowired
-    private NotificacionDocumentoService notificacionDocumentoService;
-    @Autowired
-    private ConsolidadoHelper consolidadoHelper;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private ProcesoRepository procesoRepository;
+    @Autowired private ActividadRepository actividadRepository;
+    @Autowired private ActividadCalculoService calculoService;
+    @Autowired private ActividadTransformacionService transformacionService;
+    @Autowired private PeriodoAcademicoService periodoAcademicoService;
+    @Autowired private ActividadQueryService actividadQueryService;
+    @Autowired private ExcelService excelService;
+    @Autowired private ConsolidadoRepository consolidadoRepository;
+    @Autowired private ProcesoService procesoService;
+    @Autowired private NotificacionDocumentoService notificacionDocumentoService;
+    @Autowired private ConsolidadoHelper consolidadoHelper;
 
     @Override
     @Transactional(readOnly = true)
@@ -288,8 +276,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
             List<Consolidado> consolidadoList = consolidadoRepository.findAll(spec);
 
             if (consolidadoList.isEmpty()) {
-                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.",
-                        Page.empty());
+                return new ApiResponse<>(204, "No se encontraron consolidados con los filtros aplicados.", Page.empty());
             }
 
             // Agrupar por usuario
@@ -344,5 +331,32 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
         List<Consolidado> consolidadoList = consolidadoRepository.findAll(specification, sort);
 
         return consolidadoList.stream().map(consolidadoHelper::convertirAInformacionDTO).toList();
+    }
+
+    public List<HistoricoCalificacionesDTO> obtenerHistoricoSinPaginacion(List<Integer> periodos, Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria) {
+
+        ConsolidadoSpecification specBuilder = new ConsolidadoSpecification(periodoAcademicoService);
+        Specification<Consolidado> spec = specBuilder.byMultiplePeriodos(idUsuario, periodos, nombre, identificacion, facultad, departamento, categoria);
+
+
+        List<Consolidado> consolidadoList = consolidadoRepository.findAll(spec);
+        if (consolidadoList.isEmpty())
+            return List.of();
+
+        // Agrupar por usuario
+        Map<Integer, List<Consolidado>> agrupadoPorUsuario = consolidadoList.stream().collect(Collectors.groupingBy(c -> c.getProceso().getEvaluado().getOidUsuario()));
+
+        return agrupadoPorUsuario.entrySet().stream().map(entry -> consolidadoHelper.construirHistoricoDTO(entry.getKey(), entry.getValue())).filter(Objects::nonNull).toList();
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ByteArrayResource generarExcelHistorico(List<Integer> periodos, Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria) throws IOException {
+
+        List<HistoricoCalificacionesDTO> data = obtenerHistoricoSinPaginacion(periodos, idUsuario, nombre, identificacion, facultad, departamento, categoria);
+
+        ByteArrayOutputStream stream = excelService.generarExcelHistorico(data);
+        return new ByteArrayResource(stream.toByteArray());
     }
 }
