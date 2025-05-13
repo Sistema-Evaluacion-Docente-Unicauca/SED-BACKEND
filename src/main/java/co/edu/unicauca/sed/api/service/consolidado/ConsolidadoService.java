@@ -40,8 +40,7 @@ public interface ConsolidadoService {
         List<Integer> periodos, Integer idUsuario, String nombre, String identificacion,
         String facultad, String departamento, String categoria, Pageable pageable);
 
-    ByteArrayResource generarExcel(Boolean ascendingOrder,
-            Integer idPeriodoAcademico, Integer idUsuario, String nombre,
-            String identificacion, String facultad, String departamento,
-            String categoria) throws IOException;
+    ByteArrayResource generarExcel(Boolean ascendingOrder, Integer idPeriodoAcademico, Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria) throws IOException;
+
+    public ByteArrayResource generarExcelHistorico(List<Integer> periodos, Integer idUsuario, String nombre, String identificacion, String facultad, String departamento, String categoria) throws IOException;
 }

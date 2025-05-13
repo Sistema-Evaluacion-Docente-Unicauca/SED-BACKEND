@@ -18,5 +18,6 @@ public class HistoricoCalificacionesDTO {
     private String categoria;
     private String tipoContratacion;
     private String dedicacion;
+    private Double promedioGeneral;
     private List<CalificacionPorPeriodoDTO> calificacionesPorPeriodo;
 }

@@ -195,4 +195,30 @@ public class ConsolidadoController {
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(excelResource);
     }
+
+    @GetMapping("/exportar-historico")
+    public ResponseEntity<ByteArrayResource> exportarHistoricoExcel(
+            @RequestParam List<Integer> periodos,
+            @RequestParam(required = false) Integer idUsuario,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String identificacion,
+            @RequestParam(required = false) String facultad,
+            @RequestParam(required = false) String departamento,
+            @RequestParam(required = false) String categoria) {
+        try {
+            ByteArrayResource recursoExcel = consolidadoService.generarExcelHistorico(
+                periodos, idUsuario, nombre, identificacion, facultad, departamento, categoria
+            );
+
+            return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=historico_calificaciones.xlsx")
+                .contentLength(recursoExcel.contentLength())
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(recursoExcel);
+
+        } catch (IOException e) {
+            logger.error("❌ [ERROR] No se pudo generar el archivo Excel: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
