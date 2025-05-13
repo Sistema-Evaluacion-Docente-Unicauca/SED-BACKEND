@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CalificacionPorPeriodoDTO {
     private Integer idPeriodoAcademico;
+    private String idPeriodo;
     private Double calificacion;
 }

@@ -152,8 +152,18 @@ public class ConsolidadoHelper {
         List<CalificacionPorPeriodoDTO> calificaciones = consolidados.stream()
                 .map(c -> new CalificacionPorPeriodoDTO(
                         c.getProceso().getOidPeriodoAcademico().getOidPeriodoAcademico(),
+                        c.getProceso().getOidPeriodoAcademico().getIdPeriodo(),
                         c.getCalificacion()))
                 .toList();
+
+        // Calcular promedio
+        double promedio = calificaciones.stream()
+                .filter(c -> c.getCalificacion() != null)
+                .mapToDouble(CalificacionPorPeriodoDTO::getCalificacion)
+                .average()
+                .orElse(0);
+
+        dto.setPromedioGeneral(promedio);
 
         dto.setCalificacionesPorPeriodo(calificaciones);
         return dto;
