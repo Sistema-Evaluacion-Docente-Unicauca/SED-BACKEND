@@ -27,6 +27,9 @@ public class FuenteNotificacionService {
     @Value("${notificacion.dias.max}")
     private int diasMax;
 
+    @Value("${notificacion.habilitada:false}")
+    private boolean notificacionHabilitada;
+
     public FuenteNotificacionService(FuenteRepository fuenteRepository,
                                      PeriodoAcademicoRepository periodoAcademicoRepository,
                                      ClienteNotificacion mensajeriaClient) {
@@ -66,14 +69,20 @@ public class FuenteNotificacionService {
             if (evaluador != null && evaluador.getCorreo() != null) {
                 String nombreActividad = fuente.getActividad().getNombreActividad();
 
-                mensajeriaClient.enviarNotificacion(
+                if (notificacionHabilitada) {
+                    mensajeriaClient.enviarNotificacion(
                         List.of(evaluador.getCorreo()),
                         String.format("Actividad '%s' sin diligenciar", nombreActividad),
                         String.format(
-                                "Estimado(a) %s %s, recuerde que tiene pendiente diligenciar la evaluación para la actividad '%s'.",
-                                evaluador.getNombres(),
-                                evaluador.getApellidos(),
-                                nombreActividad));
+                            "Estimado(a) %s %s, recuerde que tiene pendiente diligenciar la evaluación para la actividad '%s'.",
+                            evaluador.getNombres(),
+                            evaluador.getApellidos(),
+                            nombreActividad
+                        )
+                    );
+                } else {
+                    System.out.println("📭 Notificación no enviada (deshabilitada en configuración).");
+                }
             }
         }
     }
