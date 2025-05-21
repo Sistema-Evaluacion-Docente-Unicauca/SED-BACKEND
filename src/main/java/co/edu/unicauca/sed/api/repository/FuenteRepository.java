@@ -19,4 +19,15 @@ public interface FuenteRepository extends JpaRepository<Fuente, Integer> {
     List<Fuente> findByActividadOid(@Param("oidActividad") Integer oidActividad);
 
     Optional<Fuente> findByActividadAndTipoFuente(Actividad actividad, String tipoFuente);
+
+    @Query("""
+                SELECT f FROM Fuente f
+                WHERE f.estadoFuente.oidEstadoFuente = :estado
+                  AND f.tipoFuente = :tipo
+                  AND f.actividad.proceso.oidPeriodoAcademico.oidPeriodoAcademico = :oidPeriodo
+            """)
+    List<Fuente> findFuentesPendientesByTipoAndPeriodo(
+            @Param("estado") Integer estado,
+            @Param("tipo") String tipo,
+            @Param("oidPeriodo") Integer oidPeriodo);
 }
