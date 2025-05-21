@@ -23,6 +23,10 @@ spring:
   notification:
     service:
       url: ${NOTIFICATION_SERVICE_URL}
+    cron: ${NOTIFICACION_CRON:0 0 10 * * *}
+    dias:
+      min: ${NOTIFICACION_DIAS_MIN:0}
+      max: ${NOTIFICACION_DIAS_MAX:5}
   periodo-academico:
     api:
       url: ${PERIODO_ACADEMICO_API_URL}
