@@ -132,7 +132,7 @@ public class ActividadServiceImpl implements ActividadService {
             .collect(Collectors.toMap(EavAtributo::getNombre, Function.identity()));
 
         EstadoFuente estadoFuentePendiente = estadoFuenteRepository.findByNombreEstado("PENDIENTE")
-        .orElseThrow(() -> new IllegalArgumentException("Estado 'PENDIENTE' no encontrado."));
+            .orElseThrow(() -> new IllegalArgumentException("Estado 'PENDIENTE' no encontrado."));
 
         Integer idPeriodoAcademico = periodoAcademicoService.obtenerIdPeriodoAcademicoActivo();
 

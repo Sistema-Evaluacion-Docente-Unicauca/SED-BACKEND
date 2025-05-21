@@ -8,12 +8,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
+import co.edu.unicauca.sed.api.dto.EmailRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Cliente que se encarga de comunicarse con el microservicio de notificaciones,
@@ -53,21 +51,18 @@ public class ClienteNotificacion {
      */
     public void enviarNotificacion(List<String> correos, String asunto, String mensaje) {
         try {
-            // Construir el cuerpo de la solicitud
-            Map<String, Object> cuerpoSolicitud = new HashMap<>();
-            cuerpoSolicitud.put("correos", correos);
-            cuerpoSolicitud.put("asunto", asunto);
-            cuerpoSolicitud.put("mensaje", mensaje);
-            cuerpoSolicitud.put("documentos", Collections.emptyMap());
+            EmailRequest emailRequest = new EmailRequest();
+            emailRequest.setCorreos(correos);
+            emailRequest.setAsunto(asunto);
+            emailRequest.setMensaje(mensaje);
+            emailRequest.setDocumentos(Collections.emptyMap());
 
-            // Configurar cabeceras HTTP para forzar el uso de UTF-8
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(cuerpoSolicitud, headers);
+            HttpEntity<EmailRequest> requestEntity = new HttpEntity<>(emailRequest, headers);
 
-            // Enviar la solicitud POST al microservicio
             restTemplate.postForEntity(urlServicioNotificaciones, requestEntity, Void.class);
 
             logger.info("✅ Notificación enviada correctamente a: {}", correos);
