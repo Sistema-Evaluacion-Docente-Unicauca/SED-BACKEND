@@ -309,7 +309,7 @@ public class ConsolidadoServiceImpl implements ConsolidadoService {
 
         List<InformacionConsolidadoDTO> data = buscarConsolidadosSinPaginacion(ascendingOrder, idPeriodoAcademico, idUsuario, nombre, identificacion, facultad, departamento, categoria);
 
-        String[] headers = { "Nombre", "Identificación", "Facultad", "Departamento", "Categoría", "Calificación" };
+        String[] headers = { "Nombre", "Identificación", "Tipo Contrato", "Facultad", "Departamento", "Categoría", "Calificación" };
 
         ByteArrayOutputStream excelStream = excelService.generarExcelInformacionConsolidado(data, headers);
         return new ByteArrayResource(excelStream.toByteArray());

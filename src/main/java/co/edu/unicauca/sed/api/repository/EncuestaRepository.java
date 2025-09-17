@@ -11,5 +11,4 @@ import co.edu.unicauca.sed.api.domain.EvaluacionEstudiante;
 @Repository
 public interface EncuestaRepository extends JpaRepository<Encuesta, Integer> {
     Optional<Encuesta> findByEvaluacionEstudiante(EvaluacionEstudiante evaluacionEstudiante);
-
 }
