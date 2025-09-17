@@ -245,10 +245,11 @@ public class ExcelService {
 
                 row.createCell(0).setCellValue(item.getNombreDocente());
                 row.createCell(1).setCellValue(item.getNumeroIdentificacion());
-                row.createCell(2).setCellValue(item.getFacultad());
-                row.createCell(3).setCellValue(item.getDepartamento());
-                row.createCell(4).setCellValue(item.getCategoria());
-                row.createCell(5).setCellValue(item.getCalificacion() != null ? item.getCalificacion() : 0);
+                row.createCell(2).setCellValue(item.getTipoContratacion());
+                row.createCell(3).setCellValue(item.getFacultad());
+                row.createCell(4).setCellValue(item.getDepartamento());
+                row.createCell(5).setCellValue(item.getCategoria());
+                row.createCell(6).setCellValue(item.getCalificacion() != null ? item.getCalificacion() : 0);
             }
 
             for (int i = 0; i < headers.length; i++) {
@@ -309,6 +310,7 @@ public class ExcelService {
         int col = 0;
         header.createCell(col++).setCellValue("Nombre");
         header.createCell(col++).setCellValue("Identificación");
+        header.createCell(col++).setCellValue("Tipo Contrato");
         header.createCell(col++).setCellValue("Facultad");
         header.createCell(col++).setCellValue("Departamento");
         header.createCell(col++).setCellValue("Categoria");
@@ -328,6 +330,7 @@ public class ExcelService {
             int c = 0;
             row.createCell(c++).setCellValue(dto.getNombreDocente());
             row.createCell(c++).setCellValue(dto.getNumeroIdentificacion());
+            row.createCell(c++).setCellValue(dto.getTipoContratacion());
             row.createCell(c++).setCellValue(dto.getFacultad());
             row.createCell(c++).setCellValue(dto.getDepartamento());
             row.createCell(c++).setCellValue(dto.getCategoria());

@@ -30,8 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Implementación del servicio para el manejo de fuentes y sus archivos
- * asociados.
+ * Implementación del servicio para el manejo de fuentes y sus archivos asociados.
  */
 @Service
 public class FuenteServiceImpl implements FuenteService {

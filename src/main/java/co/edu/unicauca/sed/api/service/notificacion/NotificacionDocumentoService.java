@@ -46,13 +46,11 @@ public class NotificacionDocumentoService {
 
             if (jefeDepartamento.isPresent() && jefeDepartamento.get().getCorreo() != null) {
                 String asunto = notificacionTemplateService.construirAsuntoNotificacion(tipoDocumento, departamento);
-                String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador,
-                        evaluado, departamento);
+                String mensaje = notificacionTemplateService.construirMensajeNotificacion(tipoDocumento, evaluador, evaluado, departamento);
 
                 notificationClient.enviarNotificacion(Collections.singletonList(jefeDepartamento.get().getCorreo()), asunto, mensaje);
 
-                logger.info("✅ Notificación enviada al CPD {} ({}) sobre el documento: {}",
-                        departamento, jefeDepartamento.get().getCorreo(), tipoDocumento);
+                logger.info("✅ Notificación enviada al CPD {} ({}) sobre el documento: {}", departamento, jefeDepartamento.get().getCorreo(), tipoDocumento);
             } else {
                 logger.warn("⚠️ No se encontró CPD para el departamento: {}", departamento);
             }
