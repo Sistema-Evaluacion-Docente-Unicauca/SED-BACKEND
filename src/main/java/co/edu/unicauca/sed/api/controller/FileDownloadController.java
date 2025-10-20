@@ -32,6 +32,7 @@ public class FileDownloadController {
             @RequestParam(value = "oidUsuario", required = false) Integer oidUsuario,
             @RequestParam(defaultValue = "false") boolean esConsolidado) {
 
+        tipoContrato = limpiarParametro(tipoContrato);
         if (departamento != null && periodo == null) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Si se envía 'departamento', también se debe enviar 'periodo'.",null
             ));
@@ -71,5 +72,13 @@ public class FileDownloadController {
             return "Consolidado-" + periodo + ".xlsx";
         }
         return esConsolidado ? "Consolidados-" + periodo + ".zip" : "descarga_" + (periodo != null ? periodo : "all") + ".zip";
+    }
+
+    /**
+     * Limpia y normaliza los parámetros de texto: quita espacios y reemplaza por "_"
+     */
+    private String limpiarParametro(String valor) {
+        if (valor == null) return null;
+        return valor.trim().replaceAll("\\s+", "_");
     }
 }
